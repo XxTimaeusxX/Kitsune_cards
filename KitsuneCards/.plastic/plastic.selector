@@ -1,4 +1,0 @@
-repository "KitsuneCards 2025-09-18_11-03-58/KitsuneCards@2474086161376@cloud"
-  path "/"
-    br "/main"
-    co "/main"
