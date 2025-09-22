@@ -4,7 +4,7 @@
 PlayerSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 26
-  productGUID: e88fabf482d4a2e47a079e4008a272bd
+  productGUID: f3efaf978e9e3b341856e96280b70c1d
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
   AndroidEnableSustainedPerformanceMode: 0
@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: DefaultCompany
-  productName: KitsuneClash
+  productName: test3
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -682,14 +682,14 @@ PlayerSettings:
   apiCompatibilityLevelPerPlatform: {}
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: KitsuneClash
+  metroPackageName: test3
   metroPackageVersion: 
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
   metroCertificateIssuer: 
   metroCertificateNotAfter: 0000000000000000
-  metroApplicationDescription: KitsuneClash
+  metroApplicationDescription: test3
   wsaImages: {}
   metroTileShortName: 
   metroTileShowName: 0
@@ -759,10 +759,10 @@ PlayerSettings:
   apiCompatibilityLevel: 6
   activeInputHandler: 0
   windowsGamepadBackendHint: 0
-  cloudProjectId: 1f20085f-b1d7-4133-97f0-43239340fc45
+  cloudProjectId: 1041c383-bb25-459a-8284-ac9228d1bf13
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: KitsuneClash 2025-09-22_17-41-57
+  projectName: test3
   organizationId: blueacid7
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
