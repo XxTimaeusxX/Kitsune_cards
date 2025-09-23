@@ -12,9 +12,10 @@ public class CardDeckManager : MonoBehaviour
     public List<CardData> playerHand = new List<CardData>();
     [SerializeField]
     private List<CardData> discardDeck = new List<CardData>();
-    
+    public List<CardData> playerfield = new List<CardData>(); // public getter for discard pile
+
     //////////////////////////// event system
-    
+
     public event System.Action<CardData> OncardDiscard;
 
     //////////////////////////// assets and turns
