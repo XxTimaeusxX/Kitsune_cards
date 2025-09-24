@@ -21,16 +21,20 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
             CardUI.transform.localPosition = Vector3.zero; // Center in the field
             CardUI.transform.localScale = Vector3.one; // Reset scale
             var canvasGroup = CardUI.GetComponent<CanvasGroup>();
-            if(cardDeckManager != null)
+            if(canvasGroup != null)
             {
                 canvasGroup.blocksRaycasts = true;
             }
+            // Hide the draw button after playing a card to the field
+            if (cardDeckManager.handUIManager != null)
+                cardDeckManager.handUIManager.Hidebutton();
+
             // after player play card, end turn
             player.OndiscardCard(CardUI.cardData);
             if (handUIManager != null)
             {
                 handUIManager.UpdateHandUI(); // Update the hand UI after drawing cards
-            }
+            }          
         }
     }
 

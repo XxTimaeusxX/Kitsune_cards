@@ -38,7 +38,7 @@ public class Player : MonoBehaviour
     }
     public void OndiscardCard(CardData card)
     {
-        if (HasDrawn && !hasDiscarded)
+        if (HasDrawn||!HasDrawn && !hasDiscarded)
         {
             deckManager.DiscardCard(card);
             hasDiscarded = true;
