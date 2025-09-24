@@ -32,7 +32,7 @@ public class CardDeckManager : MonoBehaviour
         LoadcardsfromResources();
         ShuffleDeck();
         DisplayDeck();
-        DrawCard(3);
+        DrawCard(6);
         StartPlayerTurn();
       
       //  displayhand();
