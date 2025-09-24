@@ -36,9 +36,12 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
             canvasGroup.blocksRaycasts = true;
             canvasGroup.alpha = 1f;
         }
-        // Return to original parent if not dropped on a valid target
-        transform.SetParent(originalParent, true);
-        transform.position = originalPosition;
+        // snap back to hand panel if player doesnt place card on the player field
+        if(transform.parent == originalParent)
+        {
+            transform.position = originalPosition;
+        }
+        
     }
 
     void IDragHandler.OnDrag(PointerEventData eventData)
@@ -53,15 +56,5 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         this.cardData = cardData;
         GetComponentInChildren<TMPro.TMP_Text>().text = cardData.CardName;
     }
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

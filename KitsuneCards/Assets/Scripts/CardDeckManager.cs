@@ -6,7 +6,7 @@ public class CardDeckManager : MonoBehaviour
     /////////////////////////////deck features
     public int DeckHandSize;
     [SerializeField]
-    private HandUIManager handUIManager;
+    public HandUIManager handUIManager;
     public List<CardData> cards = new List<CardData>();
     [SerializeField]
     public List<CardData> playerHand = new List<CardData>();
@@ -41,6 +41,7 @@ public class CardDeckManager : MonoBehaviour
     }
     void LoadcardsfromResources()
     {
+        // here we are telling the method to clear list, then load all card data from resources/cards folder and add to list
         cards.Clear();
         CardData[] loadedCards = Resources.LoadAll<CardData>("Cards");
         cards.AddRange(loadedCards);
@@ -132,6 +133,10 @@ public class CardDeckManager : MonoBehaviour
             discardDeck.Add(card);
             Debug.Log($"Discarded Card: {card.CardName}");
             OncardDiscard?.Invoke(card); // Invoke the event if there are subscribers
+            if (handUIManager != null)
+            {
+                handUIManager.UpdateHandUI(); // Update the hand UI after discarding a card
+            }
         }
         else
         {

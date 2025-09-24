@@ -8,6 +8,7 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
     public Player player;
     public Transform playerfield;
     public CardDeckManager cardDeckManager;
+    private HandUIManager handUIManager;
     public void OnDrop(PointerEventData eventData)
     {
         Debug.Log("OnDrop fired on FieldCardCanvas");
@@ -23,6 +24,12 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
             if(cardDeckManager != null)
             {
                 canvasGroup.blocksRaycasts = true;
+            }
+            // after player play card, end turn
+            player.OndiscardCard(CardUI.cardData);
+            if (handUIManager != null)
+            {
+                handUIManager.UpdateHandUI(); // Update the hand UI after drawing cards
             }
         }
     }

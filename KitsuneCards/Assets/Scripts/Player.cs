@@ -9,8 +9,10 @@ public class Player : MonoBehaviour
     private bool hasDiscarded = false;
     public void PstartTurn()
     {
-        HasDrawn = deckManager.playerHand.Count > 0;
-        hasDiscarded = false;  
+        HasDrawn = false;
+        hasDiscarded = false;
+        if (deckManager.handUIManager != null)
+            deckManager.handUIManager.Showbutton();
         Debug.Log("Player now have draw and discard phases.");
         
     }
@@ -24,6 +26,9 @@ public class Player : MonoBehaviour
         {
             deckManager.OnbuttonDrawpress();
             HasDrawn = true;
+            if(deckManager.handUIManager != null)
+               deckManager.handUIManager.Hidebutton(); // Hide the draw button after drawing cards
+           
             Debug.Log("Player has drawn cards.");
         }
         else
