@@ -1,4 +1,5 @@
 
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "CardData", menuName = "Card")]
@@ -11,7 +12,13 @@ public class CardData : ScriptableObject
         Earth,
         ice,
     }
+  public List<int> damageValues = new List<int>(new int[] {10,20,30 }) ; // List to hold multiple damage values
+
+
+
     public string CardName;
     public int id;
+    public Sprite CharacterImage;
     public ElementType elementType;
+    
 }

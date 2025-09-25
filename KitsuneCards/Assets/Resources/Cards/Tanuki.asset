@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CardName: Tanuki
   id: 0
+  CharacterImage: {fileID: 21300000, guid: 2c9d49cbe681909438065be6505b2ce5, type: 3}
   elementType: 2

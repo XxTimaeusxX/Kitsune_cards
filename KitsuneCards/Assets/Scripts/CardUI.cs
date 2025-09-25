@@ -2,10 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     public CardData cardData;
+    public Image imageHolder; // Assign in Inspector
     private CanvasGroup canvasGroup;
     private Transform originalParent;
     private Vector3 originalPosition;
@@ -25,7 +27,7 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
             canvasGroup.alpha = 0.7f; // Optional: make card semi-transparent while dragging
         }
         // Optionally bring to front
-        transform.SetParent(transform.root, true);
+       // transform.SetParent(transform.root, true);
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -40,6 +42,8 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         if(transform.parent == originalParent)
         {
             transform.position = originalPosition;
+            transform.SetParent(originalParent, false);
+
         }
         
     }
@@ -50,11 +54,13 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         transform.position = eventData.position;
     }
 
-    public void Loadtext(CardData cardData)
+    public void LoadCard(CardData cardData)
     {
         // Initialize the card UI with card data (e.g., set text, images)
         this.cardData = cardData;
         GetComponentInChildren<TMPro.TMP_Text>().text = cardData.CardName;
+        imageHolder.sprite = cardData.CharacterImage;
     }
+    
 
 }

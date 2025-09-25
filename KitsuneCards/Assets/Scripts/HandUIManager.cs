@@ -35,24 +35,24 @@ public class HandUIManager : MonoBehaviour
         }
 
         int cardCount = CardDeckManager.playerHand.Count;
-        float spread = 30f; // degrees of spread for the whole hand
+        float spread = 28f; // degrees, how tilted the cards are
         float startAngle = -spread / 2f;
-        float radius = 300f; // distance from center
+       // float arcradius = 400f; // distance from center, how spread out the cards are
 
         // Create new card sprites for each card in the player's hand
-        for(int i = 0; i< CardDeckManager.playerHand.Count; i++)
+        for (int i = 0; i< CardDeckManager.playerHand.Count; i++)
         {
             var cardata = CardDeckManager.playerHand[i];
             var generatecards = Instantiate(Cardprefab, handpanel);
             // assign the card data name to text button
             var cardUI = generatecards.GetComponent<CardUI>();
-            cardUI.Loadtext(cardata);
-
+            cardUI.LoadCard(cardata);
+           
             //fan effect
             float angle = (cardCount > 1) ? startAngle + (spread / (cardCount - 1)) * i : 0f;
             generatecards.GetComponent<RectTransform>().anchoredPosition = new Vector2(
-                -Mathf.Sin(Mathf.Deg2Rad * angle) * radius,
-                Mathf.Abs(Mathf.Cos(Mathf.Deg2Rad * angle) * 40f)
+                -Mathf.Sin(Mathf.Deg2Rad * angle) * 2000f, // higher value more straight, lower value more curve
+                -Mathf.Abs(Mathf.Deg2Rad * angle) * 350f // 
             );
             generatecards.GetComponent<RectTransform>().rotation = Quaternion.Euler(0, 0, angle);
 
