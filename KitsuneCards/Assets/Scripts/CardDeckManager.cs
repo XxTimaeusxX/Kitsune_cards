@@ -113,7 +113,7 @@ public class CardDeckManager : MonoBehaviour
     {
         foreach (var cardData in playerHand)
         {
-            Debug.Log($" Card Name: {cardData.CardName}, Card Index: {cardData.id}, Attack Strength: {cardData.elementType}");
+            Debug.Log($" Card Name: {cardData.CardName}, Card Index: {cardData.CardName}, Attack Strength: {cardData.elementType}");
         }
     }
     void DisplayDeck()// display deck by looping through the list
@@ -121,7 +121,7 @@ public class CardDeckManager : MonoBehaviour
         // display card data
         foreach (var cardData in cards)
         {
-            Debug.Log($"Card Name: {cardData.CardName}, Card Index: {cardData.id}, Attack Strength: {cardData.elementType}");
+            Debug.Log($"Card Name: {cardData.CardName}, Card Index: {cardData.CardName}, Attack Strength: {cardData.elementType}");
 
         }
     }

@@ -17,7 +17,8 @@ public class CardData : ScriptableObject
 
 
     public string CardName;
-    public int id;
+    public int ManaCost; 
+    public int ElementDamage;
     public Sprite CharacterImage;
     public ElementType elementType;
     
