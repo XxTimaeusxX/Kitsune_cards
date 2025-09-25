@@ -12,7 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78af4056444373b49951af9c321bd0f0, type: 3}
   m_Name: SnowWomen
   m_EditorClassIdentifier: 
+  ManaAndEffect:
+  - ManaCost: 1
+    EffectDescription: Apply 2 DoT
+  - ManaCost: 2
+    EffectDescription: For next 2 turns, DoT applies +1 more
+  - ManaCost: 5
+    EffectDescription: Deal 8 damage
+  - ManaCost: 10
+    EffectDescription: Triple current DoT
   CardName: SnowWomen
-  id: 0
   CharacterImage: {fileID: 21300000, guid: b0068bcae22991141bc95c55fc1c4f14, type: 3}
-  elementType: 3
+  elementType: 1
+  selectedManaAndEffectIndex: 0
