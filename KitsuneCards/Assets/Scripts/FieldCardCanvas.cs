@@ -13,9 +13,12 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
     public void OnDrop(PointerEventData eventData)
     {
         Debug.Log("OnDrop fired on FieldCardCanvas");
+
         var CardUI = eventData.pointerDrag.GetComponent<CardUI>();
+       
         if (CardUI != null)
         {
+            
             cardDeckManager.playerHand.Remove(CardUI.cardData);
             cardDeckManager.playerfield.Add(CardUI.cardData); // Optionally add to a field list if needed
             CardUI.transform.SetParent(playerfield,false);
@@ -30,11 +33,14 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
             if (cardDeckManager.handUIManager != null)
                 cardDeckManager.handUIManager.Hidebutton();
 
+            PlayCard(CardUI);
+
             // after player play card, end turn
             player.OndiscardCard(CardUI.cardData);
             if (handUIManager != null)
             {
                 handUIManager.UpdateHandUI(); // Update the hand UI after drawing cards
+                
             }          
         }
     }

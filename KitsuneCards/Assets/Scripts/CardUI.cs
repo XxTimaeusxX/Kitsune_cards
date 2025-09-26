@@ -9,6 +9,7 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     public CardData cardData;
     public Image imageHolder; // Assign in Inspector
     private CanvasGroup canvasGroup;
+    public FieldCardCanvas fieldCardCanvas; // Assign in Inspector
     private Transform originalParent;
     private Vector3 originalPosition;
     void Awake()

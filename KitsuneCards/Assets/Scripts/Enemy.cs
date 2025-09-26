@@ -1,23 +1,42 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Enemy : MonoBehaviour, IDamageable, IDebuffable, IBuffable
 {
  public CardDeckManager deckManager;
     public int MaxHealth = 100;
     public int CurrentHealth = 100;
+    public TMP_Text enemyhealthText;
 
+    void Start()
+    {
+        UpdateEnemyHealthUI();
+    }
     public void StartEnemyTurn()
     {
         deckManager.StartCoroutine(EnemyTurnRoutine());
     }
    private IEnumerator EnemyTurnRoutine()
     {
+        yield return new WaitForSeconds(3f);
+        // Enemy attacks player for 5 damage
+        if (deckManager.player != null)
+        {
+            deckManager.player.TakeDamage(5);
+        }
         // Enemy turn logic here
         yield return new WaitForSeconds(1f); // Example wait time
         deckManager.OnEnemyEndTurn(); ;
+    }
+
+    public void UpdateEnemyHealthUI()
+    {
+        if (enemyhealthText != null)
+            enemyhealthText.text = $"Enemy Health: {CurrentHealth}/{MaxHealth}";
     }
     //////////// IDamageable ///////////////
     public void TakeDamage(int amount)

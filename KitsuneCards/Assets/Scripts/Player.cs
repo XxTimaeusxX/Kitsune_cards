@@ -1,13 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
 {
     public CardDeckManager deckManager;
     private bool HasDrawn= false;
     private bool hasDiscarded = false;
+
     public float currentHealth = 100;
+    public TMP_Text healthText;
+
+    void Start()
+    {
+        UpdateHealthUI();
+    }
     public void PstartTurn()
     {
         HasDrawn = false;
@@ -41,7 +50,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
     {
         if (HasDrawn||!HasDrawn && !hasDiscarded)
         {
-            deckManager.DiscardCard(card);
+           // deckManager.DiscardCard(card);
             hasDiscarded = true;
             Debug.Log("Player has discarded a card.");
             PendTurn();
@@ -52,6 +61,14 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
         }
     }
 
+    public void UpdateHealthUI()
+    {
+        if (healthText != null)
+        {
+            healthText.text = $"Health: {currentHealth}";
+            healthText.text = $"Player Health: {currentHealth}";
+        }
+    }
 
     ///////////// IBlockable///////////////
 
@@ -91,5 +108,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
     public void TakeDamage(int amount)
     {
         currentHealth -= amount;
+        UpdateHealthUI();
+        Debug.Log($"Player takes {amount} damage. Health: {currentHealth}");
     }
 }
