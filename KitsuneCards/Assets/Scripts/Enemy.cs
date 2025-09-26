@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class Enemy : MonoBehaviour
+public class Enemy : MonoBehaviour, IDamageable, IDebuffable, IBuffable
 {
  public CardDeckManager deckManager;
-
+    public int MaxHealth = 100;
+    public int CurrentHealth = 100;
 
     public void StartEnemyTurn()
     {
@@ -17,5 +18,53 @@ public class Enemy : MonoBehaviour
         // Enemy turn logic here
         yield return new WaitForSeconds(1f); // Example wait time
         deckManager.OnEnemyEndTurn(); ;
+    }
+    //////////// IDamageable ///////////////
+    public void TakeDamage(int amount)
+    { 
+            CurrentHealth -=  amount;
+            Debug.Log($"Boss takes {amount} damage. Health: {CurrentHealth}/{MaxHealth}");
+    }
+    ///////////// IDebuffable///////////////
+
+    public void ApplyDoT(int amount)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void ApplyDamageDebuff(int turns, float multiplier)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void LoseEnergy(int amount)
+    {
+        throw new System.NotImplementedException();
+    }
+    public void ApplyStun(int turns)
+    {
+        Debug.Log($"Boss is stunned for {turns} turns.");
+        // Implement stun logic here
+    }
+    public void ExtendDebuff(int turns)
+    {
+        Debug.Log($"Boss debuff extended by {turns} turns.");
+        // Implement debuff extension logic here
+    }
+    public void TripleDoT()
+    {
+        Debug.Log("Boss DoT effects are tripled.");
+        // Implement DoT tripling logic here
+    }
+
+    ///////////// IBuffable///////////////
+    public void BuffDoT(int turns, int bonusDoT)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void BuffAllEffects(int turns, float multiplier)
+    {
+        throw new System.NotImplementedException();
     }
 }

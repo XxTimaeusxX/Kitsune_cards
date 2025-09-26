@@ -8,6 +8,7 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
     public Player player;
     public Transform playerfield;
     public CardDeckManager cardDeckManager;
+    public CardAbilityManager abilityManager;
     private HandUIManager handUIManager;
     public void OnDrop(PointerEventData eventData)
     {
@@ -37,6 +38,18 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
             }          
         }
     }
+    // Call this when a card is dropped onto the field
+    public void PlayCard(CardUI cardUI)
+    {
+        if (abilityManager != null && cardUI != null)
+        {
+            abilityManager.ExecuteCardAbility(
+                cardUI.cardData,
+                cardDeckManager.enemy,
+                cardDeckManager.player
+            );
+            // Optionally: Remove card from hand, update field visuals, etc.
+        }
+    }
 
-   
 }

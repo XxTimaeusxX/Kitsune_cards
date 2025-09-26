@@ -11,6 +11,7 @@ public class HandUIManager : MonoBehaviour
     public Transform handpanel;
     public CardDeckManager CardDeckManager;
     public GameObject drawButton;
+    public CardAbilityManager abilityManager;
 
     private void OnEnable()
     {

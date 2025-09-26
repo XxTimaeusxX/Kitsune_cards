@@ -2,11 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
 {
     public CardDeckManager deckManager;
     private bool HasDrawn= false;
     private bool hasDiscarded = false;
+    public float currentHealth = 100;
     public void PstartTurn()
     {
         HasDrawn = false;
@@ -49,5 +50,46 @@ public class Player : MonoBehaviour
         {
             Debug.Log("Player has already discarded a card this turn.");
         }
+    }
+
+
+    ///////////// IBlockable///////////////
+
+    public void ApplyBlock(int blockamount)
+    {
+        Debug.Log($"Player gains {blockamount} block.");
+        // Implement block logic here
+    }
+    public void ApplyReflect(float reflectPercentage)
+    {
+        Debug.Log($"Player gains {reflectPercentage * 100}% reflect.");
+        // Implement reflect logic here
+    }
+    public void BuffBlock(int turns, float percentage)
+    {
+        Debug.Log($"Player's block is increased by {percentage * 100}% for the next {turns} turns.");
+        // Implement block buff logic here
+    }
+    ///////////// IBuffable///////////////
+
+    public void BuffDoT( int turns, int damagePerTurn)
+    {
+        Debug.Log($"Player is buffed with DoT for {turns} turns, taking {damagePerTurn} damage each turn.");
+        // Implement DoT buff logic here
+    }
+    public void BuffAllEffects(int turns, float percentage)
+    {
+        Debug.Log("Player's damage, DoT, block, and buffs are increased by 25% for the next 2 turns.");
+        // Implement buff logic here
+    }
+    public void ExtendDebuff(int turns)
+    {
+        Debug.Log($"debuff is extended for the next {turns} turns.");
+        // Implement debuff logic here
+    }
+    ///////////// IDamageable///////////////   
+    public void TakeDamage(int amount)
+    {
+        currentHealth -= amount;
     }
 }
