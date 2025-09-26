@@ -12,9 +12,60 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78af4056444373b49951af9c321bd0f0, type: 3}
   m_Name: Skeleton
   m_EditorClassIdentifier: 
-  damageValues: 0a000000140000001e000000
+  FireAbilities:
+  - ManaCost: 1
+    Type: 0
+    EffectDescription: Apply 2 DoT
+  - ManaCost: 2
+    Type: 2
+    EffectDescription: For next 2 turns, DoT applies +1 more
+  - ManaCost: 5
+    Type: 1
+    EffectDescription: Deal 8 damage
+  - ManaCost: 10
+    Type: 0
+    EffectDescription: Triple current DoT
+  WaterAbilities:
+  - ManaCost: 1
+    Type: 2
+    EffectDescription: add 1 additional turn to any current debuff to target
+  - ManaCost: 2
+    Type: 3
+    EffectDescription: Apply 4 block
+  - ManaCost: 5
+    Type: 0
+    EffectDescription: next 3 turns target deals 25% less damage
+  - ManaCost: 10
+    Type: 2
+    EffectDescription: "for next 2 turns, Damage dealt, DoT applied \r\n                                                                  
+      block applied, and buffs applied are 25 percent greater"
+  EarthAbilities:
+  - ManaCost: 1
+    Type: 1
+    EffectDescription: Deal 2 pts Damage
+  - ManaCost: 2
+    Type: 0
+    EffectDescription: Target Loses 3 energy
+  - ManaCost: 5
+    Type: 3
+    EffectDescription: Apply 12 block
+  - ManaCost: 10
+    Type: 1
+    EffectDescription: Deal 32 pts Damage and apply stun for 1 turn
+  AirAbilities:
+  - ManaCost: 1
+    Type: 3
+    EffectDescription: Apply 2 block
+  - ManaCost: 2
+    Type: 1
+    EffectDescription: deal 8 pts damage
+  - ManaCost: 5
+    Type: 2
+    EffectDescription: next 3 turns, target deals 25% less damage
+  - ManaCost: 10
+    Type: 3
+    EffectDescription: apply 24 block and reflect 25% of damage taken
   CardName: Skeleton
-  ManaCost: 0
-  ElementDamage: 0
   CharacterImage: {fileID: 0}
   elementType: 0
+  selectedManaAndEffectIndex: 0
