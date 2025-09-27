@@ -1,8 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.UIElements;
+using UnityEngine.SceneManagement;
 public class CardDeckManager : MonoBehaviour
 {
+    // Set your per-AP limits here (can be scaled up)
+    private readonly int oneAPLimit = 12;
+    private readonly int twoAPLimit = 9;
+    private readonly int fiveAPLimit = 6;
+    private readonly int tenAPLimit = 3;
+
     /////////////////////////////deck features
     public int DeckHandSize;
     [SerializeField]
@@ -21,6 +28,7 @@ public class CardDeckManager : MonoBehaviour
     //////////////////////////// assets and turns
     public Player player;
     public Enemy enemy;
+    public GameObject winPanel; // Assign in Inspector
     public enum TurnState
     {
         PlayerTurn,
@@ -32,7 +40,7 @@ public class CardDeckManager : MonoBehaviour
         LoadcardsfromResources();
         ShuffleDeck();
         DisplayDeck();
-        DrawCard(3);
+        DrawCard(8);
         StartPlayerTurn();
       
       //  displayhand();
@@ -42,22 +50,73 @@ public class CardDeckManager : MonoBehaviour
     void LoadcardsfromResources()
     {
         // here we are telling the method to clear list, then load all card data from resources/cards folder and add to list
-        cards.Clear();
+       // cards.Clear();
         CardData[] loadedCards = Resources.LoadAll<CardData>("Cards");
-        cards.AddRange(loadedCards);
+        // Helper: Add cards by AP and type
+        AddCardsByManaAndType(loadedCards, 1, AbilityType.Damage, oneAPLimit);
+        AddCardsByManaAndType(loadedCards, 2, AbilityType.Damage, twoAPLimit);
+        AddCardsByManaAndType(loadedCards, 5, AbilityType.Damage, fiveAPLimit);
+        AddCardsByManaAndType(loadedCards, 10, AbilityType.Damage, tenAPLimit);
+        // cards.AddRange(loadedCards);
 
+    }
+    private void AddCardsByManaAndType(CardData[] allCards, int mana, AbilityType type, int count)
+    {
+        // Gather all cards with at least one ability of the given mana and type
+        List<CardData> candidates = new List<CardData>();
+        foreach (var card in allCards)
+        {
+            bool hasDamage = false;
+            switch (card.elementType)
+            {
+                case CardData.ElementType.Fire:
+                    hasDamage = HasAbility(card.FireAbilities, mana, type);
+                    break;
+                case CardData.ElementType.Water:
+                    hasDamage = HasAbility(card.WaterAbilities, mana, type);
+                    break;
+                case CardData.ElementType.Earth:
+                    hasDamage = HasAbility(card.EarthAbilities, mana, type);
+                    break;
+                case CardData.ElementType.Air:
+                    hasDamage = HasAbility(card.AirAbilities, mana, type);
+                    break;
+            }
+            if (hasDamage)
+                candidates.Add(card);
+        }
+
+        // Add up to 'count' cards, cycling if needed
+        for (int i = 0; i < count; i++)
+        {
+            if (candidates.Count == 0) break;
+            cards.Add(candidates[i % candidates.Count]);
+        }
+    }
+
+    private bool HasAbility(List<ManaCostandEffect> abilities, int mana, AbilityType type)
+    {
+        foreach (var ab in abilities)
+            if (ab.ManaCost == mana && ab.Type == type)
+                return true;
+        return false;
     }
     public void StartPlayerTurn()
     {
+        player.StartTurnMana();
         currentTurn = TurnState.PlayerTurn;
         Debug.Log("Player's Turn Started");
         player.PstartTurn();
+        
         // Player turn logic here
     }
     public void StartEnemyturn()
     {
         currentTurn = TurnState.EnemyTurn;
         enemy.StartEnemyTurn();
+        if (handUIManager != null)
+            handUIManager.HideEndTurnButton();
+            handUIManager.Hidebutton();
         Debug.Log("Enemy's Turn Started");
         // Enemy turn logic here
     }
@@ -71,7 +130,12 @@ public class CardDeckManager : MonoBehaviour
         Debug.Log("Enemy's Turn Ended");
         StartPlayerTurn();
     }
-   
+    public void OnPlayerWin()
+    {
+        if (winPanel != null)
+            winPanel.SetActive(true);
+        // Optionally: Stop further game input, etc.
+    }
     void ShuffleDeck()
     {
         // shuffle card data
@@ -87,6 +151,10 @@ public class CardDeckManager : MonoBehaviour
     {
         DrawCard(DeckHandSize);
         displayhand();
+    }
+    public void OnReplayButtonPressed()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
     void DrawCard(int count)
     {

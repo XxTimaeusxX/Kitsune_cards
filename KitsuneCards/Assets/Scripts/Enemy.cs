@@ -10,7 +10,9 @@ public class Enemy : MonoBehaviour, IDamageable, IDebuffable, IBuffable
  public CardDeckManager deckManager;
     public int MaxHealth = 100;
     public int CurrentHealth = 100;
+  
     public TMP_Text enemyhealthText;
+    public Slider enemyHealthBar;
 
     void Start()
     {
@@ -35,14 +37,25 @@ public class Enemy : MonoBehaviour, IDamageable, IDebuffable, IBuffable
 
     public void UpdateEnemyHealthUI()
     {
-        if (enemyhealthText != null)
-            enemyhealthText.text = $"Enemy Health: {CurrentHealth}/{MaxHealth}";
+        if (enemyhealthText != null) enemyhealthText.text = $"{CurrentHealth}/{MaxHealth}";
+        if(enemyHealthBar != null) enemyHealthBar.maxValue = MaxHealth; enemyHealthBar.value = CurrentHealth;
+
     }
     //////////// IDamageable ///////////////
     public void TakeDamage(int amount)
     { 
             CurrentHealth -=  amount;
-            Debug.Log($"Boss takes {amount} damage. Health: {CurrentHealth}/{MaxHealth}");
+            UpdateEnemyHealthUI();
+        Debug.Log($"Boss takes {amount} damage. Health: {CurrentHealth}/{MaxHealth}");
+        if(CurrentHealth <= 0)
+        {
+          if (deckManager != null)
+            {
+                deckManager.OnPlayerWin();
+            }
+            
+        }
+
     }
     ///////////// IDebuffable///////////////
 

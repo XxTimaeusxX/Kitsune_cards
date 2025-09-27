@@ -68,4 +68,4 @@ MonoBehaviour:
   CardName: FlameWheel
   CharacterImage: {fileID: 21300000, guid: dcd8d413705bcd949bf1bac0f988a24b, type: 3}
   elementType: 0
-  selectedManaAndEffectIndex: 0
+  selectedManaAndEffectIndex: 2

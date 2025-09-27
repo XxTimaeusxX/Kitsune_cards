@@ -11,6 +11,7 @@ public class HandUIManager : MonoBehaviour
     public Transform handpanel;
     public CardDeckManager CardDeckManager;
     public GameObject drawButton;
+    public GameObject endTurnButton;
     public CardAbilityManager abilityManager;
 
     private void OnEnable()
@@ -65,6 +66,8 @@ public class HandUIManager : MonoBehaviour
     {
         if(drawButton != null)
            drawButton.SetActive(true);  
+        if(endTurnButton != null)
+            endTurnButton.SetActive(true);
     }
     /// hide the button when player draws card
     public void Hidebutton()
@@ -72,5 +75,15 @@ public class HandUIManager : MonoBehaviour
         if (drawButton != null)
             drawButton.SetActive(false);
     }
+    public void HideEndTurnButton()
+    {
+        if (endTurnButton != null)
+            endTurnButton.SetActive(false);
+    }
 
+    public void OnEndTurnButtonPressed()
+    {
+        player.PendTurn();
+        HideEndTurnButton();
+    }
 }

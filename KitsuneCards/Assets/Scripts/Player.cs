@@ -10,12 +10,20 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
     private bool HasDrawn= false;
     private bool hasDiscarded = false;
 
+    public float PlayerMaxHealth = 100;
     public float currentHealth = 100;
     public TMP_Text healthText;
+    public Slider Healthbar;
+    public int maxMana = 2;
+    public int currentMana = 2;
+    public TMP_Text manaText;
+    public Slider Manabar;
 
     void Start()
     {
+        
         UpdateHealthUI();
+        UpdateManaUI();
     }
     public void PstartTurn()
     {
@@ -63,13 +71,36 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
 
     public void UpdateHealthUI()
     {
-        if (healthText != null)
-        {
-            healthText.text = $"Health: {currentHealth}";
-            healthText.text = $"Player Health: {currentHealth}";
-        }
+        if (healthText != null) healthText.text = $"{currentHealth}/{PlayerMaxHealth}";
+        if (Healthbar != null) Healthbar.maxValue = PlayerMaxHealth; Healthbar.value = currentHealth;
+    }
+    public void UpdateManaUI()
+    {
+        if (manaText != null) manaText.text = $"{currentMana}/{maxMana}";
+        if(Manabar !=null)Manabar.maxValue = maxMana; Manabar.value = currentMana;
+
+    }
+    ///////////// mana phases ///////////////
+    public void StartTurnMana()
+    {
+        // Example: gain 1 mana per turn, up to maxMana
+        maxMana = Mathf.Min(maxMana +1, 20);
+        currentMana = maxMana; // For testing, set to max mana
+        UpdateManaUI();
     }
 
+    public void SpendMana(int amount)
+    {
+        currentMana -= amount;
+        UpdateManaUI();
+    }
+
+    public bool HasEnoughMana(int amount)
+    {
+        return currentMana >= amount;
+    }
+
+    
     ///////////// IBlockable///////////////
 
     public void ApplyBlock(int blockamount)
