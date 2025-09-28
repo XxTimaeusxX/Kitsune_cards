@@ -86,4 +86,13 @@ public class HandUIManager : MonoBehaviour
         player.PendTurn();
         HideEndTurnButton();
     }
+    public void SetHandCardsInteractable(bool interactable)
+    {
+        foreach (Transform child in handpanel)
+        {
+            var cardUI = child.GetComponent<CardUI>();
+            if (cardUI != null)
+                cardUI.SetInteractable(interactable);
+        }
+    }
 }

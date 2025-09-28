@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
+using TMPro;
 public class CardDeckManager : MonoBehaviour
 {
     // Set your per-AP limits here (can be scaled up)
@@ -29,6 +30,7 @@ public class CardDeckManager : MonoBehaviour
     public Player player;
     public Enemy enemy;
     public GameObject winPanel; // Assign in Inspector
+    public TMP_Text resultText;
     public enum TurnState
     {
         PlayerTurn,
@@ -103,6 +105,8 @@ public class CardDeckManager : MonoBehaviour
     }
     public void StartPlayerTurn()
     {
+        GameTurnMessager.instance.ShowMessage("Player's Turn");
+        handUIManager.SetHandCardsInteractable(true);
         player.StartTurnMana();
         currentTurn = TurnState.PlayerTurn;
         Debug.Log("Player's Turn Started");
@@ -114,10 +118,12 @@ public class CardDeckManager : MonoBehaviour
     {
         currentTurn = TurnState.EnemyTurn;
         enemy.StartEnemyTurn();
+        handUIManager.SetHandCardsInteractable(false);
         if (handUIManager != null)
             handUIManager.HideEndTurnButton();
             handUIManager.Hidebutton();
         Debug.Log("Enemy's Turn Started");
+        GameTurnMessager.instance.ShowMessage("Enemy's Turn");
         // Enemy turn logic here
     }
     public void OnPlayerEndTurn()
@@ -134,7 +140,14 @@ public class CardDeckManager : MonoBehaviour
     {
         if (winPanel != null)
             winPanel.SetActive(true);
+        resultText.text = "Level Complete";
         // Optionally: Stop further game input, etc.
+    }
+    public void OnPlayerLose()
+    {
+        if (winPanel != null)
+            winPanel.SetActive(true);
+        resultText.text = "GameOver";
     }
     void ShuffleDeck()
     {

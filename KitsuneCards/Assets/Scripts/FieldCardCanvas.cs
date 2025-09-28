@@ -46,6 +46,7 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
             else
             {
                 Debug.Log($"Not enough mana to play {CardUI.cardData.CardName}.");
+                GameTurnMessager.instance.ShowMessage("Not enough mana!");
                 // Optionally: Snap card back to hand or show UI feedback
             }
         }
@@ -60,8 +61,12 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
                 cardDeckManager.enemy,
                 cardDeckManager.player
             );
+           
+           // cardDeckManager.playerfield.Remove(cardUI.cardData);
+            Destroy(cardUI.gameObject);
             // Optionally: Remove card from hand, update field visuals, etc.
         }
+        
     }
     public bool TryPlayCard(CardData card)
     {

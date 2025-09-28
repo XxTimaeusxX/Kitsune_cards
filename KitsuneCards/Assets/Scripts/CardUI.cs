@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -12,6 +13,10 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     public FieldCardCanvas fieldCardCanvas; // Assign in Inspector
     private Transform originalParent;
     private Vector3 originalPosition;
+
+    public TMP_Text cardNameText; // Assign in Inspector
+    public TMP_Text abilityText; // Assign in Inspector
+    public TMP_Text manacostText; // Assign in Inspector
     void Awake()
     {
         canvasGroup = GetComponent<CanvasGroup>();
@@ -59,9 +64,48 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     {
         // Initialize the card UI with card data (e.g., set text, images)
         this.cardData = cardData;
-        GetComponentInChildren<TMPro.TMP_Text>().text = cardData.CardName;
+        cardNameText.text = cardData.CardName;
         imageHolder.sprite = cardData.CharacterImage;
-    }
-    
 
+        // Get the selected ability for this card
+        ManaCostandEffect selectedAbility = new ManaCostandEffect();
+        bool hasAbility = false;
+        switch (cardData.elementType)
+        {
+            case CardData.ElementType.Fire:
+                selectedAbility = cardData.FireAbilities[cardData.selectedManaAndEffectIndex]; hasAbility = true;
+                break;
+            case CardData.ElementType.Water:
+                selectedAbility = cardData.WaterAbilities[cardData.selectedManaAndEffectIndex]; hasAbility = true;
+                break;
+            case CardData.ElementType.Earth:
+                selectedAbility = cardData.EarthAbilities[cardData.selectedManaAndEffectIndex]; hasAbility = true;
+                break;
+            case CardData.ElementType.Air:
+                selectedAbility = cardData.AirAbilities[cardData.selectedManaAndEffectIndex]; hasAbility = true;
+                break;
+        }
+        if (hasAbility)
+        {
+            manacostText.text = selectedAbility.ManaCost.ToString();
+            abilityText.text = selectedAbility.EffectDescription;
+        }
+        else
+        {
+            manacostText.text = "-";
+            abilityText.text = "No ability";
+        }
+    }
+
+    // In CardUI.cs
+    public void SetInteractable(bool interactable)
+    {
+        var cg = GetComponent<CanvasGroup>();
+        if (cg != null)
+        {
+            cg.interactable = interactable;
+            cg.blocksRaycasts = interactable;
+            cg.alpha = interactable ? 1f : 0.5f; // Optional: fade out when not interactable
+        }
+    }
 }

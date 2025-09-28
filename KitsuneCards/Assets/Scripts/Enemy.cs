@@ -21,17 +21,24 @@ public class Enemy : MonoBehaviour, IDamageable, IDebuffable, IBuffable
     public void StartEnemyTurn()
     {
         deckManager.StartCoroutine(EnemyTurnRoutine());
+        
     }
    private IEnumerator EnemyTurnRoutine()
     {
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2f);
+        GameTurnMessager.instance.ShowMessage("Enemy attacks for 5 damage!");
+        yield return new WaitForSeconds(2f);
+        
         // Enemy attacks player for 5 damage
         if (deckManager.player != null)
         {
+            
             deckManager.player.TakeDamage(5);
+            
         }
         // Enemy turn logic here
         yield return new WaitForSeconds(1f); // Example wait time
+        
         deckManager.OnEnemyEndTurn(); ;
     }
 
