@@ -67,5 +67,5 @@ MonoBehaviour:
     EffectDescription: apply 24 block and reflect 25% of damage taken
   CardName: Skeleton
   CharacterImage: {fileID: 0}
-  elementType: 0
-  selectedManaAndEffectIndex: 2
+  elementType: 3
+  selectedManaAndEffectIndex: 3

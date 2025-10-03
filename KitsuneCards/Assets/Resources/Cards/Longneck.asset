@@ -68,4 +68,4 @@ MonoBehaviour:
   CardName: LongNeck
   CharacterImage: {fileID: 21300000, guid: 02ca4d7f213204a45bc76c160a4215a6, type: 3}
   elementType: 2
-  selectedManaAndEffectIndex: 0
+  selectedManaAndEffectIndex: 2
