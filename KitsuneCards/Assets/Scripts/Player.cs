@@ -10,20 +10,29 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
     private bool HasDrawn= false;
     private bool hasDiscarded = false;
 
+    [Header("Health")]
     public float PlayerMaxHealth = 100;
     public float currentHealth = 100;
     public TMP_Text healthText;
     public Slider Healthbar;
+
+    [Header("Mana")]
     public int maxMana = 2;
     public int currentMana = 2;
     public TMP_Text manaText;
     public Slider Manabar;
+
+    [Header("Armor")]
+    public int armor = 0;
+    public TMP_Text armorText;
+    public GameObject armorIcon;
 
     void Start()
     {
         // call methods
         UpdateHealthUI();
         UpdateManaUI();
+        UpdateArmorUI();
     }
     public void PstartTurn()
     {
@@ -80,6 +89,11 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
         if(Manabar !=null)Manabar.maxValue = maxMana; Manabar.value = currentMana;
 
     }
+    public void UpdateArmorUI()
+    {
+        if (armorText != null) { armorText.text = armor.ToString();armorText.gameObject.SetActive(armor > 0); }
+        if (armorIcon != null) armorIcon.SetActive(armor > 0);
+    }
     ///////////// mana phases ///////////////
     public void StartTurnMana()
     {
@@ -105,6 +119,8 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
 
     public void ApplyBlock(int blockamount)
     {
+        armor += blockamount;
+        UpdateArmorUI();
         Debug.Log($"Player gains {blockamount} block.");
         // Implement block logic here
     }
@@ -138,8 +154,29 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
     ///////////// IDamageable///////////////   
     public void TakeDamage(int amount)
     {
-        currentHealth -= amount;
-        UpdateHealthUI();
+        int damageAfterArmor = amount;
+        if (armor > 0)
+        {
+            if (armor >= amount)
+            {
+                armor -= amount;
+                damageAfterArmor = 0;
+            }
+            else
+            {
+                damageAfterArmor -= armor;
+                armor = 0;
+            }
+            UpdateArmorUI();
+        }
+
+        if (damageAfterArmor > 0)
+        {
+            currentHealth -= damageAfterArmor;
+            UpdateHealthUI();
+        }
+        
+       
         Debug.Log($"Player takes {amount} damage. Health: {currentHealth}");
     }
 }

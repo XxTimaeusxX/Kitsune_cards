@@ -54,12 +54,33 @@ public class CardDeckManager : MonoBehaviour
         // here we are telling the method to clear list, then load all card data from resources/cards folder and add to list
        // cards.Clear();
         CardData[] loadedCards = Resources.LoadAll<CardData>("Cards");
-        // Helper: Add cards by AP and type
-        AddCardsByManaAndType(loadedCards, 1, AbilityType.Damage, oneAPLimit);
-        AddCardsByManaAndType(loadedCards, 2, AbilityType.Damage, twoAPLimit);
-        AddCardsByManaAndType(loadedCards, 5, AbilityType.Damage, fiveAPLimit);
-        AddCardsByManaAndType(loadedCards, 10, AbilityType.Damage, tenAPLimit);
-        // cards.AddRange(loadedCards);
+        // Define mana costs and their limits
+        var manaLimits = new (int mana, int limit)[]
+        {
+        (1, oneAPLimit),
+        (2, twoAPLimit),
+        (5, fiveAPLimit),
+        (10, tenAPLimit)
+        };
+        // Define all ability types you want to include
+        AbilityType[] abilityTypes = new AbilityType[]
+        {      
+          AbilityType.Block,
+
+            // Add more as needed
+        };
+        // Loop over all combinations
+        
+        
+            foreach (var type in abilityTypes)
+            {
+            foreach (var (mana, limit) in manaLimits)
+                {
+                    AddCardsByManaAndType(loadedCards, mana, type, limit);
+                }
+                
+            }
+        
 
     }
     private void AddCardsByManaAndType(CardData[] allCards, int mana, AbilityType type, int count)
@@ -68,24 +89,45 @@ public class CardDeckManager : MonoBehaviour
         List<CardData> candidates = new List<CardData>();
         foreach (var card in allCards)
         {
-            bool hasDamage = false;
+            bool hasAbilityOfType = false;
             switch (card.elementType)
             {
                 case CardData.ElementType.Fire:
-                    hasDamage = HasAbility(card.FireAbilities, mana, type);
+                    hasAbilityOfType = HasAbility(card.FireAbilities, mana, type);
                     break;
                 case CardData.ElementType.Water:
-                    hasDamage = HasAbility(card.WaterAbilities, mana, type);
+                    hasAbilityOfType = HasAbility(card.WaterAbilities, mana, type);
                     break;
                 case CardData.ElementType.Earth:
-                    hasDamage = HasAbility(card.EarthAbilities, mana, type);
+                    hasAbilityOfType = HasAbility(card.EarthAbilities, mana, type);
                     break;
                 case CardData.ElementType.Air:
-                    hasDamage = HasAbility(card.AirAbilities, mana, type);
+                    hasAbilityOfType = HasAbility(card.AirAbilities, mana, type);
                     break;
             }
-            if (hasDamage)
+            if (hasAbilityOfType)
+            {
+                // Find the correct index for the Block ability with the right mana
+                int abilityIndex = -1;
+                switch (card.elementType)
+                {
+                    case CardData.ElementType.Fire:
+                        abilityIndex = card.FireAbilities.FindIndex(ab => ab.ManaCost == mana && ab.Type == type);
+                        break;
+                    case CardData.ElementType.Water:
+                        abilityIndex = card.WaterAbilities.FindIndex(ab => ab.ManaCost == mana && ab.Type == type);
+                        break;
+                    case CardData.ElementType.Earth:
+                        abilityIndex = card.EarthAbilities.FindIndex(ab => ab.ManaCost == mana && ab.Type == type);
+                        break;
+                    case CardData.ElementType.Air:
+                        abilityIndex = card.AirAbilities.FindIndex(ab => ab.ManaCost == mana && ab.Type == type);
+                        break;
+                }
+                card.selectedManaAndEffectIndex = abilityIndex;
                 candidates.Add(card);
+            }
+
         }
 
         // Add up to 'count' cards, cycling if needed
