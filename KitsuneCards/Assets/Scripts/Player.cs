@@ -21,7 +21,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
 
     void Start()
     {
-        
+        // call methods
         UpdateHealthUI();
         UpdateManaUI();
     }
