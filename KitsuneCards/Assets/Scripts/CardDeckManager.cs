@@ -69,8 +69,8 @@ public class CardDeckManager : MonoBehaviour
         // Define all ability types you want to include
         AbilityType[] abilityTypes = new AbilityType[]
         {      
-          AbilityType.Block,
           AbilityType.Damage,
+          AbilityType.Block,
             // Add more as needed
         };
 

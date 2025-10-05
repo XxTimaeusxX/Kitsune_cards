@@ -26,6 +26,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
     public int armor = 0;
     public TMP_Text armorText;
     public GameObject armorIcon;
+    public Animator ArmorUIvfx;
 
     void Start()
     {
@@ -119,6 +120,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
 
     public void ApplyBlock(int blockamount)
     {
+      ArmorUIvfx.SetTrigger("ArmorVFX");
         armor += blockamount;
         UpdateArmorUI();
         Debug.Log($"Player gains {blockamount} block.");
