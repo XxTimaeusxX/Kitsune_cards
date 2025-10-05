@@ -3,16 +3,19 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
 using TMPro;
+using static UnityEditor.PlayerSettings;
 public class CardDeckManager : MonoBehaviour
 {
-    // Set your per-AP limits here (can be scaled up)
+    // Set your per-AP limits here (can be scaled up) = 30 cards based on ap limit rules
     private readonly int oneAPLimit = 12;
     private readonly int twoAPLimit = 9;
     private readonly int fiveAPLimit = 6;
     private readonly int tenAPLimit = 3;
 
     /////////////////////////////deck features
-    public int DeckHandSize;
+    public int DrawperHand;
+    public int HandstartSize;
+    public int deckSize = 10; // max deck size
     [SerializeField]
     public HandUIManager handUIManager;
     public List<CardData> cards = new List<CardData>();
@@ -41,10 +44,11 @@ public class CardDeckManager : MonoBehaviour
     {
         LoadcardsfromResources();
         ShuffleDeck();
-        DisplayDeck();
-        DrawCard(8);
+        // DisplayDeck();
+      //  DebugLogAllCardsInResources();
+        DrawCard(HandstartSize);
         StartPlayerTurn();
-      
+        
       //  displayhand();
         
         
@@ -52,7 +56,7 @@ public class CardDeckManager : MonoBehaviour
     void LoadcardsfromResources()
     {
         // here we are telling the method to clear list, then load all card data from resources/cards folder and add to list
-       // cards.Clear();
+        cards.Clear();
         CardData[] loadedCards = Resources.LoadAll<CardData>("Cards");
         // Define mana costs and their limits
         var manaLimits = new (int mana, int limit)[]
@@ -66,85 +70,62 @@ public class CardDeckManager : MonoBehaviour
         AbilityType[] abilityTypes = new AbilityType[]
         {      
           AbilityType.Block,
-
+          AbilityType.Damage,
             // Add more as needed
         };
+
         // Loop over all combinations
-        
-        
             foreach (var type in abilityTypes)
             {
-            foreach (var (mana, limit) in manaLimits)
-                {
+            
+             foreach (var (mana, limit) in manaLimits)
+                 {
                     AddCardsByManaAndType(loadedCards, mana, type, limit);
-                }
-                
-            }
-        
+                 }
 
+            }
     }
-    private void AddCardsByManaAndType(CardData[] allCards, int mana, AbilityType type, int count)
+    public void AddCardsByManaAndType(CardData[] allCards, int mana, AbilityType type, int count)
     {
-        // Gather all cards with at least one ability of the given mana and type
         List<CardData> candidates = new List<CardData>();
         foreach (var card in allCards)
         {
-            bool hasAbilityOfType = false;
+            ManaCostandEffect? selectedAbility = null;
             switch (card.elementType)
             {
                 case CardData.ElementType.Fire:
-                    hasAbilityOfType = HasAbility(card.FireAbilities, mana, type);
+                    if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.FireAbilities.Count)
+                        selectedAbility = card.FireAbilities[card.selectedManaAndEffectIndex];
                     break;
                 case CardData.ElementType.Water:
-                    hasAbilityOfType = HasAbility(card.WaterAbilities, mana, type);
+                    if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.WaterAbilities.Count)
+                        selectedAbility = card.WaterAbilities[card.selectedManaAndEffectIndex];
                     break;
                 case CardData.ElementType.Earth:
-                    hasAbilityOfType = HasAbility(card.EarthAbilities, mana, type);
+                    if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.EarthAbilities.Count)
+                        selectedAbility = card.EarthAbilities[card.selectedManaAndEffectIndex];
                     break;
                 case CardData.ElementType.Air:
-                    hasAbilityOfType = HasAbility(card.AirAbilities, mana, type);
+                    if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.AirAbilities.Count)
+                        selectedAbility = card.AirAbilities[card.selectedManaAndEffectIndex];
                     break;
             }
-            if (hasAbilityOfType)
+
+            if (selectedAbility.HasValue && selectedAbility.Value.ManaCost == mana && selectedAbility.Value.Type == type)
             {
-                // Find the correct index for the Block ability with the right mana
-                int abilityIndex = -1;
-                switch (card.elementType)
-                {
-                    case CardData.ElementType.Fire:
-                        abilityIndex = card.FireAbilities.FindIndex(ab => ab.ManaCost == mana && ab.Type == type);
-                        break;
-                    case CardData.ElementType.Water:
-                        abilityIndex = card.WaterAbilities.FindIndex(ab => ab.ManaCost == mana && ab.Type == type);
-                        break;
-                    case CardData.ElementType.Earth:
-                        abilityIndex = card.EarthAbilities.FindIndex(ab => ab.ManaCost == mana && ab.Type == type);
-                        break;
-                    case CardData.ElementType.Air:
-                        abilityIndex = card.AirAbilities.FindIndex(ab => ab.ManaCost == mana && ab.Type == type);
-                        break;
-                }
-                card.selectedManaAndEffectIndex = abilityIndex;
                 candidates.Add(card);
+                Debug.Log($"[DECK] Added: {card.CardName} | {type} at {mana} AP");
             }
-
         }
-
-        // Add up to 'count' cards, cycling if needed
-        for (int i = 0; i < count; i++)
+        // Add up to 'count' cards, cycling if needed, but do not exceed DeckLimit
+        for (int i = 0; i < count && cards.Count < deckSize; i++)
         {
             if (candidates.Count == 0) break;
             cards.Add(candidates[i % candidates.Count]);
+            if (cards.Count >= deckSize) break;
         }
     }
-
-    private bool HasAbility(List<ManaCostandEffect> abilities, int mana, AbilityType type)
-    {
-        foreach (var ab in abilities)
-            if (ab.ManaCost == mana && ab.Type == type)
-                return true;
-        return false;
-    }
+    
     public void StartPlayerTurn()
     {
         GameTurnMessager.instance.ShowMessage("Player's Turn");
@@ -159,7 +140,7 @@ public class CardDeckManager : MonoBehaviour
     public void StartEnemyturn()
     {
         currentTurn = TurnState.EnemyTurn;
-        enemy.StartEnemyTurn();
+        enemy.EstartTurn();
         handUIManager.SetHandCardsInteractable(false);
         if (handUIManager != null)
             handUIManager.HideEndTurnButton();
@@ -204,7 +185,7 @@ public class CardDeckManager : MonoBehaviour
     }
    public void OnbuttonDrawpress() // Button Ui will call this function when pressed = drawcard and show card.
     {
-        DrawCard(DeckHandSize);
+        DrawCard(DrawperHand);
         displayhand();
     }
     public void OnReplayButtonPressed()

@@ -17,6 +17,8 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     public TMP_Text cardNameText; // Assign in Inspector
     public TMP_Text abilityText; // Assign in Inspector
     public TMP_Text manacostText; // Assign in Inspector
+
+    [SerializeField] private GameObject bossOverlay;
     void Awake()
     {
         canvasGroup = GetComponent<CanvasGroup>();
@@ -108,4 +110,11 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
             cg.alpha = interactable ? 1f : 0.5f; // Optional: fade out when not interactable
         }
     }
+
+    public void SetBossCardVisual(bool isBoss)
+    {
+        if (bossOverlay != null)
+            bossOverlay.SetActive(isBoss);
+    }
+
 }

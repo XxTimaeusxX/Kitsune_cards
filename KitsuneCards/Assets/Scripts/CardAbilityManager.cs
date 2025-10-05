@@ -55,7 +55,7 @@ public class CardAbilityManager : MonoBehaviour
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 10)
                 {
                     player.ApplyBlock(24);
-                    player.ApplyReflect(0.25f);
+                  //  player.ApplyReflect(0.25f);
                 }
                 break;
             case AbilityType.Buff:
