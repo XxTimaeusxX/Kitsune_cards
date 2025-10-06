@@ -3276,6 +3276,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EndTurn
       objectReference: {fileID: 0}
+    - target: {fileID: 125130174545428025, guid: 342de07ddb006e14e872037461eb52c5, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6985883148439725746, guid: 342de07ddb006e14e872037461eb52c5, type: 3}
       propertyPath: m_AnchorMax.x
       value: 1
@@ -3412,6 +3416,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7745847121802197888, guid: 342de07ddb006e14e872037461eb52c5, type: 3}
       propertyPath: m_fontStyle
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8200771274782903604, guid: 342de07ddb006e14e872037461eb52c5, type: 3}
+      propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8200771274782903604, guid: 342de07ddb006e14e872037461eb52c5, type: 3}
@@ -4092,14 +4100,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UiScaleMode: 1
-  m_ReferencePixelsPerUnit: 100
-  m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 1920, y: 1080}
+  m_ReferencePixelsPerUnit: 96
+  m_ScaleFactor: 0.01
+  m_ReferenceResolution: {x: 2400, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0.165
-  m_PhysicalUnit: 3
-  m_FallbackScreenDPI: 96
-  m_DefaultSpriteDPI: 96
+  m_MatchWidthOrHeight: 0.5
+  m_PhysicalUnit: 2
+  m_FallbackScreenDPI: 98.14
+  m_DefaultSpriteDPI: 113.5
   m_DynamicPixelsPerUnit: 1
   m_PresetInfoIsWorld: 0
 --- !u!223 &1675413346
@@ -9696,7 +9704,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.005321824, y: -533.79584}
+  m_AnchoredPosition: {x: -50, y: -479}
   m_SizeDelta: {x: 2016.1, y: 270.1351}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1930670627
@@ -10210,7 +10218,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 51b05ab64572f9247ac882e07b136560, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 88e285384dc158d49a3c2a51d9052fec, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
