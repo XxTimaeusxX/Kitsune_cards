@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
 using TMPro;
-using static UnityEditor.PlayerSettings;
 public class CardDeckManager : MonoBehaviour
 {
     // Set your per-AP limits here (can be scaled up) = 30 cards based on ap limit rules
