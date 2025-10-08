@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using System.Collections;
 public class CardDeckManager : MonoBehaviour
 {
     // Set your per-AP limits here (can be scaled up) = 30 cards based on ap limit rules
@@ -135,22 +136,43 @@ public class CardDeckManager : MonoBehaviour
         
         // Player turn logic here
     }
-    public void StartEnemyturn()
+    public IEnumerator StartEnemyturn()
     {
-        currentTurn = TurnState.EnemyTurn;
-        enemy.EstartTurn();
-        handUIManager.SetHandCardsInteractable(false);
-        if (handUIManager != null)
-            handUIManager.HideEndTurnButton();
+        if(enemy.stunTurnsRemaining > 1)
+        {
+            enemy.stunTurnsRemaining--;
+            Debug.Log($"Enemy is stunned for {enemy.stunTurnsRemaining}and skips its turn!");
+            GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {enemy.stunTurnsRemaining}, turn skipped.");
             handUIManager.Hidebutton();
-        Debug.Log("Enemy's Turn Started");
-        GameTurnMessager.instance.ShowMessage("Enemy's Turn");
+            handUIManager.HideEndTurnButton();
+            yield return new WaitForSeconds(3f); // Wait for 2 seconds to let player see the message
+            OnEnemyEndTurn();
+          //  return;
+        }
+        else
+        {
+            currentTurn = TurnState.EnemyTurn;
+            enemy.EstartTurn();
+            handUIManager.SetHandCardsInteractable(false);
+
+            if (handUIManager != null)
+            {
+                handUIManager.HideEndTurnButton();
+                handUIManager.Hidebutton();
+                Debug.Log("buttons are hiding");
+            }
+
+            Debug.Log("Enemy's Turn Started");
+            GameTurnMessager.instance.ShowMessage("Enemy's Turn");
+        }
+           
         // Enemy turn logic here
+        
     }
     public void OnPlayerEndTurn()
     {
         Debug.Log("Player's Turn Ended");
-        StartEnemyturn();
+       StartCoroutine(StartEnemyturn());
     }
     public void OnEnemyEndTurn()
     {

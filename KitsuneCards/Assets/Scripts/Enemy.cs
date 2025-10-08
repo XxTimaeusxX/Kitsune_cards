@@ -4,10 +4,12 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEngine.GraphicsBuffer;
 
 public class Enemy : MonoBehaviour, IDamageable, IDebuffable, IBuffable
 {
  public CardDeckManager deckManager;
+    public CardAbilityManager abilityManager;
     public List<CardData> enemyCards = new List<CardData>();
 
     [Header("Health")]
@@ -22,6 +24,9 @@ public class Enemy : MonoBehaviour, IDamageable, IDebuffable, IBuffable
     public TMP_Text enemymanaText;
     public Slider enemymanaBar;
 
+    [Header("Enemy Settings")]
+    public int stunTurnsRemaining = 0;
+    public bool IsStunned = false;
     void Start()
     {
         LoadEnemyCards();
@@ -108,13 +113,14 @@ public class Enemy : MonoBehaviour, IDamageable, IDebuffable, IBuffable
     }
     public void EstartTurn()
     {
-        Maxmana = Mathf.Min(Maxmana + 1, 20);
-        Currentmana = Maxmana;
-        UpdateManaUI();
-        deckManager.StartCoroutine(EnemyTurnRoutine());
-        
+          
+            Maxmana = Mathf.Min(Maxmana + 1, 20);
+            Currentmana = Maxmana;
+            UpdateManaUI();
+            deckManager.StartCoroutine(EnemyLogicRoutine());
+                    
     }
-    private IEnumerator EnemyTurnRoutine()
+    private IEnumerator EnemyLogicRoutine()
     {
         yield return new WaitForSeconds(1f); // Preparation phase
 
@@ -167,9 +173,17 @@ public class Enemy : MonoBehaviour, IDamageable, IDebuffable, IBuffable
                 GameTurnMessager.instance.ShowMessage($"Enemy plays {cardToPlay.CardName} ({selectedAbility.Value.Type})!");
                 yield return new WaitForSeconds(1f);
 
-                if (selectedAbility.Value.Type == AbilityType.Damage && deckManager.player != null)
+                if (abilityManager != null && cardToPlay != null)// call the method and assign the target enemy cards affect(player)
                 {
-                    deckManager.player.TakeDamage(selectedAbility.Value.ManaCost); // Or use a damage value if you have one
+                    Debug.Log("executing ability");
+                    abilityManager.ExecuteCardAbility(
+                        cardToPlay,
+                        deckManager.player,
+                        null,
+                        deckManager.enemy,
+                        deckManager.player
+
+                    );
                 }
                 // TODO: Add logic for other ability types
 
@@ -225,7 +239,7 @@ public class Enemy : MonoBehaviour, IDamageable, IDebuffable, IBuffable
     }
     ///////////// IDebuffable///////////////
 
-    public void ApplyDoT(int amount)
+    public void ApplyDoT(int turns, int damageAmount)
     {
         throw new System.NotImplementedException();
     }
@@ -241,7 +255,9 @@ public class Enemy : MonoBehaviour, IDamageable, IDebuffable, IBuffable
     }
     public void ApplyStun(int turns)
     {
-        Debug.Log($"Boss is stunned for {turns} turns.");
+        stunTurnsRemaining = Mathf.Max(stunTurnsRemaining, turns);
+        IsStunned = true;
+        GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {stunTurnsRemaining} turns!");
         // Implement stun logic here
     }
     public void ExtendDebuff(int turns)

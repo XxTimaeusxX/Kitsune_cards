@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CardAbilityManager : MonoBehaviour
 {
-    public void ExecuteCardAbility(CardData card, Enemy enemy, Player player)
+    public void ExecuteCardAbility(CardData card, IDamageable Opponent,IDebuffable TargetDebuff, Enemy enemy, Player player)
     {
         ManaCostandEffect ability =default;
 
@@ -31,10 +31,10 @@ public class CardAbilityManager : MonoBehaviour
             // Earth 10AP: Deal 32 damage and stun
             // Air 2AP: Deal 8 damage
             case AbilityType.Damage:
-                if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 5) { enemy.TakeDamage(8); }
-                else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 10) { enemy.TakeDamage(32); enemy.ApplyStun(1); }
-                else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 2) { enemy.TakeDamage(8); }
-                else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 1) { enemy.TakeDamage(2); }
+                if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 5) { Opponent.TakeDamage(8); }
+                else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 10) { Opponent.TakeDamage(32); enemy.ApplyStun(5); }
+                else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 2) { Opponent.TakeDamage(8); }
+                else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 1) { Opponent.TakeDamage(2); }
                 else
                 {
                     Debug.Log("Damage ability not implemented.");
@@ -83,7 +83,7 @@ public class CardAbilityManager : MonoBehaviour
                 if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 10)
                     enemy.TripleDoT();
                 else if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 1)
-                    enemy.ApplyDoT(2);
+                    TargetDebuff.ApplyDoT(2,3);
                 else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 2)
                     enemy.LoseEnergy(3);
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 5)

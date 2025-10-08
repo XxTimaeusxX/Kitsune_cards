@@ -22,7 +22,7 @@ public interface IBuffable
 
 public interface IDebuffable
 {
-    void ApplyDoT(int amount);
+    void ApplyDoT(int turns, int damageAmount);
     void TripleDoT();
     void ExtendDebuff(int turns);
     void ApplyDamageDebuff(int turns, float multiplier);

@@ -30,7 +30,7 @@ public class CardData : ScriptableObject
 
     public List<ManaCostandEffect> FireAbilities = new List<ManaCostandEffect>
     {
-        new ManaCostandEffect { ManaCost = 1,Type = AbilityType.Debuff, EffectDescription = "Apply 2 DoT" },
+        new ManaCostandEffect { ManaCost = 1,Type = AbilityType.Debuff, EffectDescription = "Apply 2 DoT, for three turns" },
         new ManaCostandEffect { ManaCost = 2,Type = AbilityType.Buff, EffectDescription = "For next 2 turns, DoT applies +1 more" },
         new ManaCostandEffect { ManaCost = 5,Type = AbilityType.Damage, EffectDescription = "Deal 8 damage" },
         new ManaCostandEffect { ManaCost = 10,Type = AbilityType.Debuff, EffectDescription = "Triple current DoT" },

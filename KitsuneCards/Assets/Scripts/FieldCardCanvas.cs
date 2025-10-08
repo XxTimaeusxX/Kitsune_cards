@@ -58,6 +58,8 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
         {
             abilityManager.ExecuteCardAbility(
                 cardUI.cardData,
+                cardDeckManager.enemy, // reference to IDamageable target(enemy)
+                cardDeckManager.enemy, // reference to IDebuffable target(enemy)
                 cardDeckManager.enemy,
                 cardDeckManager.player
             );

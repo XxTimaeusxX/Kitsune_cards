@@ -83,8 +83,9 @@ public class HandUIManager : MonoBehaviour
 
     public void OnEndTurnButtonPressed()
     {
+        
         player.PendTurn();
-        HideEndTurnButton();
+      //  HideEndTurnButton();
     }
     public void SetHandCardsInteractable(bool interactable)
     {

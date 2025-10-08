@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
 {
     public CardDeckManager deckManager;
+    public HandUIManager HandUIManager;
     private bool HasDrawn= false;
     private bool hasDiscarded = false;
 
@@ -28,6 +29,14 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
     public GameObject armorIcon;
     public Animator ArmorUIvfx;
 
+    [Header("Buff settings")]
+    private int buffDotTurns = 0;
+    private int buffDotDamage = 0;
+    private int buffAllEffectsTurns = 0;
+    private float buffAllEffectsPercentage = 0f;
+    private int buffBlockTurns = 0;
+    private float buffBlockPercentage = 1f;
+
     void Start()
     {
         // call methods
@@ -37,16 +46,21 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
     }
     public void PstartTurn()
     {
+        if (deckManager.handUIManager != null)
+        {
+            deckManager.handUIManager.Showbutton();
+        }
         HasDrawn = false;
         hasDiscarded = false;
-        if (deckManager.handUIManager != null)
-            deckManager.handUIManager.Showbutton();
+        
+            
         Debug.Log("Player now have draw and discard phases.");
         
     }
     public void PendTurn()
     {
         deckManager.OnPlayerEndTurn();
+        
     }
     public void OndrawCard()
     {
@@ -64,21 +78,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
             Debug.Log("Player has already drawn cards this turn.");
         }
     }
-    public void OndiscardCard(CardData card)
-    {
-        if (HasDrawn||!HasDrawn && !hasDiscarded)
-        {
-           // deckManager.DiscardCard(card);
-            hasDiscarded = true;
-            Debug.Log("Player has discarded a card.");
-            PendTurn();
-        }
-        else
-        {
-            Debug.Log("Player has already discarded a card this turn.");
-        }
-    }
-
+   
     public void UpdateHealthUI()
     {
         if (healthText != null) healthText.text = $"{currentHealth}/{PlayerMaxHealth}";
@@ -176,6 +176,16 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IBuffable
         {
             currentHealth -= damageAfterArmor;
             UpdateHealthUI();
+            // Check for defeat
+            if (currentHealth <= 0)
+            {
+                currentHealth = 0;
+                UpdateHealthUI();
+                if (deckManager != null)
+                {
+                    deckManager.OnPlayerLose();
+                }
+            }
         }
         
        
