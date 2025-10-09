@@ -50,7 +50,7 @@ public class CardData : ScriptableObject
         new ManaCostandEffect { ManaCost = 1,Type = AbilityType.Damage, EffectDescription = "Deal 2 pts Damage" },
         new ManaCostandEffect { ManaCost = 2,Type = AbilityType.Debuff, EffectDescription = "Target Loses 3 energy" },
         new ManaCostandEffect { ManaCost = 5,Type = AbilityType.Block, EffectDescription = "Apply 12 block" },
-        new ManaCostandEffect { ManaCost = 10,Type = AbilityType.Damage, EffectDescription = "Deal 32 pts Damage and apply stun for 1 turn" },
+        new ManaCostandEffect { ManaCost = 10,Type = AbilityType.Damage, EffectDescription = "Deal 32 pts Damage and apply stun for 3 turn" },
     };
 
     public List<ManaCostandEffect> AirAbilities = new List<ManaCostandEffect>
