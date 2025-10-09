@@ -320,7 +320,7 @@ Transform:
   m_GameObject: {fileID: 186843722}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 836, y: -40, z: 0}
+  m_LocalPosition: {x: 836, y: -176.99998, z: 0}
   m_LocalScale: {x: 1.2916381, y: 1.2916381, z: 1.2916381}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3389,7 +3389,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7106990966701712234, guid: 342de07ddb006e14e872037461eb52c5, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -114.000244
+      value: -43.1
       objectReference: {fileID: 0}
     - target: {fileID: 7106990966701712234, guid: 342de07ddb006e14e872037461eb52c5, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -4105,7 +4105,7 @@ MonoBehaviour:
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 96
   m_ScaleFactor: 0.01
-  m_ReferenceResolution: {x: 3200, y: 1500}
+  m_ReferenceResolution: {x: 3200, y: 1600}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 2
@@ -9707,7 +9707,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -38.27529, y: -465}
+  m_AnchoredPosition: {x: -38.27529, y: -535}
   m_SizeDelta: {x: 1668.299, y: 339.35}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1930670627
@@ -9723,7 +9723,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.51690996, g: 0.51829976, b: 0.9056604, a: 0.13333334}
+  m_Color: {r: 0.51690996, g: 0.51829976, b: 0.9056604, a: 0.015686275}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -9808,8 +9808,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -14, y: 32.339}
-  m_SizeDelta: {x: 1506.81, y: 737}
+  m_AnchoredPosition: {x: -14, y: -24.113586}
+  m_SizeDelta: {x: 1506.81, y: 788.748}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1957435389
 MonoBehaviour:
@@ -10801,7 +10801,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7106990966701712234, guid: 342de07ddb006e14e872037461eb52c5, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -114
+      value: -43.09973
       objectReference: {fileID: 0}
     - target: {fileID: 7106990966701712234, guid: 342de07ddb006e14e872037461eb52c5, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -10982,7 +10982,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2991225182817078647, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -266
+      value: -403
       objectReference: {fileID: 0}
     - target: {fileID: 2991225182817078647, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: m_LocalPosition.z
