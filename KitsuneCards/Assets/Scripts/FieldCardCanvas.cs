@@ -60,8 +60,9 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
                 cardUI.cardData,
                 cardDeckManager.enemy, // reference to IDamageable target(enemy)
                 cardDeckManager.enemy, // reference to IDebuffable target(enemy)
-                cardDeckManager.enemy,
-                cardDeckManager.player
+                cardDeckManager.enemy, // reference to enemy
+                cardDeckManager.player, // reference to player
+                cardDeckManager.player // reference to who gets the armor.
             );
            
            // cardDeckManager.playerfield.Remove(cardUI.cardData);

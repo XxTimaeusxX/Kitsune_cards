@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using static UnityEngine.GraphicsBuffer;
 
-public class Enemy : MonoBehaviour, IDamageable, IDebuffable, IBuffable
+public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffable
 {
  public CardDeckManager deckManager;
     public CardAbilityManager abilityManager;
@@ -177,12 +177,12 @@ public class Enemy : MonoBehaviour, IDamageable, IDebuffable, IBuffable
                 {
                     Debug.Log("executing ability");
                     abilityManager.ExecuteCardAbility(
-                        cardToPlay,
-                        deckManager.player,
-                        null,
-                        deckManager.enemy,
-                        deckManager.player
-
+                        cardToPlay,  
+                        deckManager.player, // reference to IDamageable target(player)
+                        null,              // reference to IDebuffable target (none for now)
+                        deckManager.enemy, // reference to enemy
+                        deckManager.player,// reference to player
+                        deckManager.enemy // who gets the armor applied.
                     );
                 }
                 // TODO: Add logic for other ability types
@@ -237,6 +237,23 @@ public class Enemy : MonoBehaviour, IDamageable, IDebuffable, IBuffable
         }
 
     }
+
+    ///////////// IBlockable///////////////
+    public void ApplyBlock(int amount)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void ApplyReflect(float percentage)
+    {
+        throw new System.NotImplementedException();
+    }
+    public void BuffBlock(int turns, int BlockAmount)
+    {
+        throw new System.NotImplementedException();
+    }
+
+
     ///////////// IDebuffable///////////////
 
     public void ApplyDoT(int turns, int damageAmount)
@@ -281,4 +298,6 @@ public class Enemy : MonoBehaviour, IDamageable, IDebuffable, IBuffable
     {
         throw new System.NotImplementedException();
     }
+
+   
 }

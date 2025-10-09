@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CardAbilityManager : MonoBehaviour
 {
-    public void ExecuteCardAbility(CardData card, IDamageable Opponent,IDebuffable TargetDebuff, Enemy enemy, Player player)
+    public void ExecuteCardAbility(CardData card, IDamageable Opponent,IDebuffable TargetDebuff, Enemy enemy, Player player, IBlockable user)
     {
         ManaCostandEffect ability =default;
 
@@ -47,14 +47,14 @@ public class CardAbilityManager : MonoBehaviour
                 // Air 1AP: Apply 2 block
                 // Air 10AP: Apply 24 block and reflect
                 if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 2)
-                    player.ApplyBlock(4);
+                    user.ApplyBlock(4);
                 else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 5)
-                    player.ApplyBlock(12);
+                    user.ApplyBlock(12);
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 1)
-                    player.ApplyBlock(2);
+                    user.ApplyBlock(2);
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 10)
                 {
-                    player.ApplyBlock(24);
+                    user.ApplyBlock(24);
                   //  player.ApplyReflect(0.25f);
                 }
                 break;
@@ -71,7 +71,7 @@ public class CardAbilityManager : MonoBehaviour
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 1)
                     enemy.ExtendDebuff(1);
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 5)
-                    player.BuffBlock(3, 0.25f);
+                    player.BuffBlock(3, 1);//might change it to percentage instead.
                 break;
 
             case AbilityType.Debuff:
@@ -81,13 +81,13 @@ public class CardAbilityManager : MonoBehaviour
                 // Earth 2AP: Target loses 3 energy
                 // Water 5AP: Target deals 25% less damage for 3 turns
                 if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 10)
-                    enemy.TripleDoT();
+                    TargetDebuff.TripleDoT();
                 else if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 1)
                     TargetDebuff.ApplyDoT(2,3);
                 else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 2)
-                    enemy.LoseEnergy(3);
+                    TargetDebuff.LoseEnergy(3);
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 5)
-                    enemy.ApplyDamageDebuff(3, 0.75f);
+                    TargetDebuff.ApplyDamageDebuff(3, 0.75f);
                 break;
         }
     }

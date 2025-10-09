@@ -11,7 +11,7 @@ public interface IBlockable
 {
     void ApplyBlock(int amount);
     void ApplyReflect(float percentage);
-    void BuffBlock(int turns, float percentage);
+    void BuffBlock(int turns, int BlockAmount);
 }
 
 public interface IBuffable
