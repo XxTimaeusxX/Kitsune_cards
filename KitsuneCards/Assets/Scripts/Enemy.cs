@@ -49,9 +49,9 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         // Define mana costs and their limits (reuse from CardDeckManager or set boss-specific)
         var manaLimits = new (int mana, int limit)[]
         {
-        (1, 12),
-        (2, 20),
-        (5, 20),
+        (1, 22),
+        (2, 40),
+        (5, 40),
         (10, 6)
         };
         AbilityType[] abilityTypes = new AbilityType[]
@@ -181,7 +181,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
                     abilityManager.ExecuteCardAbility(
                         cardToPlay,  
                         deckManager.player, // reference to IDamageable target(player)
-                        deckManager.player,              // reference to IDebuffable target (none for now)
+                        null,              // reference to IDebuffable target (none for now)
                         deckManager.enemy, // reference to enemy
                         deckManager.player,// reference to player
                         deckManager.enemy // who gets the armor applied.

@@ -56,13 +56,13 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     {
         if (damageDebuffTurns > 0)
         {
-           /* damageDebuffTurns--;
+            damageDebuffTurns--;
             GameTurnMessager.instance.ShowMessage($"Player's damage debuff: {damageDebuffTurns} turn(s) remaining.");
             if (damageDebuffTurns == 0)
             {
                 damageDebuffMultiplier = 1f;
                 GameTurnMessager.instance.ShowMessage("Player's damage debuff has worn off.");
-            } */
+            } 
         }
         if (deckManager.handUIManager != null)
         {
@@ -141,11 +141,8 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         if (damageDebuffTurns > 0)
         {
             debuffedAmount = Mathf.RoundToInt(debuffedAmount * damageDebuffMultiplier);
-            damageDebuffTurns--;
-            if (damageDebuffTurns == 0)
-            {
-                damageDebuffMultiplier = 1f; // Reset when debuff ends
-            }
+           // damageDebuffTurns--;
+            
         }
         int damageAfterArmor = debuffedAmount;
         if (armor > 0)

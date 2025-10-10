@@ -32,7 +32,7 @@ public class CardAbilityManager : MonoBehaviour
             // Air 2AP: Deal 8 damage
             case AbilityType.Damage:
                 if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 5) { Opponent.TakeDamage(12); }
-                else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 10) { Opponent.TakeDamage(32); enemy.ApplyStun(3); }
+                else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 10) { Opponent.TakeDamage(32); TargetDebuff.ApplyStun(3); }
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 2) { Opponent.TakeDamage(8); }
                 else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 1) { Opponent.TakeDamage(2); }
                 else

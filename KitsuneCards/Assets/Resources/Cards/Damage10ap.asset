@@ -66,6 +66,6 @@ MonoBehaviour:
     Type: 3
     EffectDescription: apply 24 block and reflect 25% of damage taken
   CardName: LongNeck
-  CharacterImage: {fileID: 21300000, guid: 02ca4d7f213204a45bc76c160a4215a6, type: 3}
-  elementType: 0
-  selectedManaAndEffectIndex: 2
+  CharacterImage: {fileID: 21300000, guid: 8b8bd36bb812ed74e87660268c562af9, type: 3}
+  elementType: 2
+  selectedManaAndEffectIndex: 3
