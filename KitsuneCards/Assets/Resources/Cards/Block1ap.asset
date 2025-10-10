@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 78af4056444373b49951af9c321bd0f0, type: 3}
-  m_Name: Longneck
+  m_Name: Block1ap
   m_EditorClassIdentifier: 
   FireAbilities:
   - ManaCost: 1
@@ -65,7 +65,7 @@ MonoBehaviour:
   - ManaCost: 10
     Type: 3
     EffectDescription: apply 24 block and reflect 25% of damage taken
-  CardName: LongNeck
-  CharacterImage: {fileID: 21300000, guid: 02ca4d7f213204a45bc76c160a4215a6, type: 3}
-  elementType: 2
+  CardName: Tanuki
+  CharacterImage: {fileID: 21300000, guid: 2c9d49cbe681909438065be6505b2ce5, type: 3}
+  elementType: 3
   selectedManaAndEffectIndex: 0

@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 78af4056444373b49951af9c321bd0f0, type: 3}
-  m_Name: SnowWomen
+  m_Name: Debuff10ap
   m_EditorClassIdentifier: 
   FireAbilities:
   - ManaCost: 1
     Type: 0
-    EffectDescription: Apply 2 DoT
+    EffectDescription: Apply 2 DoT, for three turns
   - ManaCost: 2
     Type: 2
     EffectDescription: For next 2 turns, DoT applies +1 more
   - ManaCost: 5
     Type: 1
-    EffectDescription: Deal 8 damage
+    EffectDescription: Deal 12 damage
   - ManaCost: 10
     Type: 0
     EffectDescription: Triple current DoT
@@ -51,7 +51,7 @@ MonoBehaviour:
     EffectDescription: Apply 12 block
   - ManaCost: 10
     Type: 1
-    EffectDescription: Deal 32 pts Damage and apply stun for 1 turn
+    EffectDescription: Deal 32 pts Damage and apply stun for 3 turn
   AirAbilities:
   - ManaCost: 1
     Type: 3
@@ -65,7 +65,7 @@ MonoBehaviour:
   - ManaCost: 10
     Type: 3
     EffectDescription: apply 24 block and reflect 25% of damage taken
-  CardName: SnowWomen
-  CharacterImage: {fileID: 21300000, guid: b0068bcae22991141bc95c55fc1c4f14, type: 3}
-  elementType: 2
-  selectedManaAndEffectIndex: 2
+  CardName: Oni
+  CharacterImage: {fileID: 21300000, guid: d33cf3ca6b009344fa4c4b11c119330e, type: 3}
+  elementType: 0
+  selectedManaAndEffectIndex: 3

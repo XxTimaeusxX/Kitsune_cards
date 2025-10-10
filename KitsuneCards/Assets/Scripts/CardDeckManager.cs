@@ -6,10 +6,10 @@ using System.Collections;
 public class CardDeckManager : MonoBehaviour
 {
     // Set your per-AP limits here (can be scaled up) = 30 cards based on ap limit rules
-    private readonly int oneAPLimit = 12;
-    private readonly int twoAPLimit = 9;
-    private readonly int fiveAPLimit = 6;
-    private readonly int tenAPLimit = 3;
+    private readonly int oneAPLimit = 16;
+    private readonly int twoAPLimit = 12;
+    private readonly int fiveAPLimit = 8;
+    private readonly int tenAPLimit = 4;
 
     /////////////////////////////deck features
     public int DrawperHand;
@@ -67,9 +67,12 @@ public class CardDeckManager : MonoBehaviour
         };
         // Define all ability types you want to include
         AbilityType[] abilityTypes = new AbilityType[]
-        {      
+        {
+          AbilityType.Debuff,
           AbilityType.Damage,
           AbilityType.Block,
+          
+          AbilityType.Buff
             // Add more as needed
         };
 
@@ -138,36 +141,38 @@ public class CardDeckManager : MonoBehaviour
     }
     public IEnumerator StartEnemyturn()
     {
-        if(enemy.stunTurnsRemaining > 1)
+        handUIManager.HideEndTurnButton();
+        handUIManager.Hidebutton();
+        handUIManager.SetHandCardsInteractable(false);
+        if (enemy.activeDoTTurns > 0)
+        {
+            Debug.Log("doteffect");
+            GameTurnMessager.instance.ShowMessage($"Enemy takes {enemy.activeDoTDamage} damage, {enemy.activeDoTTurns} DoT turns remaining ");
+            enemy.activeDoTTurns--;
+            enemy.TakeDamage(enemy.activeDoTDamage);
+            yield return new WaitForSeconds(2f); // Wait for 2 seconds to let player see the message
+        }
+
+
+        if (enemy.stunTurnsRemaining > 1)
         {
             enemy.stunTurnsRemaining--;
             Debug.Log($"Enemy is stunned for {enemy.stunTurnsRemaining}and skips its turn!");
             GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {enemy.stunTurnsRemaining}, turn skipped.");
-            handUIManager.Hidebutton();
-            handUIManager.HideEndTurnButton();
-            yield return new WaitForSeconds(3f); // Wait for 2 seconds to let player see the message
+            yield return new WaitForSeconds(2f); // Wait for 2 seconds to let player see the message
             OnEnemyEndTurn();
           //  return;
-        }
-        else
-        {
+        }    
+        else if(enemy.stunTurnsRemaining < 1)
+        { 
             currentTurn = TurnState.EnemyTurn;
             enemy.EstartTurn();
-            handUIManager.SetHandCardsInteractable(false);
-
-            if (handUIManager != null)
-            {
-                handUIManager.HideEndTurnButton();
-                handUIManager.Hidebutton();
-                Debug.Log("buttons are hiding");
-            }
-
             Debug.Log("Enemy's Turn Started");
             GameTurnMessager.instance.ShowMessage("Enemy's Turn");
         }
-           
-        // Enemy turn logic here
         
+        // Enemy turn logic here
+
     }
     public void OnPlayerEndTurn()
     {

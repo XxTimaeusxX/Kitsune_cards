@@ -40,8 +40,8 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     [Header("Debuff settings")]
     private int activeDoTTurns = 0;
     private int activeDoTDamage = 0;
-    private int damageDebuffTurns = 0;
-    private float damageDebuffMultiplier = 1f;
+    public int damageDebuffTurns = 0;
+    public float damageDebuffMultiplier = 1f;
     public int stunTurnsRemaining = 0;
     public bool IsStunned = false;
 
@@ -54,6 +54,16 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     }
     public void PstartTurn()
     {
+        if (damageDebuffTurns > 0)
+        {
+           /* damageDebuffTurns--;
+            GameTurnMessager.instance.ShowMessage($"Player's damage debuff: {damageDebuffTurns} turn(s) remaining.");
+            if (damageDebuffTurns == 0)
+            {
+                damageDebuffMultiplier = 1f;
+                GameTurnMessager.instance.ShowMessage("Player's damage debuff has worn off.");
+            } */
+        }
         if (deckManager.handUIManager != null)
         {
             deckManager.handUIManager.Showbutton();
@@ -126,7 +136,18 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     ///////////// IDamageable///////////////   
     public void TakeDamage(int amount)
     {
-        int damageAfterArmor = amount;
+        // Apply damage debuff if active
+        int debuffedAmount = amount;
+        if (damageDebuffTurns > 0)
+        {
+            debuffedAmount = Mathf.RoundToInt(debuffedAmount * damageDebuffMultiplier);
+            damageDebuffTurns--;
+            if (damageDebuffTurns == 0)
+            {
+                damageDebuffMultiplier = 1f; // Reset when debuff ends
+            }
+        }
+        int damageAfterArmor = debuffedAmount;
         if (armor > 0)
         {
             if (armor >= amount)
@@ -184,8 +205,8 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     ///////////// IDeBuffable///////////////
     public void ApplyDoT(int turns, int damageAmount)
     {
-        activeDoTTurns = turns;
-        activeDoTDamage = damageAmount;
+        activeDoTTurns += turns;
+        activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
     }
 
     public void TripleDoT()
@@ -195,6 +216,13 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
             activeDoTDamage *= 3;
             Debug.Log("Player's DoT damage is tripled.");
         }
+    }
+
+    public void ExtendDebuff(int turns)
+    {
+        if (activeDoTTurns > 0) activeDoTTurns += turns;
+        if (damageDebuffTurns > 0) damageDebuffTurns += turns;
+        if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
     }
 
     public void ApplyDamageDebuff(int turns, float multiplier)
@@ -214,7 +242,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     {
         stunTurnsRemaining = Mathf.Max(stunTurnsRemaining, turns);
         IsStunned = true;
-        throw new System.NotImplementedException();
+        
     }
 
     ///////////// IBuffable///////////////
@@ -229,11 +257,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         Debug.Log("Player's damage, DoT, block, and buffs are increased by 25% for the next 2 turns.");
         // Implement buff logic here
     }
-    public void ExtendDebuff(int turns)
-    {
-        Debug.Log($"debuff is extended for the next {turns} turns.");
-        // Implement debuff logic here
-    }
+   
    
    
 }

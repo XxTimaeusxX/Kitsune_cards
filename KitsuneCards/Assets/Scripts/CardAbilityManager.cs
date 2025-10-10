@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CardAbilityManager : MonoBehaviour
 {
-    public void ExecuteCardAbility(CardData card, IDamageable Opponent,IDebuffable TargetDebuff, Enemy enemy, Player player, IBlockable user)
+    public void ExecuteCardAbility(CardData card, IDamageable Opponent,IDebuffable TargetDebuff, Enemy enemy, Player player, IBlockable TargetBlock)
     {
         ManaCostandEffect ability =default;
 
@@ -31,7 +31,7 @@ public class CardAbilityManager : MonoBehaviour
             // Earth 10AP: Deal 32 damage and stun
             // Air 2AP: Deal 8 damage
             case AbilityType.Damage:
-                if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 5) { Opponent.TakeDamage(8); }
+                if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 5) { Opponent.TakeDamage(12); }
                 else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 10) { Opponent.TakeDamage(32); enemy.ApplyStun(3); }
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 2) { Opponent.TakeDamage(8); }
                 else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 1) { Opponent.TakeDamage(2); }
@@ -47,14 +47,14 @@ public class CardAbilityManager : MonoBehaviour
                 // Air 1AP: Apply 2 block
                 // Air 10AP: Apply 24 block and reflect
                 if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 2)
-                    user.ApplyBlock(4);
+                    TargetBlock.ApplyBlock(4);
                 else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 5)
-                    user.ApplyBlock(12);
+                    TargetBlock.ApplyBlock(12);
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 1)
-                    user.ApplyBlock(2);
+                    TargetBlock.ApplyBlock(2);
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 10)
                 {
-                    user.ApplyBlock(24);
+                    TargetBlock.ApplyBlock(24);
                   //  player.ApplyReflect(0.25f);
                 }
                 break;
@@ -87,7 +87,7 @@ public class CardAbilityManager : MonoBehaviour
                 else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 2)
                     TargetDebuff.LoseEnergy(3);
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 5)
-                    TargetDebuff.ApplyDamageDebuff(3, 0.75f);
+                    player.ApplyDamageDebuff(3, .10f);
                 break;
         }
     }

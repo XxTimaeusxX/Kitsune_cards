@@ -24,9 +24,16 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public TMP_Text enemymanaText;
     public Slider enemymanaBar;
 
-    [Header("Enemy Settings")]
+
+
+    [Header("Enemy Debuffs")]
+    public int activeDoTTurns = 0;
+    public int activeDoTDamage = 0;
+    public int damageDebuffTurns = 0;
+    public float damageDebuffMultiplier = 1f;
     public int stunTurnsRemaining = 0;
     public bool IsStunned = false;
+
     void Start()
     {
         LoadEnemyCards();
@@ -112,13 +119,8 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         }
     }
     public void EstartTurn()
-    {
-          
-            Maxmana = Mathf.Min(Maxmana + 1, 20);
-            Currentmana = Maxmana;
-            UpdateManaUI();
-            deckManager.StartCoroutine(EnemyLogicRoutine());
-                    
+    {    
+            deckManager.StartCoroutine(EnemyLogicRoutine());        
     }
     private IEnumerator EnemyLogicRoutine()
     {
@@ -179,7 +181,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
                     abilityManager.ExecuteCardAbility(
                         cardToPlay,  
                         deckManager.player, // reference to IDamageable target(player)
-                        null,              // reference to IDebuffable target (none for now)
+                        deckManager.player,              // reference to IDebuffable target (none for now)
                         deckManager.enemy, // reference to enemy
                         deckManager.player,// reference to player
                         deckManager.enemy // who gets the armor applied.
@@ -204,7 +206,9 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         }
 
         yield return new WaitForSeconds(1f); // Wait before ending turn
-
+        Maxmana = Mathf.Min(Maxmana + 1, 20);
+        Currentmana = Maxmana;
+        UpdateManaUI();
         deckManager.OnEnemyEndTurn();
     }
 
@@ -223,9 +227,20 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     }
     //////////// IDamageable ///////////////
     public void TakeDamage(int amount)
-    { 
-            CurrentHealth -=  amount;
-            UpdateEnemyHealthUI();
+    {
+        /* int debuffedAmount = amount;
+         if (damageDebuffTurns > 0)
+         {
+             debuffedAmount = Mathf.RoundToInt(debuffedAmount * damageDebuffMultiplier);
+            // damageDebuffTurns--;
+             if (damageDebuffTurns == 0)
+             {
+                 damageDebuffMultiplier = 1f;
+             }
+         }
+         CurrentHealth -=  debuffedAmount;*/
+        CurrentHealth -= amount;
+        UpdateEnemyHealthUI();
         Debug.Log($"Boss takes {amount} damage. Health: {CurrentHealth}/{MaxHealth}");
         if(CurrentHealth <= 0)
         {
@@ -258,17 +273,29 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
 
     public void ApplyDoT(int turns, int damageAmount)
     {
-        throw new System.NotImplementedException();
+        activeDoTTurns += turns;
+        activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
+        GameTurnMessager.instance.ShowMessage($"Enemy takes {activeDoTDamage} DoT for {activeDoTTurns} turns!");
     }
-
+    public void TripleDoT()
+    {
+       
+            activeDoTDamage *= 3;
+            GameTurnMessager.instance.ShowMessage($"Enemy's DoT damage is tripled!");
+            Debug.Log("Player's DoT damage is tripled.");
+        
+    }
     public void ApplyDamageDebuff(int turns, float multiplier)
     {
-        throw new System.NotImplementedException();
+        damageDebuffTurns = turns;
+        damageDebuffMultiplier = multiplier;
     }
 
     public void LoseEnergy(int amount)
     {
-        throw new System.NotImplementedException();
+        Currentmana = Mathf.Max(0, Currentmana - amount);
+        UpdateManaUI();
+        
     }
     public void ApplyStun(int turns)
     {
@@ -279,14 +306,11 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     }
     public void ExtendDebuff(int turns)
     {
-        Debug.Log($"Boss debuff extended by {turns} turns.");
-        // Implement debuff extension logic here
+        if (activeDoTTurns > 0) activeDoTTurns += turns;
+        if (damageDebuffTurns > 0) damageDebuffTurns += turns;
+        if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
     }
-    public void TripleDoT()
-    {
-        Debug.Log("Boss DoT effects are tripled.");
-        // Implement DoT tripling logic here
-    }
+   
 
     ///////////// IBuffable///////////////
     public void BuffDoT(int turns, int bonusDoT)
