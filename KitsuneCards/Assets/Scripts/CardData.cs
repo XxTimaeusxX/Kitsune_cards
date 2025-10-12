@@ -40,7 +40,7 @@ public class CardData : ScriptableObject
     {
         new ManaCostandEffect { ManaCost = 1,Type = AbilityType.Buff, EffectDescription = "add 1 additional turn to any current debuff to target" },
         new ManaCostandEffect { ManaCost = 2,Type = AbilityType.Block, EffectDescription = "Apply 4 block" },
-        new ManaCostandEffect { ManaCost = 5,Type = AbilityType.Debuff, EffectDescription = "next 3 turns target deals 25% less damage" },
+        new ManaCostandEffect { ManaCost = 5,Type = AbilityType.Debuff, EffectDescription = "next 3 turns target deals 80% less damage" },
         new ManaCostandEffect { ManaCost = 10,Type = AbilityType.Buff, EffectDescription = @"for next 2 turns, Damage dealt, DoT applied 
                                                                    block applied, and buffs applied are 25 percent greater" },
     };

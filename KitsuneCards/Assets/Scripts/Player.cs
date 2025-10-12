@@ -11,6 +11,11 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     private bool HasDrawn= false;
     private bool hasDiscarded = false;
 
+    [Header("Particle Effects")]
+    public ParticleSystem BuffEffect;
+    public ParticleSystem DebuffEffect;
+    public ParticleSystem ArmorEffect;
+
     [Header("Health")]
     public float PlayerMaxHealth = 100;
     public float currentHealth = 100;
@@ -58,6 +63,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         {
             damageDebuffTurns--;
             GameTurnMessager.instance.ShowMessage($"Player's damage debuff: {damageDebuffTurns} turn(s) remaining.");
+            
             if (damageDebuffTurns == 0)
             {
                 damageDebuffMultiplier = 1f;
@@ -183,9 +189,10 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
 
     public void ApplyBlock(int blockamount)
     {
-      ArmorUIvfx.SetTrigger("ArmorVFX");
+      //ArmorUIvfx.SetTrigger("ArmorVFX");
         armor += blockamount;
         UpdateArmorUI();
+        ArmorEffect.Play();
         Debug.Log($"Player gains {blockamount} block.");
         // Implement block logic here
     }
@@ -224,8 +231,10 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
 
     public void ApplyDamageDebuff(int turns, float multiplier)
     {
+        ArmorEffect.Play();
         damageDebuffTurns = turns;
         damageDebuffMultiplier = multiplier;
+        GameTurnMessager.instance.ShowMessage($"next 3 turns Enemy deals 80% less damage.");
     }
 
     public void LoseEnergy(int amount)

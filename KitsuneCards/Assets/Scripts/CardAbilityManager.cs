@@ -87,7 +87,7 @@ public class CardAbilityManager : MonoBehaviour
                 else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 2)
                     TargetDebuff.LoseEnergy(3);
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 5)
-                    player.ApplyDamageDebuff(3, .10f);
+                    player.ApplyDamageDebuff(3, .20f);
                 break;
         }
     }

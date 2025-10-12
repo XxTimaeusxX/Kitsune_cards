@@ -8,9 +8,15 @@ using static UnityEngine.GraphicsBuffer;
 
 public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffable
 {
- public CardDeckManager deckManager;
+    public CardDeckManager deckManager;
     public CardAbilityManager abilityManager;
     public List<CardData> enemyCards = new List<CardData>();
+
+    [Header("Particle Effects")]
+    public ParticleSystem DebuffEffect;
+    public ParticleSystem BuffEffect;
+    public ParticleSystem ArmorEffect;
+    public ParticleSystem DotFireEffect;
 
     [Header("Health")]
     public int MaxHealth = 100;
@@ -33,6 +39,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public float damageDebuffMultiplier = 1f;
     public int stunTurnsRemaining = 0;
     public bool IsStunned = false;
+
 
     void Start()
     {
@@ -228,17 +235,6 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     //////////// IDamageable ///////////////
     public void TakeDamage(int amount)
     {
-        /* int debuffedAmount = amount;
-         if (damageDebuffTurns > 0)
-         {
-             debuffedAmount = Mathf.RoundToInt(debuffedAmount * damageDebuffMultiplier);
-            // damageDebuffTurns--;
-             if (damageDebuffTurns == 0)
-             {
-                 damageDebuffMultiplier = 1f;
-             }
-         }
-         CurrentHealth -=  debuffedAmount;*/
         CurrentHealth -= amount;
         UpdateEnemyHealthUI();
         Debug.Log($"Boss takes {amount} damage. Health: {CurrentHealth}/{MaxHealth}");
@@ -247,8 +243,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
           if (deckManager != null)
             {
                 deckManager.OnPlayerWin();
-            }
-            
+            }            
         }
 
     }
@@ -275,16 +270,26 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     {
         activeDoTTurns += turns;
         activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
-        GameTurnMessager.instance.ShowMessage($"Enemy takes {activeDoTDamage} DoT for {activeDoTTurns} turns!");
+        DebuffEffect.Play();// play debuff particle effect
+        GameTurnMessager.instance.ShowMessage($"Enemy takes {activeDoTDamage} DoT damage for {activeDoTTurns} turns!");
     }
     public void TripleDoT()
     {
-       
             activeDoTDamage *= 3;
+            DebuffEffect.Play();
             GameTurnMessager.instance.ShowMessage($"Enemy's DoT damage is tripled!");
             Debug.Log("Player's DoT damage is tripled.");
         
     }
+    public void ExtendDebuff(int turns)
+    {
+        if (activeDoTTurns > 0) activeDoTTurns += turns;
+        if (damageDebuffTurns > 0) damageDebuffTurns += turns;
+        if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
+        DebuffEffect.Play();
+        GameTurnMessager.instance.ShowMessage($"all Enemy's debuffs are extended by {turns} turns!");
+    }
+
     public void ApplyDamageDebuff(int turns, float multiplier)
     {
         damageDebuffTurns = turns;
@@ -294,8 +299,9 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public void LoseEnergy(int amount)
     {
         Currentmana = Mathf.Max(0, Currentmana - amount);
+        DebuffEffect.Play();
         UpdateManaUI();
-        
+        GameTurnMessager.instance.ShowMessage($"Enemy loses {amount} mana!");
     }
     public void ApplyStun(int turns)
     {
@@ -304,13 +310,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {stunTurnsRemaining} turns!");
         // Implement stun logic here
     }
-    public void ExtendDebuff(int turns)
-    {
-        if (activeDoTTurns > 0) activeDoTTurns += turns;
-        if (damageDebuffTurns > 0) damageDebuffTurns += turns;
-        if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
-    }
-   
+  
 
     ///////////// IBuffable///////////////
     public void BuffDoT(int turns, int bonusDoT)

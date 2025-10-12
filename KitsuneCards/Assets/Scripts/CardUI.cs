@@ -56,11 +56,16 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         
     }
 
+   
     void IDragHandler.OnDrag(PointerEventData eventData)
     {
-        // Move the card with the pointer
-        transform.position = eventData.position;
+       // Always use ScreenToWorldPoint with Canvas camera and plane distance
+        var canvas = GetComponentInParent<Canvas>();
+        float planeDistance = canvas.planeDistance;
+        Vector3 screenPos = new Vector3(eventData.position.x, eventData.position.y, planeDistance);
+        transform.position = canvas.worldCamera.ScreenToWorldPoint(screenPos);
     }
+        
 
     public void LoadCard(CardData cardData)
     {
