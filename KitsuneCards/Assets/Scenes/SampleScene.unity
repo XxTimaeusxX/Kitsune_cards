@@ -394,6 +394,11 @@ MonoBehaviour:
   BuffEffect: {fileID: 0}
   ArmorEffect: {fileID: 0}
   DotFireEffect: {fileID: 875609885}
+  audioSource: {fileID: 0}
+  damageArmorDebuffSound: {fileID: 0}
+  TakeDamageSound: {fileID: 0}
+  DoTSound: {fileID: 0}
+  DeBuffSound: {fileID: 0}
   MaxHealth: 200
   CurrentHealth: 200
   enemyhealthText: {fileID: 1716820631}
@@ -952,6 +957,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 540792657}
   m_CullTransparentMesh: 1
+--- !u!1 &553848049 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4850835356134081951, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+  m_PrefabInstance: {fileID: 7372008864222088853}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &591642359
 GameObject:
   m_ObjectHideFlags: 0
@@ -2393,6 +2403,8 @@ MonoBehaviour:
   playerfield: {fileID: 1002558601}
   cardDeckManager: {fileID: 1601799123}
   abilityManager: {fileID: 1137948735}
+  audioSource: {fileID: 0}
+  playCardClip: {fileID: 0}
 --- !u!114 &1002558605
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2991,7 +3003,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
   m_PrefabInstance: {fileID: 7372008864222088853}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 553848049}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0e24612b39480d04bab5b1511fca0f3d, type: 3}
@@ -4727,6 +4739,102 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2991225182817078647, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
   m_PrefabInstance: {fileID: 7372008864222088853}
   m_PrefabAsset: {fileID: 0}
+--- !u!82 &1761941112
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 553848049}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1808662432
 GameObject:
   m_ObjectHideFlags: 0
@@ -6592,6 +6700,10 @@ PrefabInstance:
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: DoTSound
+      value: 
+      objectReference: {fileID: 8300000, guid: ea8bca6460121e64e9f991409ac7ad49, type: 3}
+    - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: manaText
       value: 
       objectReference: {fileID: 776152077}
@@ -6624,6 +6736,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1892332331}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: audioSource
+      value: 
+      objectReference: {fileID: 1761941112}
+    - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: currentMana
       value: 6
       objectReference: {fileID: 0}
@@ -6639,6 +6755,14 @@ PrefabInstance:
       propertyPath: PlayerMaxHealth
       value: 120
       objectReference: {fileID: 0}
+    - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: TakeDamageSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 533882329291e2b4da0088d5c45c84ca, type: 3}
+    - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: damageArmorDebuffSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 291f4666b23818e41b95c4984be1f0c7, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -6660,7 +6784,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2991225182817078647, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1663798782}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4850835356134081951, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1761941112}
   m_SourcePrefab: {fileID: 100100000, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

@@ -270,7 +270,7 @@ MonoBehaviour:
   cardNameText: {fileID: 8391773462125846251}
   abilityText: {fileID: 8827788280742251175}
   manacostText: {fileID: 6992148621605195882}
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 154265375251212321}
   selectCardClip: {fileID: 8300000, guid: e8b3452601d574a4db8c56eea4efc7b5, type: 3}
   bossOverlay: {fileID: 2520656600575193095}
 --- !u!225 &-7226442169530205913
