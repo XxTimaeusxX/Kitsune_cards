@@ -148,6 +148,7 @@ public class CardDeckManager : MonoBehaviour
             Debug.Log("doteffect");
             GameTurnMessager.instance.ShowMessage($"Enemy takes {enemy.activeDoTDamage} damage, {enemy.activeDoTTurns} DoT turns remaining ");
             enemy.DotFireEffect.Play();
+            enemy.audioSource.PlayOneShot(enemy.DoTSound);
             enemy.activeDoTTurns--;
             enemy.TakeDamage(enemy.activeDoTDamage);
             yield return new WaitForSeconds(2f); // Wait for 2 seconds to let player see the message

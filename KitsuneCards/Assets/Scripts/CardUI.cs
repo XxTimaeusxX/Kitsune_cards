@@ -18,6 +18,10 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     public TMP_Text abilityText; // Assign in Inspector
     public TMP_Text manacostText; // Assign in Inspector
 
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip selectCardClip;
+
     [SerializeField] private GameObject bossOverlay;
     void Awake()
     {
@@ -25,6 +29,7 @@ public class CardUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     }
     public void OnBeginDrag(PointerEventData eventData)
     {
+        audioSource.PlayOneShot(selectCardClip);
         // Store original parent and position
         originalParent = transform.parent;
         originalPosition = transform.position;

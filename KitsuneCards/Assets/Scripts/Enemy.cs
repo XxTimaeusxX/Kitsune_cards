@@ -18,6 +18,14 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public ParticleSystem ArmorEffect;
     public ParticleSystem DotFireEffect;
 
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip damageArmorDebuffSound;
+    public AudioClip TakeDamageSound;
+    public AudioClip DoTSound;
+    public AudioClip DeBuffSound;
+
+
     [Header("Health")]
     public int MaxHealth = 100;
     public int CurrentHealth = 100;
@@ -235,6 +243,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     //////////// IDamageable ///////////////
     public void TakeDamage(int amount)
     {
+        audioSource.PlayOneShot(TakeDamageSound);
         CurrentHealth -= amount;
         UpdateEnemyHealthUI();
         Debug.Log($"Boss takes {amount} damage. Health: {CurrentHealth}/{MaxHealth}");
@@ -268,6 +277,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
 
     public void ApplyDoT(int turns, int damageAmount)
     {
+        audioSource.PlayOneShot(DeBuffSound);
         activeDoTTurns += turns;
         activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
         DebuffEffect.Play();// play debuff particle effect
@@ -275,8 +285,10 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     }
     public void TripleDoT()
     {
+            audioSource.PlayOneShot(DeBuffSound);
             activeDoTDamage *= 3;
             DebuffEffect.Play();
+            audioSource.PlayOneShot(DeBuffSound);
             GameTurnMessager.instance.ShowMessage($"Enemy's DoT damage is tripled!");
             Debug.Log("Player's DoT damage is tripled.");
         
@@ -286,6 +298,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         if (activeDoTTurns > 0) activeDoTTurns += turns;
         if (damageDebuffTurns > 0) damageDebuffTurns += turns;
         if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
+        audioSource.PlayOneShot(DeBuffSound);
         DebuffEffect.Play();
         GameTurnMessager.instance.ShowMessage($"all Enemy's debuffs are extended by {turns} turns!");
     }
@@ -298,6 +311,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
 
     public void LoseEnergy(int amount)
     {
+        audioSource.PlayOneShot(DeBuffSound);
         Currentmana = Mathf.Max(0, Currentmana - amount);
         DebuffEffect.Play();
         UpdateManaUI();

@@ -16,6 +16,12 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public ParticleSystem DebuffEffect;
     public ParticleSystem ArmorEffect;
 
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip TakeDamageSound;
+    public AudioClip damageArmorDebuffSound;
+    public AudioClip DoTSound;
+
     [Header("Health")]
     public float PlayerMaxHealth = 100;
     public float currentHealth = 100;
@@ -142,6 +148,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     ///////////// IDamageable///////////////   
     public void TakeDamage(int amount)
     {
+        audioSource.PlayOneShot(TakeDamageSound);
         // Apply damage debuff if active
         int debuffedAmount = amount;
         if (damageDebuffTurns > 0)
@@ -164,6 +171,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
                 armor = 0;
             }
             UpdateArmorUI();
+            
         }
 
         if (damageAfterArmor > 0)
@@ -209,6 +217,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     ///////////// IDeBuffable///////////////
     public void ApplyDoT(int turns, int damageAmount)
     {
+        
         activeDoTTurns += turns;
         activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
     }
@@ -234,6 +243,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         ArmorEffect.Play();
         damageDebuffTurns = turns;
         damageDebuffMultiplier = multiplier;
+         audioSource.PlayOneShot(damageArmorDebuffSound);
         GameTurnMessager.instance.ShowMessage($"next 3 turns Enemy deals 80% less damage.");
     }
 
@@ -243,7 +253,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         UpdateManaUI();
         Debug.Log($"Player loses {amount} mana.");
     }
-
+    
     public void ApplyStun(int turns)
     {
         stunTurnsRemaining = Mathf.Max(stunTurnsRemaining, turns);
