@@ -197,20 +197,57 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
 
     public void ApplyBlock(int blockamount)
     {
-      //ArmorUIvfx.SetTrigger("ArmorVFX");
+        int finalBlock = blockamount;
+        if (buffBlockTurns > 0)
+        {
+            finalBlock = Mathf.RoundToInt(blockamount * buffBlockPercentage);
+            buffBlockTurns--;
+            if (buffBlockTurns == 0) buffBlockPercentage = 1f;
+        }
+        //ArmorUIvfx.SetTrigger("ArmorVFX");
         armor += blockamount;
         UpdateArmorUI();
         ArmorEffect.Play();
         Debug.Log($"Player gains {blockamount} block.");
         // Implement block logic here
     }
+
     public void ApplyReflect(float reflectPercentage)
     {
         Debug.Log($"Player gains {reflectPercentage * 100}% reflect.");
         // Implement reflect logic here
     }
-    public void BuffBlock(int turns, int blockamount)
+
+    ///////////// IBuffable///////////////
+
+    public void BuffDoT(int turns )
     {
+        activeDoTTurns += turns;
+       
+      
+        Debug.Log($"Player is buffed with DoT for {turns} turns.");
+        // Implement DoT buff logic here
+    }
+    public void BuffAllEffects(int turns, float multiplier)
+    {
+        buffAllEffectsTurns = turns;
+        buffAllEffectsPercentage = multiplier;
+        GameTurnMessager.instance.ShowMessage($"All debuffs extended by {turns} turns.");
+        Debug.Log("Player's damage, DoT, block, and buffs are increased by 25% for the next 2 turns.");
+        // Implement buff logic here
+    }
+
+    
+    public void ExtendDebuff(int turns)
+    {
+        if (activeDoTTurns > 0) activeDoTTurns += turns;
+        if (damageDebuffTurns > 0) damageDebuffTurns += turns;
+        if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
+    }
+    public void BuffBlock(int turns, float blockamount)
+    {
+        buffBlockTurns = turns;
+        buffBlockPercentage = blockamount;
         Debug.Log($"Player's block is increased by {blockamount * 100}% for the next {turns} turns.");
         // Implement block buff logic here
     }
@@ -230,14 +267,6 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
             Debug.Log("Player's DoT damage is tripled.");
         }
     }
-
-    public void ExtendDebuff(int turns)
-    {
-        if (activeDoTTurns > 0) activeDoTTurns += turns;
-        if (damageDebuffTurns > 0) damageDebuffTurns += turns;
-        if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
-    }
-
     public void ApplyDamageDebuff(int turns, float multiplier)
     {
         ArmorEffect.Play();
@@ -251,6 +280,8 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     {
         currentMana = Mathf.Max(0, currentMana - amount);
         UpdateManaUI();
+        GameTurnMessager.instance.ShowMessage($"Player loses {amount} mana.");
+        audioSource.PlayOneShot(damageArmorDebuffSound);
         Debug.Log($"Player loses {amount} mana.");
     }
     
@@ -261,19 +292,5 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         
     }
 
-    ///////////// IBuffable///////////////
-
-    public void BuffDoT( int turns, int damagePerTurn)
-    {
-        Debug.Log($"Player is buffed with DoT for {turns} turns, taking {damagePerTurn} damage each turn.");
-        // Implement DoT buff logic here
-    }
-    public void BuffAllEffects(int turns, float percentage)
-    {
-        Debug.Log("Player's damage, DoT, block, and buffs are increased by 25% for the next 2 turns.");
-        // Implement buff logic here
-    }
-   
-   
-   
+    
 }

@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 78af4056444373b49951af9c321bd0f0, type: 3}
-  m_Name: Debuff5ap
+  m_Name: Buff5ap
   m_EditorClassIdentifier: 
   FireAbilities:
   - ManaCost: 1
@@ -65,8 +65,8 @@ MonoBehaviour:
       amount is x2 more
   - ManaCost: 10
     Type: 3
-    EffectDescription: apply 24 block and reflect 50% of damage taken.
+    EffectDescription: apply 24 block and reflect 50% of damage taken for 1 turn.
   CardName: 
-  CharacterImage: {fileID: 21300000, guid: 2b11ef4ca4596494d95fc064d6e40fe3, type: 3}
-  elementType: 1
+  CharacterImage: {fileID: 21300000, guid: 48670799e2ec91c4c9e90f14d6b22f14, type: 3}
+  elementType: 3
   selectedManaAndEffectIndex: 2

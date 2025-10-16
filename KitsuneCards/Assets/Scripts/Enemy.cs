@@ -194,12 +194,13 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
                 {
                     Debug.Log("executing ability");
                     abilityManager.ExecuteCardAbility(
-                        cardToPlay,  
-                        deckManager.player, // reference to IDamageable target(player)
-                        null,              // reference to IDebuffable target (none for now)
+                        cardToPlay,
+                        deckManager.player, // reference to player
                         deckManager.enemy, // reference to enemy
-                        deckManager.player,// reference to player
-                        deckManager.enemy // who gets the armor applied.
+                        deckManager.player, // reference to IDamageable target(player)
+                        null,             // reference to IBlockable target(enemy)
+                        null,              // reference to IDebuffable target (none for now)
+                        null              // reference to IBuffable target (none for now)
                     );
                 }
                 // TODO: Add logic for other ability types
@@ -262,17 +263,38 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     {
         throw new System.NotImplementedException();
     }
-
     public void ApplyReflect(float percentage)
     {
         throw new System.NotImplementedException();
     }
-    public void BuffBlock(int turns, int BlockAmount)
+
+    ///////////// IBuffable///////////////
+    public void BuffDoT(int turns)
+    {
+
+        activeDoTTurns += turns;
+      
+        GameTurnMessager.instance.ShowMessage($" extend DoT + {turns} turns.");
+    }
+
+    public void BuffAllEffects(int turns, float multiplier)
     {
         throw new System.NotImplementedException();
     }
-
-
+    
+    public void ExtendDebuff(int turns)
+    {
+        if (activeDoTTurns > 0) activeDoTTurns += turns;
+        if (damageDebuffTurns > 0) damageDebuffTurns += turns;
+        if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
+        audioSource.PlayOneShot(DeBuffSound);
+        DebuffEffect.Play();
+        GameTurnMessager.instance.ShowMessage($"all Enemy's debuffs are extended by {turns} turns!");
+    }
+    public void BuffBlock(int turns, float BlockAmount)
+    {
+        throw new System.NotImplementedException();
+    }
     ///////////// IDebuffable///////////////
 
     public void ApplyDoT(int turns, int damageAmount)
@@ -293,18 +315,11 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
             Debug.Log("Player's DoT damage is tripled.");
         
     }
-    public void ExtendDebuff(int turns)
-    {
-        if (activeDoTTurns > 0) activeDoTTurns += turns;
-        if (damageDebuffTurns > 0) damageDebuffTurns += turns;
-        if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
-        audioSource.PlayOneShot(DeBuffSound);
-        DebuffEffect.Play();
-        GameTurnMessager.instance.ShowMessage($"all Enemy's debuffs are extended by {turns} turns!");
-    }
+   
 
     public void ApplyDamageDebuff(int turns, float multiplier)
     {
+        //only players uses this
         damageDebuffTurns = turns;
         damageDebuffMultiplier = multiplier;
     }
@@ -326,16 +341,5 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     }
   
 
-    ///////////// IBuffable///////////////
-    public void BuffDoT(int turns, int bonusDoT)
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public void BuffAllEffects(int turns, float multiplier)
-    {
-        throw new System.NotImplementedException();
-    }
-
-   
+    
 }

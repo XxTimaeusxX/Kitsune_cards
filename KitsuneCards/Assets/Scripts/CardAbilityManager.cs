@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CardAbilityManager : MonoBehaviour
 {
-    public void ExecuteCardAbility(CardData card, IDamageable Opponent,IDebuffable TargetDebuff, Enemy enemy, Player player, IBlockable TargetBlock)
+    public void ExecuteCardAbility(CardData card,Player player, Enemy enemy, IDamageable Opponent, IBlockable TargetBlock,IBuffable TargetBuff, IDebuffable TargetDebuff)
     {
         ManaCostandEffect ability =default;
 
@@ -61,17 +61,17 @@ public class CardAbilityManager : MonoBehaviour
             case AbilityType.Buff:
                 // Example: Buff logic
                 // Fire 2AP: For next 2 turns, DoT applies +1 more
-                // Water 10AP: All effects 25% greater for 2 turns
+                // Water 10AP: DAmage dealt, DoT applied block applied, and buffs applied are x3 for 2 turns
                 // Water 1AP: Add 1 turn to debuff
-                // Air 5AP: Block 25% more for 3 turns
+                // Air 5AP: Block cards are doubled in amount for 2 turns
                 if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 2)
-                    player.BuffDoT(2, 1);
+                    enemy.BuffDoT(2);
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 10)
-                    player.BuffAllEffects(2, 1.25f);
+                    player.BuffAllEffects(2, 3f);
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 1)
                     enemy.ExtendDebuff(1);
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 5)
-                    player.BuffBlock(3, 1);//might change it to percentage instead.
+                    player.BuffBlock(2, 2);//might change it to percentage instead.
                 break;
 
             case AbilityType.Debuff:

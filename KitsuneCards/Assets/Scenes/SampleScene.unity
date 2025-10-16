@@ -400,12 +400,12 @@ MonoBehaviour:
   TakeDamageSound: {fileID: 8300000, guid: 533882329291e2b4da0088d5c45c84ca, type: 3}
   DoTSound: {fileID: 8300000, guid: ea8bca6460121e64e9f991409ac7ad49, type: 3}
   DeBuffSound: {fileID: 8300000, guid: 5934ff62c917de94db832deccd09194a, type: 3}
-  MaxHealth: 200
-  CurrentHealth: 200
+  MaxHealth: 150
+  CurrentHealth: 150
   enemyhealthText: {fileID: 1716820631}
   enemyHealthBar: {fileID: 815269937}
-  Maxmana: 10
-  Currentmana: 10
+  Maxmana: 8
+  Currentmana: 8
   enemymanaText: {fileID: 1071004532}
   enemymanaBar: {fileID: 2110383984}
   activeDoTTurns: 0

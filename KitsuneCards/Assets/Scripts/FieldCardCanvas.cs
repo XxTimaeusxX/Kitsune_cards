@@ -62,11 +62,12 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
         {
             abilityManager.ExecuteCardAbility(
                 cardUI.cardData,
-                cardDeckManager.enemy, // reference to IDamageable target(enemy)
-                cardDeckManager.enemy, // reference to IDebuffable target(enemy)
-                cardDeckManager.enemy, // reference to enemy
                 cardDeckManager.player, // reference to player
-                cardDeckManager.player // reference to who gets the armor.
+                cardDeckManager.enemy, // reference to enemy
+                cardDeckManager.enemy, // reference to IDamageable target(enemy)
+                cardDeckManager.player, // reference to IBlockable target(player)
+                cardDeckManager.player, // reference to IBuffable target(player)
+                cardDeckManager.enemy // reference to IDebuffable target(enemy)  
             );
            
            // cardDeckManager.playerfield.Remove(cardUI.cardData);

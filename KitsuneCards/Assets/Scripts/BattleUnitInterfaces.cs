@@ -11,20 +11,23 @@ public interface IBlockable
 {
     void ApplyBlock(int amount);
     void ApplyReflect(float percentage);
-    void BuffBlock(int turns, int BlockAmount);
 }
 
 public interface IBuffable
 {
-    void BuffDoT(int turns, int bonusDoT);
+    void BuffDoT(int turns);
     void BuffAllEffects(int turns, float multiplier);
+    
+    void ExtendDebuff(int turns);
+
+    void BuffBlock(int turns, float BlockAmount);
 }
 
 public interface IDebuffable
 {
     void ApplyDoT(int turns, int damageAmount);
     void TripleDoT();
-    void ExtendDebuff(int turns);
+   
     void ApplyDamageDebuff(int turns, float multiplier);
     void LoseEnergy(int amount);
     void ApplyStun(int turns);
