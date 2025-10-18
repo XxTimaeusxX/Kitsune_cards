@@ -15,7 +15,7 @@ public interface IBlockable
 
 public interface IBuffable
 {
-    void BuffDoT(int turns);
+    void BuffDoT(int turns, int BonusDamage);
     void BuffAllEffects(int turns, float multiplier);
     
     void ExtendDebuff(int turns);

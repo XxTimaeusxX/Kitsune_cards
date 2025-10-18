@@ -269,11 +269,12 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     }
 
     ///////////// IBuffable///////////////
-    public void BuffDoT(int turns)
+    public void BuffDoT(int turns, int BonusDamage)
     {
 
         activeDoTTurns += turns;
-      
+        activeDoTDamage += BonusDamage;
+
         GameTurnMessager.instance.ShowMessage($" extend DoT + {turns} turns.");
     }
 
@@ -288,7 +289,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         if (damageDebuffTurns > 0) damageDebuffTurns += turns;
         if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
         audioSource.PlayOneShot(DeBuffSound);
-        DebuffEffect.Play();
+       // DebuffEffect.Play();
         GameTurnMessager.instance.ShowMessage($"all Enemy's debuffs are extended by {turns} turns!");
     }
     public void BuffBlock(int turns, float BlockAmount)

@@ -43,14 +43,8 @@ public class CardDeckManager : MonoBehaviour
     {
         LoadcardsfromResources();
         ShuffleDeck();
-        // DisplayDeck();
-      //  DebugLogAllCardsInResources();
         DrawCard(HandstartSize);
-        StartPlayerTurn();
-        
-      //  displayhand();
-        
-        
+        StartPlayerTurn();    
     }
     void LoadcardsfromResources()
     {
@@ -68,63 +62,75 @@ public class CardDeckManager : MonoBehaviour
         // Define all ability types you want to include
         AbilityType[] abilityTypes = new AbilityType[]
         {
-          AbilityType.Buff,
-          AbilityType.Debuff,
           AbilityType.Damage,
           AbilityType.Block,
-          
+          AbilityType.Buff,
+          AbilityType.Debuff,
+  
             // Add more as needed
         };
 
-        // Loop over all combinations
+        // Step 1: Gather all unique cards for each (mana, ability) combination
+        var uniqueCardsByCombo = new Dictionary<(int, AbilityType), List<CardData>>();
+        foreach (var (mana, limit) in manaLimits)
+        {
             foreach (var type in abilityTypes)
             {
-            
-             foreach (var (mana, limit) in manaLimits)
-                 {
-                    AddCardsByManaAndType(loadedCards, mana, type, limit);
-                 }
-
-            }
-    }
-    public void AddCardsByManaAndType(CardData[] allCards, int mana, AbilityType type, int count)
-    {
-        List<CardData> candidates = new List<CardData>();
-        foreach (var card in allCards)
-        {
-            ManaCostandEffect? selectedAbility = null;
-            switch (card.elementType)
-            {
-                case CardData.ElementType.Fire:
-                    if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.FireAbilities.Count)
-                        selectedAbility = card.FireAbilities[card.selectedManaAndEffectIndex];
-                    break;
-                case CardData.ElementType.Water:
-                    if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.WaterAbilities.Count)
-                        selectedAbility = card.WaterAbilities[card.selectedManaAndEffectIndex];
-                    break;
-                case CardData.ElementType.Earth:
-                    if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.EarthAbilities.Count)
-                        selectedAbility = card.EarthAbilities[card.selectedManaAndEffectIndex];
-                    break;
-                case CardData.ElementType.Air:
-                    if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.AirAbilities.Count)
-                        selectedAbility = card.AirAbilities[card.selectedManaAndEffectIndex];
-                    break;
-            }
-
-            if (selectedAbility.HasValue && selectedAbility.Value.ManaCost == mana && selectedAbility.Value.Type == type)
-            {
-                candidates.Add(card);
-                Debug.Log($"[DECK] Added: {card.CardName} | {type} at {mana} AP");
+                uniqueCardsByCombo[(mana, type)] = new List<CardData>();
             }
         }
-        // Add up to 'count' cards, cycling if needed, but do not exceed DeckLimit
-        for (int i = 0; i < count && cards.Count < deckSize; i++)
+
+        foreach (var card in loadedCards)
         {
-            if (candidates.Count == 0) break;
-            cards.Add(candidates[i % candidates.Count]);
-            if (cards.Count >= deckSize) break;
+            // Check all abilities for each element
+            void AddIfMatch(List<ManaCostandEffect> abilities)
+            {
+                for (int i = 0; i < abilities.Count; i++)
+                {
+                    var ab = abilities[i];
+                    var key = (ab.ManaCost, ab.Type);
+                    if (uniqueCardsByCombo.ContainsKey(key) && !uniqueCardsByCombo[key].Contains(card))
+                    {
+                        uniqueCardsByCombo[key].Add(card);
+                    }
+                }
+            }
+            AddIfMatch(card.FireAbilities);
+            AddIfMatch(card.WaterAbilities);
+            AddIfMatch(card.EarthAbilities);
+            AddIfMatch(card.AirAbilities);
+        }
+
+        // Step 2: Add one of each unique card to the deck
+        List<CardData> initialDeck = new List<CardData>();
+        foreach (var kvp in uniqueCardsByCombo)
+        {
+            foreach (var card in kvp.Value)
+            {
+                if (initialDeck.Count < deckSize)
+                    initialDeck.Add(card);
+            }
+        }
+
+        // Step 3: Duplicate cards up to the AP limit for each (mana, ability) combo
+        cards.AddRange(initialDeck);
+        foreach (var ((mana, type), cardList) in uniqueCardsByCombo)
+        {
+            int alreadyAdded = 0;
+            foreach (var card in cardList)
+            {
+                alreadyAdded += initialDeck.FindAll(c => c == card).Count;
+            }
+            int toAdd = 0;
+            foreach (var (m, l) in manaLimits)
+            {
+                if (m == mana) toAdd = l - alreadyAdded;
+            }
+            for (int i = 0; i < toAdd && cards.Count < deckSize; i++)
+            {
+                var card = cardList[i % cardList.Count];
+                cards.Add(card);
+            }
         }
     }
     
@@ -154,8 +160,6 @@ public class CardDeckManager : MonoBehaviour
             enemy.TakeDamage(enemy.activeDoTDamage);
             yield return new WaitForSeconds(2f); // Wait for 2 seconds to let player see the message
         }
-
-
         if (enemy.stunTurnsRemaining > 1)
         {
             enemy.stunTurnsRemaining--;
@@ -172,9 +176,6 @@ public class CardDeckManager : MonoBehaviour
             Debug.Log("Enemy's Turn Started");
             GameTurnMessager.instance.ShowMessage("Enemy's Turn");
         }
-        
-        // Enemy turn logic here
-
     }
     public void OnPlayerEndTurn()
     {
@@ -213,7 +214,7 @@ public class CardDeckManager : MonoBehaviour
    public void OnbuttonDrawpress() // Button Ui will call this function when pressed = drawcard and show card.
     {
         DrawCard(DrawperHand);
-        displayhand();
+        
     }
     public void OnReplayButtonPressed()
     {
@@ -240,22 +241,7 @@ public class CardDeckManager : MonoBehaviour
             handUIManager.UpdateHandUI(); // Update the hand UI after drawing cards
         }
     }
-    void displayhand()// display player hand by looping through the list
-    {
-        foreach (var cardData in playerHand)
-        {
-            Debug.Log($" Card Name: {cardData.CardName}, Card Index: {cardData.CardName}, Attack Strength: {cardData.elementType}");
-        }
-    }
-    void DisplayDeck()// display deck by looping through the list
-    {
-        // display card data
-        foreach (var cardData in cards)
-        {
-            Debug.Log($"Card Name: {cardData.CardName}, Card Index: {cardData.CardName}, Attack Strength: {cardData.elementType}");
 
-        }
-    }
     public void DiscardCard(CardData card)
     {
         if (playerHand.Contains(card))

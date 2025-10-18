@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CardAbilityManager : MonoBehaviour
@@ -65,13 +66,45 @@ public class CardAbilityManager : MonoBehaviour
                 // Water 1AP: Add 1 turn to debuff
                 // Air 5AP: Block cards are doubled in amount for 2 turns
                 if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 2)
-                    enemy.BuffDoT(2);
+                {
+                    TargetBuff.BuffDoT(2, 1);
+                    if (enemy.activeDoTTurns > 0)
+                    {
+                        enemy.activeDoTTurns +=2;
+                        enemy.activeDoTDamage += 1;
+                        
+                        GameTurnMessager.instance.ShowMessage($"Player's DoT buff + 2 turns +1damage");
+                        
+                    }
+                    
+                }
+                    
+                
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 10)
-                    player.BuffAllEffects(2, 3f);
+                    TargetBuff.BuffAllEffects(2, 3f);
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 1)
-                    enemy.ExtendDebuff(1);
+                {
+                    TargetBuff.ExtendDebuff(1);
+                    // Retroactively extend all debuffs on enemy
+                    if (enemy.activeDoTTurns > 0)
+                    {
+                        enemy.activeDoTTurns += 1;
+                        GameTurnMessager.instance.ShowMessage($"Enemy's DoT extended +1 turn");
+                    }
+                    if (enemy.damageDebuffTurns > 0)
+                    {
+                        enemy.damageDebuffTurns += 1;
+                        GameTurnMessager.instance.ShowMessage($"Enemy's damage debuff extended by 1 turn due to buff!");
+                    }
+                    if(enemy.stunTurnsRemaining > 0)
+                    {
+                        enemy.stunTurnsRemaining += 1;
+                        GameTurnMessager.instance.ShowMessage($"Enemy's stun extended by 1 turn due to buff!");
+                    }
+                }
+                    
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 5)
-                    player.BuffBlock(2, 2);//might change it to percentage instead.
+                    TargetBuff.BuffBlock(2, 2);//might change it to percentage instead.
                 break;
 
             case AbilityType.Debuff:
@@ -83,7 +116,11 @@ public class CardAbilityManager : MonoBehaviour
                 if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 10)
                     TargetDebuff.TripleDoT();
                 else if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 1)
-                    TargetDebuff.ApplyDoT(2,3);
+                {
+                     int totalTurns = 2 + player.activeDoTTurns;
+                   // int totalTurns = 2 + player.buffDotTurns;
+                    TargetDebuff.ApplyDoT(totalTurns, 3);
+                }
                 else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 2)
                     TargetDebuff.LoseEnergy(3);
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 5)

@@ -8,6 +8,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
 {
     public CardDeckManager deckManager;
     public HandUIManager HandUIManager;
+    public Enemy Enemy;
     private bool HasDrawn= false;
     private bool hasDiscarded = false;
 
@@ -21,6 +22,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public AudioClip TakeDamageSound;
     public AudioClip damageArmorDebuffSound;
     public AudioClip DoTSound;
+    public AudioClip buffSound;
 
     [Header("Health")]
     public float PlayerMaxHealth = 100;
@@ -41,15 +43,16 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public Animator ArmorUIvfx;
 
     [Header("Buff settings")]
-    private int buffDotTurns = 0;
-    private int buffDotDamage = 0;
-    private int buffAllEffectsTurns = 0;
-    private float buffAllEffectsPercentage = 0f;
     private int buffBlockTurns = 0;
+    public int buffDotTurns { get; set; }
+    public int buffDotDamage { get; set; }
+    public int buffAllEffectsTurns { get; set; }
+    public float buffAllEffectsPercentage { get; set; } = 1f;
+
     private float buffBlockPercentage = 1f;
 
     [Header("Debuff settings")]
-    private int activeDoTTurns = 0;
+    public int activeDoTTurns = 0;
     private int activeDoTDamage = 0;
     public int damageDebuffTurns = 0;
     public float damageDebuffMultiplier = 1f;
@@ -220,26 +223,34 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
 
     ///////////// IBuffable///////////////
 
-    public void BuffDoT(int turns )
+    public void BuffDoT(int turns, int BonusDamage )
     {
-        activeDoTTurns += turns;
-       
-      
+         activeDoTTurns += turns;
+        activeDoTDamage += BonusDamage;
+        // buffDotTurns += turns;
+        // int totalTurns = 2 + activeDoTTurns;
+
+        BuffEffect.Play();
+        audioSource.PlayOneShot(buffSound);
         Debug.Log($"Player is buffed with DoT for {turns} turns.");
         // Implement DoT buff logic here
     }
     public void BuffAllEffects(int turns, float multiplier)
     {
-        buffAllEffectsTurns = turns;
-        buffAllEffectsPercentage = multiplier;
+        buffAllEffectsTurns += turns;
+        buffAllEffectsPercentage += multiplier;
+        BuffEffect.Play();
+        audioSource.PlayOneShot(buffSound);
         GameTurnMessager.instance.ShowMessage($"All debuffs extended by {turns} turns.");
-        Debug.Log("Player's damage, DoT, block, and buffs are increased by 25% for the next 2 turns.");
+        Debug.Log("Player's damage, DoT, block, and buffs are x2 for the next 2 turns.");
         // Implement buff logic here
     }
 
     
     public void ExtendDebuff(int turns)
     {
+        BuffEffect.Play();
+        audioSource.PlayOneShot(buffSound);
         if (activeDoTTurns > 0) activeDoTTurns += turns;
         if (damageDebuffTurns > 0) damageDebuffTurns += turns;
         if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
@@ -248,7 +259,9 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     {
         buffBlockTurns = turns;
         buffBlockPercentage = blockamount;
-        Debug.Log($"Player's block is increased by {blockamount * 100}% for the next {turns} turns.");
+        BuffEffect.Play();
+        audioSource.PlayOneShot(buffSound);
+        Debug.Log($"Player's block cards value are doubled for this turn.");
         // Implement block buff logic here
     }
     ///////////// IDeBuffable///////////////

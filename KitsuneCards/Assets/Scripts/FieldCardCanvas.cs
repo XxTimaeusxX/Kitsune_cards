@@ -58,6 +58,7 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
     // Call this when a card is dropped onto the field
     public void PlayCard(CardUI cardUI)
     {
+        
         if (abilityManager != null && cardUI != null)
         {
             abilityManager.ExecuteCardAbility(

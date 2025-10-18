@@ -15,13 +15,13 @@ MonoBehaviour:
   FireAbilities:
   - ManaCost: 1
     Type: 0
-    EffectDescription: Apply 2 DoT
+    EffectDescription: Apply 2 DoT, for three turns
   - ManaCost: 2
     Type: 2
     EffectDescription: For next 2 turns, DoT applies +1 more
   - ManaCost: 5
     Type: 1
-    EffectDescription: Deal 8 damage
+    EffectDescription: Deal 12 damage
   - ManaCost: 10
     Type: 0
     EffectDescription: Triple current DoT
@@ -34,11 +34,11 @@ MonoBehaviour:
     EffectDescription: Apply 4 block
   - ManaCost: 5
     Type: 0
-    EffectDescription: next 3 turns target deals 25% less damage
+    EffectDescription: next 3 turns target deals 80% less damage
   - ManaCost: 10
     Type: 2
-    EffectDescription: "for next 2 turns, Damage dealt, DoT applied \r\n                                                                  
-      block applied, and buffs applied are 25 percent greater"
+    EffectDescription: for next 2 turns, Damage dealt, DoT applied block applied,
+      and buffs applied are x3
   EarthAbilities:
   - ManaCost: 1
     Type: 1
@@ -51,7 +51,7 @@ MonoBehaviour:
     EffectDescription: Apply 12 block
   - ManaCost: 10
     Type: 1
-    EffectDescription: Deal 32 pts Damage and apply stun for 1 turn
+    EffectDescription: Deal 32 pts Damage and apply stun for 3 turn
   AirAbilities:
   - ManaCost: 1
     Type: 3
@@ -61,11 +61,12 @@ MonoBehaviour:
     EffectDescription: deal 8 pts damage
   - ManaCost: 5
     Type: 2
-    EffectDescription: next 3 turns, target deals 25% less damage
+    EffectDescription: For the next 2 turns, whenever you apply Block card, block
+      amount is x2 more
   - ManaCost: 10
     Type: 3
-    EffectDescription: apply 24 block and reflect 25% of damage taken
-  CardName: Parasol
-  CharacterImage: {fileID: 21300000, guid: e3a7e01c0dc7f88448e592b8213d7d48, type: 3}
-  elementType: 3
+    EffectDescription: apply 24 block and reflect 50% of damage taken for 1 turn.
+  CardName: 
+  CharacterImage: {fileID: 21300000, guid: 88e285384dc158d49a3c2a51d9052fec, type: 3}
+  elementType: 2
   selectedManaAndEffectIndex: 2

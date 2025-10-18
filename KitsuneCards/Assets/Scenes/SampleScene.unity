@@ -6891,7 +6891,7 @@ PrefabInstance:
       objectReference: {fileID: 1172033827}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: maxMana
-      value: 6
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: DoTSound
@@ -6914,6 +6914,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1565300703}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: buffSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 5619c85dc2cdc714389406f165431333, type: 3}
+    - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: ArmorUIvfx
       value: 
       objectReference: {fileID: 1663798786}
@@ -6935,12 +6939,16 @@ PrefabInstance:
       objectReference: {fileID: 1761941112}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: currentMana
-      value: 6
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: deckManager
       value: 
       objectReference: {fileID: 1601799123}
+    - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: DebuffEffect
+      value: 
+      objectReference: {fileID: 4648406696764460808, guid: 6d1b3e8b059f3bf4d881d63657d96aa5, type: 3}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: currentHealth
       value: 120
