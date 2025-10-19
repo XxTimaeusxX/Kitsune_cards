@@ -34,11 +34,11 @@ MonoBehaviour:
     EffectDescription: Apply 4 block
   - ManaCost: 5
     Type: 0
-    EffectDescription: next 3 turns target deals 25% less damage
+    EffectDescription: next 3 turns target deals 80% less damage
   - ManaCost: 10
     Type: 2
-    EffectDescription: "for next 2 turns, Damage dealt, DoT applied \r\n                                                                  
-      block applied, and buffs applied are 25 percent greater"
+    EffectDescription: "for next 2 turns, Damage dealt, DoT applied \r\n                                                                                            
+      block applied, and buffs applied are x3"
   EarthAbilities:
   - ManaCost: 1
     Type: 1
@@ -61,11 +61,12 @@ MonoBehaviour:
     EffectDescription: deal 8 pts damage
   - ManaCost: 5
     Type: 2
-    EffectDescription: next 3 turns, target deals 25% less damage
+    EffectDescription: For the next 2 turns, whenever you apply Block card, block
+      amount is x2 more
   - ManaCost: 10
     Type: 3
-    EffectDescription: apply 24 block and reflect 25% of damage taken
-  CardName: GhostWhale
+    EffectDescription: apply 24 block and reflect 50% of damage taken.
+  CardName: 
   CharacterImage: {fileID: 21300000, guid: 2b11ef4ca4596494d95fc064d6e40fe3, type: 3}
   elementType: 1
   selectedManaAndEffectIndex: 2

@@ -10,6 +10,10 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
     public CardDeckManager cardDeckManager;
     public CardAbilityManager abilityManager;
     private HandUIManager handUIManager;
+
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip playCardClip;
     public void OnDrop(PointerEventData eventData)
     {
         Debug.Log("OnDrop fired on FieldCardCanvas");
@@ -33,7 +37,7 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
                 // Hide the draw button after playing a card to the field
                 if (cardDeckManager.handUIManager != null)
                     cardDeckManager.handUIManager.Hidebutton();
-
+                audioSource.PlayOneShot(playCardClip);
                 PlayCard(CardUI);
 
                
@@ -54,15 +58,17 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
     // Call this when a card is dropped onto the field
     public void PlayCard(CardUI cardUI)
     {
+        
         if (abilityManager != null && cardUI != null)
         {
             abilityManager.ExecuteCardAbility(
                 cardUI.cardData,
-                cardDeckManager.enemy, // reference to IDamageable target(enemy)
-                cardDeckManager.enemy, // reference to IDebuffable target(enemy)
-                cardDeckManager.enemy, // reference to enemy
                 cardDeckManager.player, // reference to player
-                cardDeckManager.player // reference to who gets the armor.
+                cardDeckManager.enemy, // reference to enemy
+                cardDeckManager.enemy, // reference to IDamageable target(enemy)
+                cardDeckManager.player, // reference to IBlockable target(player)
+                cardDeckManager.player, // reference to IBuffable target(player)
+                cardDeckManager.enemy // reference to IDebuffable target(enemy)  
             );
            
            // cardDeckManager.playerfield.Remove(cardUI.cardData);

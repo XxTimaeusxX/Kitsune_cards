@@ -41,8 +41,7 @@ public class CardData : ScriptableObject
         new ManaCostandEffect { ManaCost = 1,Type = AbilityType.Buff, EffectDescription = "add 1 additional turn to any current debuff to target" },
         new ManaCostandEffect { ManaCost = 2,Type = AbilityType.Block, EffectDescription = "Apply 4 block" },
         new ManaCostandEffect { ManaCost = 5,Type = AbilityType.Debuff, EffectDescription = "next 3 turns target deals 80% less damage" },
-        new ManaCostandEffect { ManaCost = 10,Type = AbilityType.Buff, EffectDescription = @"for next 2 turns, Damage dealt, DoT applied 
-                                                                   block applied, and buffs applied are 25 percent greater" },
+        new ManaCostandEffect { ManaCost = 10,Type = AbilityType.Buff, EffectDescription = "for next 2 turns, Damage dealt, DoT applied block applied, and buffs applied are x3" },
     };
 
     public List<ManaCostandEffect> EarthAbilities = new List<ManaCostandEffect>
@@ -57,8 +56,8 @@ public class CardData : ScriptableObject
     {
         new ManaCostandEffect { ManaCost = 1,Type = AbilityType.Block, EffectDescription = "Apply 2 block" },
         new ManaCostandEffect { ManaCost = 2,Type = AbilityType.Damage, EffectDescription = "deal 8 pts damage" },
-        new ManaCostandEffect { ManaCost = 5,Type = AbilityType.Buff, EffectDescription = "For the next 3 turns, whenever you apply Block, apply 25% more" },
-        new ManaCostandEffect { ManaCost = 10,Type = AbilityType.Block, EffectDescription = "apply 24 block and reflect 25% of damage taken" },
+        new ManaCostandEffect { ManaCost = 5,Type = AbilityType.Buff, EffectDescription = "For the next 2 turns, whenever you apply Block card, block amount is x2 more" },
+        new ManaCostandEffect { ManaCost = 10,Type = AbilityType.Block, EffectDescription = "apply 24 block and reflect 50% of damage taken for 2 turn." },
     };
 
     public string CardName; 

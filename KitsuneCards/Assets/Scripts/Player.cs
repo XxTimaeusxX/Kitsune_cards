@@ -8,6 +8,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
 {
     public CardDeckManager deckManager;
     public HandUIManager HandUIManager;
+    public Enemy Enemy;
     private bool HasDrawn= false;
     private bool hasDiscarded = false;
 
@@ -15,6 +16,13 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public ParticleSystem BuffEffect;
     public ParticleSystem DebuffEffect;
     public ParticleSystem ArmorEffect;
+
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip TakeDamageSound;
+    public AudioClip damageArmorDebuffSound;
+    public AudioClip DoTSound;
+    public AudioClip buffSound;
 
     [Header("Health")]
     public float PlayerMaxHealth = 100;
@@ -30,20 +38,23 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
 
     [Header("Armor")]
     public int armor = 0;
+    public int reflectTurnsRemaining = 0;
+    public float reflectPercentage = 1f;
     public TMP_Text armorText;
     public GameObject armorIcon;
     public Animator ArmorUIvfx;
 
     [Header("Buff settings")]
-    private int buffDotTurns = 0;
-    private int buffDotDamage = 0;
-    private int buffAllEffectsTurns = 0;
-    private float buffAllEffectsPercentage = 0f;
     private int buffBlockTurns = 0;
+    public int buffDotTurns { get; set; }
+    public int buffDotDamage { get; set; }
+    public int buffAllEffectsTurns { get; set; }
+    public float buffAllEffectsMultiplier { get; set; } = 1f;
+
     private float buffBlockPercentage = 1f;
 
     [Header("Debuff settings")]
-    private int activeDoTTurns = 0;
+    public int activeDoTTurns = 0;
     private int activeDoTDamage = 0;
     public int damageDebuffTurns = 0;
     public float damageDebuffMultiplier = 1f;
@@ -59,6 +70,15 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     }
     public void PstartTurn()
     {
+        if (buffAllEffectsTurns > 0)
+        {
+            buffAllEffectsTurns--;
+            if (buffAllEffectsTurns == 0)
+            {
+                buffAllEffectsMultiplier = 1f;
+                Debug.Log("Player's all effects buff expired.");
+            }
+        }
         if (damageDebuffTurns > 0)
         {
             damageDebuffTurns--;
@@ -76,8 +96,27 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         }
         HasDrawn = false;
         hasDiscarded = false;
-        
-            
+
+        // Decrement buffBlockTurns at the start of the turn
+        if (buffBlockTurns > 0)
+        {
+            buffBlockTurns--;
+            if (buffBlockTurns == 0)
+            {
+                buffBlockPercentage = 1f; // Reset multiplier when buff ends
+                                          // Optionally show a message: GameTurnMessager.instance.ShowMessage("Block buff expired!");
+            }
+        }
+        // Decrement active reflect turns at the start of the turn
+        if (reflectTurnsRemaining > 0)
+        {
+            reflectTurnsRemaining--;
+            if (reflectTurnsRemaining == 0)
+            {
+                reflectPercentage = 0f;
+                Debug.Log("Reflect effect expired.");
+            }
+        }
         Debug.Log("Player now have draw and discard phases.");
         
     }
@@ -142,6 +181,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     ///////////// IDamageable///////////////   
     public void TakeDamage(int amount)
     {
+        audioSource.PlayOneShot(TakeDamageSound);
         // Apply damage debuff if active
         int debuffedAmount = amount;
         if (damageDebuffTurns > 0)
@@ -149,6 +189,14 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
             debuffedAmount = Mathf.RoundToInt(debuffedAmount * damageDebuffMultiplier);
            // damageDebuffTurns--;
             
+        }
+        // Reflect logic
+        if (reflectTurnsRemaining > 0 && Enemy != null)
+        {
+            Debug.Log("Reflect condition triggered.");
+            int reflectedDamage = Mathf.RoundToInt(debuffedAmount * reflectPercentage);
+            Enemy.TakeDamage(reflectedDamage);
+            Debug.Log($"Reflected {reflectedDamage} damage to enemy!");
         }
         int damageAfterArmor = debuffedAmount;
         if (armor > 0)
@@ -164,12 +212,14 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
                 armor = 0;
             }
             UpdateArmorUI();
+            
         }
-
+        
         if (damageAfterArmor > 0)
         {
             currentHealth -= damageAfterArmor;
             UpdateHealthUI();
+            
             // Check for defeat
             if (currentHealth <= 0)
             {
@@ -181,7 +231,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
                 }
             }
         }
-
+      
 
         Debug.Log($"Player takes {amount} damage. Health: {currentHealth}");
     }
@@ -189,26 +239,80 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
 
     public void ApplyBlock(int blockamount)
     {
-      //ArmorUIvfx.SetTrigger("ArmorVFX");
-        armor += blockamount;
+        int finalBlock = blockamount;
+        if (buffAllEffectsTurns > 0)
+        {
+            finalBlock = Mathf.RoundToInt(blockamount * buffAllEffectsMultiplier);
+        }
+        if (buffBlockTurns > 0)
+        {
+            finalBlock = Mathf.RoundToInt(blockamount * buffBlockPercentage);         
+        }
+        //ArmorUIvfx.SetTrigger("ArmorVFX");
+        armor += finalBlock;
         UpdateArmorUI();
         ArmorEffect.Play();
+        audioSource.PlayOneShot(damageArmorDebuffSound);
         Debug.Log($"Player gains {blockamount} block.");
         // Implement block logic here
     }
-    public void ApplyReflect(float reflectPercentage)
+
+    public void ApplyReflect(int blockAmount, int turns, float reflectPercent)
     {
+        ApplyBlock(blockAmount);
+        reflectTurnsRemaining = turns;
+        reflectPercentage = reflectPercent;
+        ArmorEffect.Play();
+        audioSource.PlayOneShot(buffSound);
         Debug.Log($"Player gains {reflectPercentage * 100}% reflect.");
         // Implement reflect logic here
     }
-    public void BuffBlock(int turns, int blockamount)
+
+    ///////////// IBuffable///////////////
+
+    public void BuffDoT(int turns, int BonusDamage )
     {
-        Debug.Log($"Player's block is increased by {blockamount * 100}% for the next {turns} turns.");
+        activeDoTTurns += turns;
+        activeDoTDamage += BonusDamage;
+        // buffDotTurns += turns;
+        // int totalTurns = 2 + activeDoTTurns;
+
+        BuffEffect.Play();
+        audioSource.PlayOneShot(buffSound);
+        // Implement DoT buff logic here
+    }
+    public void BuffAllEffects(int turns, float multiplier)
+    {
+        buffAllEffectsTurns += turns;
+        buffAllEffectsMultiplier = multiplier;
+        BuffEffect.Play();
+        audioSource.PlayOneShot(buffSound);
+       // GameTurnMessager.instance.ShowMessage($"All debuffs extended by {turns} turns.");      
+        // Implement buff logic here
+    }
+
+    
+    public void ExtendDebuff(int turns)
+    {
+        BuffEffect.Play();
+        audioSource.PlayOneShot(buffSound);
+        if (activeDoTTurns > 0) activeDoTTurns += turns;
+        if (damageDebuffTurns > 0) damageDebuffTurns += turns;
+        if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
+    }
+    public void BuffBlock(int turns, float blockamount)
+    {
+        buffBlockTurns = turns;
+        buffBlockPercentage = blockamount;
+        BuffEffect.Play();
+        audioSource.PlayOneShot(buffSound);
+        Debug.Log($"Player's block cards value are doubled for this turn.");
         // Implement block buff logic here
     }
     ///////////// IDeBuffable///////////////
     public void ApplyDoT(int turns, int damageAmount)
     {
+        
         activeDoTTurns += turns;
         activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
     }
@@ -221,19 +325,12 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
             Debug.Log("Player's DoT damage is tripled.");
         }
     }
-
-    public void ExtendDebuff(int turns)
-    {
-        if (activeDoTTurns > 0) activeDoTTurns += turns;
-        if (damageDebuffTurns > 0) damageDebuffTurns += turns;
-        if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
-    }
-
     public void ApplyDamageDebuff(int turns, float multiplier)
     {
         ArmorEffect.Play();
         damageDebuffTurns = turns;
         damageDebuffMultiplier = multiplier;
+         audioSource.PlayOneShot(damageArmorDebuffSound);
         GameTurnMessager.instance.ShowMessage($"next 3 turns Enemy deals 80% less damage.");
     }
 
@@ -241,9 +338,11 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     {
         currentMana = Mathf.Max(0, currentMana - amount);
         UpdateManaUI();
+        GameTurnMessager.instance.ShowMessage($"Player loses {amount} mana.");
+        audioSource.PlayOneShot(damageArmorDebuffSound);
         Debug.Log($"Player loses {amount} mana.");
     }
-
+    
     public void ApplyStun(int turns)
     {
         stunTurnsRemaining = Mathf.Max(stunTurnsRemaining, turns);
@@ -251,19 +350,5 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         
     }
 
-    ///////////// IBuffable///////////////
-
-    public void BuffDoT( int turns, int damagePerTurn)
-    {
-        Debug.Log($"Player is buffed with DoT for {turns} turns, taking {damagePerTurn} damage each turn.");
-        // Implement DoT buff logic here
-    }
-    public void BuffAllEffects(int turns, float percentage)
-    {
-        Debug.Log("Player's damage, DoT, block, and buffs are increased by 25% for the next 2 turns.");
-        // Implement buff logic here
-    }
-   
-   
-   
+    
 }

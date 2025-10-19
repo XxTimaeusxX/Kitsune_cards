@@ -10,6 +10,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
 {
     public CardDeckManager deckManager;
     public CardAbilityManager abilityManager;
+    private Player player;
     public List<CardData> enemyCards = new List<CardData>();
 
     [Header("Particle Effects")]
@@ -17,6 +18,14 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public ParticleSystem BuffEffect;
     public ParticleSystem ArmorEffect;
     public ParticleSystem DotFireEffect;
+
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip damageArmorDebuffSound;
+    public AudioClip TakeDamageSound;
+    public AudioClip DoTSound;
+    public AudioClip DeBuffSound;
+
 
     [Header("Health")]
     public int MaxHealth = 100;
@@ -186,12 +195,13 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
                 {
                     Debug.Log("executing ability");
                     abilityManager.ExecuteCardAbility(
-                        cardToPlay,  
-                        deckManager.player, // reference to IDamageable target(player)
-                        null,              // reference to IDebuffable target (none for now)
+                        cardToPlay,
+                        deckManager.player, // reference to player
                         deckManager.enemy, // reference to enemy
-                        deckManager.player,// reference to player
-                        deckManager.enemy // who gets the armor applied.
+                        deckManager.player, // reference to IDamageable target(player)
+                        null,             // reference to IBlockable target(enemy)
+                        null,              // reference to IDebuffable target (none for now)
+                        null              // reference to IBuffable target (none for now)
                     );
                 }
                 // TODO: Add logic for other ability types
@@ -235,10 +245,20 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     //////////// IDamageable ///////////////
     public void TakeDamage(int amount)
     {
+        audioSource.PlayOneShot(TakeDamageSound);
         CurrentHealth -= amount;
         UpdateEnemyHealthUI();
         Debug.Log($"Boss takes {amount} damage. Health: {CurrentHealth}/{MaxHealth}");
-        if(CurrentHealth <= 0)
+
+        // Reflect logic: reflect damage back to the player if reflect is active
+       /* if (player.reflectTurnsRemaining > 0 && player.reflectPercentage > 0f && deckManager != null && deckManager.player != null)
+        {
+            int reflectedDamage = Mathf.RoundToInt(amount * player.reflectPercentage);
+            player.TakeDamage(reflectedDamage);
+            Debug.Log($"Enemy reflected {reflectedDamage} damage to player!");
+        }*/
+
+        if (CurrentHealth <= 0)
         {
           if (deckManager != null)
             {
@@ -253,21 +273,44 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     {
         throw new System.NotImplementedException();
     }
-
-    public void ApplyReflect(float percentage)
-    {
-        throw new System.NotImplementedException();
-    }
-    public void BuffBlock(int turns, int BlockAmount)
+    public void ApplyReflect(int blockamount, int turns, float reflectPercentage)
     {
         throw new System.NotImplementedException();
     }
 
+    ///////////// IBuffable///////////////
+    public void BuffDoT(int turns, int BonusDamage)
+    {
 
+        activeDoTTurns += turns;
+        activeDoTDamage += BonusDamage;
+
+        GameTurnMessager.instance.ShowMessage($" extend DoT + {turns} turns.");
+    }
+
+    public void BuffAllEffects(int turns, float multiplier)
+    {
+        throw new System.NotImplementedException();
+    }
+    
+    public void ExtendDebuff(int turns)
+    {
+        if (activeDoTTurns > 0) activeDoTTurns += turns;
+        if (damageDebuffTurns > 0) damageDebuffTurns += turns;
+        if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
+        audioSource.PlayOneShot(DeBuffSound);
+       // DebuffEffect.Play();
+        GameTurnMessager.instance.ShowMessage($"all Enemy's debuffs are extended by {turns} turns!");
+    }
+    public void BuffBlock(int turns, float BlockAmount)
+    {
+        throw new System.NotImplementedException();
+    }
     ///////////// IDebuffable///////////////
 
     public void ApplyDoT(int turns, int damageAmount)
     {
+        audioSource.PlayOneShot(DeBuffSound);
         activeDoTTurns += turns;
         activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
         DebuffEffect.Play();// play debuff particle effect
@@ -275,29 +318,26 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     }
     public void TripleDoT()
     {
+            audioSource.PlayOneShot(DeBuffSound);
             activeDoTDamage *= 3;
             DebuffEffect.Play();
+            audioSource.PlayOneShot(DeBuffSound);
             GameTurnMessager.instance.ShowMessage($"Enemy's DoT damage is tripled!");
             Debug.Log("Player's DoT damage is tripled.");
         
     }
-    public void ExtendDebuff(int turns)
-    {
-        if (activeDoTTurns > 0) activeDoTTurns += turns;
-        if (damageDebuffTurns > 0) damageDebuffTurns += turns;
-        if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
-        DebuffEffect.Play();
-        GameTurnMessager.instance.ShowMessage($"all Enemy's debuffs are extended by {turns} turns!");
-    }
+   
 
     public void ApplyDamageDebuff(int turns, float multiplier)
     {
+        //only players uses this
         damageDebuffTurns = turns;
         damageDebuffMultiplier = multiplier;
     }
 
     public void LoseEnergy(int amount)
     {
+        audioSource.PlayOneShot(DeBuffSound);
         Currentmana = Mathf.Max(0, Currentmana - amount);
         DebuffEffect.Play();
         UpdateManaUI();
@@ -310,18 +350,6 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {stunTurnsRemaining} turns!");
         // Implement stun logic here
     }
-  
 
-    ///////////// IBuffable///////////////
-    public void BuffDoT(int turns, int bonusDoT)
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public void BuffAllEffects(int turns, float multiplier)
-    {
-        throw new System.NotImplementedException();
-    }
-
-   
+    
 }

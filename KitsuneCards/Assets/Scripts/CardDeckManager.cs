@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using System.Collections;
+using static UnityEditor.PlayerSettings;
 public class CardDeckManager : MonoBehaviour
 {
     // Set your per-AP limits here (can be scaled up) = 30 cards based on ap limit rules
@@ -43,14 +44,8 @@ public class CardDeckManager : MonoBehaviour
     {
         LoadcardsfromResources();
         ShuffleDeck();
-        // DisplayDeck();
-      //  DebugLogAllCardsInResources();
         DrawCard(HandstartSize);
-        StartPlayerTurn();
-        
-      //  displayhand();
-        
-        
+        StartPlayerTurn();    
     }
     void LoadcardsfromResources()
     {
@@ -68,63 +63,62 @@ public class CardDeckManager : MonoBehaviour
         // Define all ability types you want to include
         AbilityType[] abilityTypes = new AbilityType[]
         {
-          AbilityType.Debuff,
-          AbilityType.Damage,
-          AbilityType.Block,
-          AbilityType.Buff
+        AbilityType.Damage,
+        AbilityType.Block,
+        AbilityType.Buff,
+        AbilityType.Debuff,
+  
             // Add more as needed
         };
-
-        // Loop over all combinations
+        foreach (var (mana, limit) in manaLimits)
+        {
             foreach (var type in abilityTypes)
             {
-            
-             foreach (var (mana, limit) in manaLimits)
-                 {
-                    AddCardsByManaAndType(loadedCards, mana, type, limit);
-                 }
+                List<CardData> candidates = new List<CardData>();
+                foreach (var card in loadedCards)
+                {
+                    ManaCostandEffect? selectedAbility = null;
+                    switch (card.elementType)
+                    {
+                        case CardData.ElementType.Fire:
+                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.FireAbilities.Count)
+                                selectedAbility = card.FireAbilities[card.selectedManaAndEffectIndex];
+                            break;
+                        case CardData.ElementType.Water:
+                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.WaterAbilities.Count)
+                                selectedAbility = card.WaterAbilities[card.selectedManaAndEffectIndex];
+                            break;
+                        case CardData.ElementType.Earth:
+                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.EarthAbilities.Count)
+                                selectedAbility = card.EarthAbilities[card.selectedManaAndEffectIndex];
+                            break;
+                        case CardData.ElementType.Air:
+                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.AirAbilities.Count)
+                                selectedAbility = card.AirAbilities[card.selectedManaAndEffectIndex];
+                            break;
+                    }
 
-            }
-    }
-    public void AddCardsByManaAndType(CardData[] allCards, int mana, AbilityType type, int count)
-    {
-        List<CardData> candidates = new List<CardData>();
-        foreach (var card in allCards)
-        {
-            ManaCostandEffect? selectedAbility = null;
-            switch (card.elementType)
-            {
-                case CardData.ElementType.Fire:
-                    if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.FireAbilities.Count)
-                        selectedAbility = card.FireAbilities[card.selectedManaAndEffectIndex];
-                    break;
-                case CardData.ElementType.Water:
-                    if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.WaterAbilities.Count)
-                        selectedAbility = card.WaterAbilities[card.selectedManaAndEffectIndex];
-                    break;
-                case CardData.ElementType.Earth:
-                    if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.EarthAbilities.Count)
-                        selectedAbility = card.EarthAbilities[card.selectedManaAndEffectIndex];
-                    break;
-                case CardData.ElementType.Air:
-                    if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.AirAbilities.Count)
-                        selectedAbility = card.AirAbilities[card.selectedManaAndEffectIndex];
-                    break;
-            }
+                    // Only add cards whose selected ability matches the type and mana
+                    if (selectedAbility.HasValue && selectedAbility.Value.Type == type && selectedAbility.Value.ManaCost == mana)
+                    {
+                        candidates.Add(card);
+                    }
+                }
 
-            if (selectedAbility.HasValue && selectedAbility.Value.ManaCost == mana && selectedAbility.Value.Type == type)
-            {
-                candidates.Add(card);
-                Debug.Log($"[DECK] Added: {card.CardName} | {type} at {mana} AP");
+                // Add up to 'limit' cards, cycling if needed, but do not exceed deckSize
+                for (int i = 0; i < limit && cards.Count < deckSize; i++)
+                {
+                    if (candidates.Count == 0)
+                    {
+                        Debug.Log($"No cards found for {type} at {mana}AP");
+                        break;
+                    }
+                    
+                    cards.Add(candidates[i % candidates.Count]);
+                }
             }
         }
-        // Add up to 'count' cards, cycling if needed, but do not exceed DeckLimit
-        for (int i = 0; i < count && cards.Count < deckSize; i++)
-        {
-            if (candidates.Count == 0) break;
-            cards.Add(candidates[i % candidates.Count]);
-            if (cards.Count >= deckSize) break;
-        }
+
     }
     
     public void StartPlayerTurn()
@@ -148,31 +142,46 @@ public class CardDeckManager : MonoBehaviour
             Debug.Log("doteffect");
             GameTurnMessager.instance.ShowMessage($"Enemy takes {enemy.activeDoTDamage} damage, {enemy.activeDoTTurns} DoT turns remaining ");
             enemy.DotFireEffect.Play();
+            enemy.audioSource.PlayOneShot(enemy.DoTSound);
             enemy.activeDoTTurns--;
             enemy.TakeDamage(enemy.activeDoTDamage);
             yield return new WaitForSeconds(2f); // Wait for 2 seconds to let player see the message
         }
-
-
-        if (enemy.stunTurnsRemaining > 1)
+        /* if (enemy.stunTurnsRemaining > 1)
+         {
+             enemy.stunTurnsRemaining--;
+             Debug.Log($"Enemy is stunned for {enemy.stunTurnsRemaining}and skips its turn!");
+             GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {enemy.stunTurnsRemaining}, turn skipped.");
+             yield return new WaitForSeconds(2f); // Wait for 2 seconds to let player see the message
+             OnEnemyEndTurn();
+             //return;
+         }    
+         else if(enemy.stunTurnsRemaining <= 1)
+         { 
+             currentTurn = TurnState.EnemyTurn;
+             enemy.EstartTurn();
+             Debug.Log("Enemy's Turn Started");
+             GameTurnMessager.instance.ShowMessage("Enemy's Turn");
+         }*/
+        if (enemy.stunTurnsRemaining > 0)
         {
-            enemy.stunTurnsRemaining--;
-            Debug.Log($"Enemy is stunned for {enemy.stunTurnsRemaining}and skips its turn!");
-            GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {enemy.stunTurnsRemaining}, turn skipped.");
-            yield return new WaitForSeconds(2f); // Wait for 2 seconds to let player see the message
-            OnEnemyEndTurn();
-          //  return;
-        }    
-        else if(enemy.stunTurnsRemaining < 1)
-        { 
-            currentTurn = TurnState.EnemyTurn;
-            enemy.EstartTurn();
-            Debug.Log("Enemy's Turn Started");
-            GameTurnMessager.instance.ShowMessage("Enemy's Turn");
+            
+            
+                Debug.Log($"Enemy is stunned for {enemy.stunTurnsRemaining} and skips its turn!");
+                GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {enemy.stunTurnsRemaining}, turn skipped.");
+                yield return new WaitForSeconds(2f);
+                enemy.stunTurnsRemaining--;
+                OnEnemyEndTurn();
+                yield break;
+            
+            // If stun just ended (now 0), let the enemy act below
         }
-        
-        // Enemy turn logic here
 
+        // If not stunned, enemy acts
+        currentTurn = TurnState.EnemyTurn;
+        enemy.EstartTurn();
+        Debug.Log("Enemy's Turn Started");
+        GameTurnMessager.instance.ShowMessage("Enemy's Turn");
     }
     public void OnPlayerEndTurn()
     {
@@ -211,7 +220,7 @@ public class CardDeckManager : MonoBehaviour
    public void OnbuttonDrawpress() // Button Ui will call this function when pressed = drawcard and show card.
     {
         DrawCard(DrawperHand);
-        displayhand();
+        
     }
     public void OnReplayButtonPressed()
     {
@@ -238,22 +247,7 @@ public class CardDeckManager : MonoBehaviour
             handUIManager.UpdateHandUI(); // Update the hand UI after drawing cards
         }
     }
-    void displayhand()// display player hand by looping through the list
-    {
-        foreach (var cardData in playerHand)
-        {
-            Debug.Log($" Card Name: {cardData.CardName}, Card Index: {cardData.CardName}, Attack Strength: {cardData.elementType}");
-        }
-    }
-    void DisplayDeck()// display deck by looping through the list
-    {
-        // display card data
-        foreach (var cardData in cards)
-        {
-            Debug.Log($"Card Name: {cardData.CardName}, Card Index: {cardData.CardName}, Attack Strength: {cardData.elementType}");
 
-        }
-    }
     public void DiscardCard(CardData card)
     {
         if (playerHand.Contains(card))
