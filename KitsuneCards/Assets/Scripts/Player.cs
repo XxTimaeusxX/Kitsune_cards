@@ -38,6 +38,8 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
 
     [Header("Armor")]
     public int armor = 0;
+    public int reflectTurnsRemaining = 0;
+    public float reflectPercentage = 1f;
     public TMP_Text armorText;
     public GameObject armorIcon;
     public Animator ArmorUIvfx;
@@ -47,7 +49,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public int buffDotTurns { get; set; }
     public int buffDotDamage { get; set; }
     public int buffAllEffectsTurns { get; set; }
-    public float buffAllEffectsPercentage { get; set; } = 1f;
+    public float buffAllEffectsMultiplier { get; set; } = 1f;
 
     private float buffBlockPercentage = 1f;
 
@@ -68,6 +70,15 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     }
     public void PstartTurn()
     {
+        if (buffAllEffectsTurns > 0)
+        {
+            buffAllEffectsTurns--;
+            if (buffAllEffectsTurns == 0)
+            {
+                buffAllEffectsMultiplier = 1f;
+                Debug.Log("Player's all effects buff expired.");
+            }
+        }
         if (damageDebuffTurns > 0)
         {
             damageDebuffTurns--;
@@ -85,8 +96,27 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         }
         HasDrawn = false;
         hasDiscarded = false;
-        
-            
+
+        // Decrement buffBlockTurns at the start of the turn
+        if (buffBlockTurns > 0)
+        {
+            buffBlockTurns--;
+            if (buffBlockTurns == 0)
+            {
+                buffBlockPercentage = 1f; // Reset multiplier when buff ends
+                                          // Optionally show a message: GameTurnMessager.instance.ShowMessage("Block buff expired!");
+            }
+        }
+        // Decrement active reflect turns at the start of the turn
+        if (reflectTurnsRemaining > 0)
+        {
+            reflectTurnsRemaining--;
+            if (reflectTurnsRemaining == 0)
+            {
+                reflectPercentage = 0f;
+                Debug.Log("Reflect effect expired.");
+            }
+        }
         Debug.Log("Player now have draw and discard phases.");
         
     }
@@ -160,6 +190,14 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
            // damageDebuffTurns--;
             
         }
+        // Reflect logic
+        if (reflectTurnsRemaining > 0 && Enemy != null)
+        {
+            Debug.Log("Reflect condition triggered.");
+            int reflectedDamage = Mathf.RoundToInt(debuffedAmount * reflectPercentage);
+            Enemy.TakeDamage(reflectedDamage);
+            Debug.Log($"Reflected {reflectedDamage} damage to enemy!");
+        }
         int damageAfterArmor = debuffedAmount;
         if (armor > 0)
         {
@@ -176,11 +214,12 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
             UpdateArmorUI();
             
         }
-
+        
         if (damageAfterArmor > 0)
         {
             currentHealth -= damageAfterArmor;
             UpdateHealthUI();
+            
             // Check for defeat
             if (currentHealth <= 0)
             {
@@ -192,7 +231,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
                 }
             }
         }
-
+      
 
         Debug.Log($"Player takes {amount} damage. Health: {currentHealth}");
     }
@@ -201,22 +240,30 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public void ApplyBlock(int blockamount)
     {
         int finalBlock = blockamount;
+        if (buffAllEffectsTurns > 0)
+        {
+            finalBlock = Mathf.RoundToInt(blockamount * buffAllEffectsMultiplier);
+        }
         if (buffBlockTurns > 0)
         {
-            finalBlock = Mathf.RoundToInt(blockamount * buffBlockPercentage);
-            buffBlockTurns--;
-            if (buffBlockTurns == 0) buffBlockPercentage = 1f;
+            finalBlock = Mathf.RoundToInt(blockamount * buffBlockPercentage);         
         }
         //ArmorUIvfx.SetTrigger("ArmorVFX");
-        armor += blockamount;
+        armor += finalBlock;
         UpdateArmorUI();
         ArmorEffect.Play();
+        audioSource.PlayOneShot(damageArmorDebuffSound);
         Debug.Log($"Player gains {blockamount} block.");
         // Implement block logic here
     }
 
-    public void ApplyReflect(float reflectPercentage)
+    public void ApplyReflect(int blockAmount, int turns, float reflectPercent)
     {
+        ApplyBlock(blockAmount);
+        reflectTurnsRemaining = turns;
+        reflectPercentage = reflectPercent;
+        ArmorEffect.Play();
+        audioSource.PlayOneShot(buffSound);
         Debug.Log($"Player gains {reflectPercentage * 100}% reflect.");
         // Implement reflect logic here
     }
@@ -225,24 +272,22 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
 
     public void BuffDoT(int turns, int BonusDamage )
     {
-         activeDoTTurns += turns;
+        activeDoTTurns += turns;
         activeDoTDamage += BonusDamage;
         // buffDotTurns += turns;
         // int totalTurns = 2 + activeDoTTurns;
 
         BuffEffect.Play();
         audioSource.PlayOneShot(buffSound);
-        Debug.Log($"Player is buffed with DoT for {turns} turns.");
         // Implement DoT buff logic here
     }
     public void BuffAllEffects(int turns, float multiplier)
     {
         buffAllEffectsTurns += turns;
-        buffAllEffectsPercentage += multiplier;
+        buffAllEffectsMultiplier = multiplier;
         BuffEffect.Play();
         audioSource.PlayOneShot(buffSound);
-        GameTurnMessager.instance.ShowMessage($"All debuffs extended by {turns} turns.");
-        Debug.Log("Player's damage, DoT, block, and buffs are x2 for the next 2 turns.");
+       // GameTurnMessager.instance.ShowMessage($"All debuffs extended by {turns} turns.");      
         // Implement buff logic here
     }
 

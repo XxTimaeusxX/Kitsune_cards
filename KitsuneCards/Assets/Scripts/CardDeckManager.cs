@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using System.Collections;
+using static UnityEditor.PlayerSettings;
 public class CardDeckManager : MonoBehaviour
 {
     // Set your per-AP limits here (can be scaled up) = 30 cards based on ap limit rules
@@ -62,76 +63,62 @@ public class CardDeckManager : MonoBehaviour
         // Define all ability types you want to include
         AbilityType[] abilityTypes = new AbilityType[]
         {
-          AbilityType.Damage,
-          AbilityType.Block,
-          AbilityType.Buff,
-          AbilityType.Debuff,
+        AbilityType.Damage,
+        AbilityType.Block,
+        AbilityType.Buff,
+        AbilityType.Debuff,
   
             // Add more as needed
         };
-
-        // Step 1: Gather all unique cards for each (mana, ability) combination
-        var uniqueCardsByCombo = new Dictionary<(int, AbilityType), List<CardData>>();
         foreach (var (mana, limit) in manaLimits)
         {
             foreach (var type in abilityTypes)
             {
-                uniqueCardsByCombo[(mana, type)] = new List<CardData>();
-            }
-        }
-
-        foreach (var card in loadedCards)
-        {
-            // Check all abilities for each element
-            void AddIfMatch(List<ManaCostandEffect> abilities)
-            {
-                for (int i = 0; i < abilities.Count; i++)
+                List<CardData> candidates = new List<CardData>();
+                foreach (var card in loadedCards)
                 {
-                    var ab = abilities[i];
-                    var key = (ab.ManaCost, ab.Type);
-                    if (uniqueCardsByCombo.ContainsKey(key) && !uniqueCardsByCombo[key].Contains(card))
+                    ManaCostandEffect? selectedAbility = null;
+                    switch (card.elementType)
                     {
-                        uniqueCardsByCombo[key].Add(card);
+                        case CardData.ElementType.Fire:
+                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.FireAbilities.Count)
+                                selectedAbility = card.FireAbilities[card.selectedManaAndEffectIndex];
+                            break;
+                        case CardData.ElementType.Water:
+                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.WaterAbilities.Count)
+                                selectedAbility = card.WaterAbilities[card.selectedManaAndEffectIndex];
+                            break;
+                        case CardData.ElementType.Earth:
+                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.EarthAbilities.Count)
+                                selectedAbility = card.EarthAbilities[card.selectedManaAndEffectIndex];
+                            break;
+                        case CardData.ElementType.Air:
+                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.AirAbilities.Count)
+                                selectedAbility = card.AirAbilities[card.selectedManaAndEffectIndex];
+                            break;
+                    }
+
+                    // Only add cards whose selected ability matches the type and mana
+                    if (selectedAbility.HasValue && selectedAbility.Value.Type == type && selectedAbility.Value.ManaCost == mana)
+                    {
+                        candidates.Add(card);
                     }
                 }
-            }
-            AddIfMatch(card.FireAbilities);
-            AddIfMatch(card.WaterAbilities);
-            AddIfMatch(card.EarthAbilities);
-            AddIfMatch(card.AirAbilities);
-        }
 
-        // Step 2: Add one of each unique card to the deck
-        List<CardData> initialDeck = new List<CardData>();
-        foreach (var kvp in uniqueCardsByCombo)
-        {
-            foreach (var card in kvp.Value)
-            {
-                if (initialDeck.Count < deckSize)
-                    initialDeck.Add(card);
+                // Add up to 'limit' cards, cycling if needed, but do not exceed deckSize
+                for (int i = 0; i < limit && cards.Count < deckSize; i++)
+                {
+                    if (candidates.Count == 0)
+                    {
+                        Debug.Log($"No cards found for {type} at {mana}AP");
+                        break;
+                    }
+                    
+                    cards.Add(candidates[i % candidates.Count]);
+                }
             }
         }
 
-        // Step 3: Duplicate cards up to the AP limit for each (mana, ability) combo
-        cards.AddRange(initialDeck);
-        foreach (var ((mana, type), cardList) in uniqueCardsByCombo)
-        {
-            int alreadyAdded = 0;
-            foreach (var card in cardList)
-            {
-                alreadyAdded += initialDeck.FindAll(c => c == card).Count;
-            }
-            int toAdd = 0;
-            foreach (var (m, l) in manaLimits)
-            {
-                if (m == mana) toAdd = l - alreadyAdded;
-            }
-            for (int i = 0; i < toAdd && cards.Count < deckSize; i++)
-            {
-                var card = cardList[i % cardList.Count];
-                cards.Add(card);
-            }
-        }
     }
     
     public void StartPlayerTurn()
@@ -160,22 +147,41 @@ public class CardDeckManager : MonoBehaviour
             enemy.TakeDamage(enemy.activeDoTDamage);
             yield return new WaitForSeconds(2f); // Wait for 2 seconds to let player see the message
         }
-        if (enemy.stunTurnsRemaining > 1)
+        /* if (enemy.stunTurnsRemaining > 1)
+         {
+             enemy.stunTurnsRemaining--;
+             Debug.Log($"Enemy is stunned for {enemy.stunTurnsRemaining}and skips its turn!");
+             GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {enemy.stunTurnsRemaining}, turn skipped.");
+             yield return new WaitForSeconds(2f); // Wait for 2 seconds to let player see the message
+             OnEnemyEndTurn();
+             //return;
+         }    
+         else if(enemy.stunTurnsRemaining <= 1)
+         { 
+             currentTurn = TurnState.EnemyTurn;
+             enemy.EstartTurn();
+             Debug.Log("Enemy's Turn Started");
+             GameTurnMessager.instance.ShowMessage("Enemy's Turn");
+         }*/
+        if (enemy.stunTurnsRemaining > 0)
         {
-            enemy.stunTurnsRemaining--;
-            Debug.Log($"Enemy is stunned for {enemy.stunTurnsRemaining}and skips its turn!");
-            GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {enemy.stunTurnsRemaining}, turn skipped.");
-            yield return new WaitForSeconds(2f); // Wait for 2 seconds to let player see the message
-            OnEnemyEndTurn();
-          //  return;
-        }    
-        else if(enemy.stunTurnsRemaining < 1)
-        { 
-            currentTurn = TurnState.EnemyTurn;
-            enemy.EstartTurn();
-            Debug.Log("Enemy's Turn Started");
-            GameTurnMessager.instance.ShowMessage("Enemy's Turn");
+            
+            
+                Debug.Log($"Enemy is stunned for {enemy.stunTurnsRemaining} and skips its turn!");
+                GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {enemy.stunTurnsRemaining}, turn skipped.");
+                yield return new WaitForSeconds(2f);
+                enemy.stunTurnsRemaining--;
+                OnEnemyEndTurn();
+                yield break;
+            
+            // If stun just ended (now 0), let the enemy act below
         }
+
+        // If not stunned, enemy acts
+        currentTurn = TurnState.EnemyTurn;
+        enemy.EstartTurn();
+        Debug.Log("Enemy's Turn Started");
+        GameTurnMessager.instance.ShowMessage("Enemy's Turn");
     }
     public void OnPlayerEndTurn()
     {

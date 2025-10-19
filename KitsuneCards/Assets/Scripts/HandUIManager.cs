@@ -53,8 +53,8 @@ public class HandUIManager : MonoBehaviour
             //fan effect
             float angle = (cardCount > 1) ? startAngle + (spread / (cardCount - 1)) * i : 0f;
             generatecards.GetComponent<RectTransform>().anchoredPosition = new Vector2(
-                -Mathf.Sin(Mathf.Deg2Rad * angle) * 2000f, // higher value more straight, lower value more curve
-                -Mathf.Abs(Mathf.Deg2Rad * angle) * 350f // 
+                -Mathf.Sin(Mathf.Deg2Rad * angle) * 1800f, // higher value more straight, lower value more curve
+                -Mathf.Abs(Mathf.Deg2Rad * angle) * 150f // 
             );
             generatecards.GetComponent<RectTransform>().rotation = Quaternion.Euler(0, 0, angle);
 

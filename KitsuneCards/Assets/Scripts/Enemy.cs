@@ -10,6 +10,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
 {
     public CardDeckManager deckManager;
     public CardAbilityManager abilityManager;
+    private Player player;
     public List<CardData> enemyCards = new List<CardData>();
 
     [Header("Particle Effects")]
@@ -248,7 +249,16 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         CurrentHealth -= amount;
         UpdateEnemyHealthUI();
         Debug.Log($"Boss takes {amount} damage. Health: {CurrentHealth}/{MaxHealth}");
-        if(CurrentHealth <= 0)
+
+        // Reflect logic: reflect damage back to the player if reflect is active
+       /* if (player.reflectTurnsRemaining > 0 && player.reflectPercentage > 0f && deckManager != null && deckManager.player != null)
+        {
+            int reflectedDamage = Mathf.RoundToInt(amount * player.reflectPercentage);
+            player.TakeDamage(reflectedDamage);
+            Debug.Log($"Enemy reflected {reflectedDamage} damage to player!");
+        }*/
+
+        if (CurrentHealth <= 0)
         {
           if (deckManager != null)
             {
@@ -263,7 +273,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     {
         throw new System.NotImplementedException();
     }
-    public void ApplyReflect(float percentage)
+    public void ApplyReflect(int blockamount, int turns, float reflectPercentage)
     {
         throw new System.NotImplementedException();
     }
@@ -340,7 +350,6 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {stunTurnsRemaining} turns!");
         // Implement stun logic here
     }
-  
 
     
 }

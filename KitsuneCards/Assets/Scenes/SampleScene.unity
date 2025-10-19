@@ -4402,7 +4402,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DrawperHand: 3
   HandstartSize: 5
-  deckSize: 70
+  deckSize: 160
   handUIManager: {fileID: 395746690}
   cards: []
   playerHand: []
@@ -5483,7 +5483,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -38.27529, y: -535}
+  m_AnchoredPosition: {x: -38.27529, y: -473}
   m_SizeDelta: {x: 1668.299, y: 339.35}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1930670627
@@ -6885,6 +6885,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: Enemy
+      value: 
+      objectReference: {fileID: 186843723}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: Manabar
       value: 

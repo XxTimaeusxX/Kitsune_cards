@@ -57,7 +57,7 @@ public class CardData : ScriptableObject
         new ManaCostandEffect { ManaCost = 1,Type = AbilityType.Block, EffectDescription = "Apply 2 block" },
         new ManaCostandEffect { ManaCost = 2,Type = AbilityType.Damage, EffectDescription = "deal 8 pts damage" },
         new ManaCostandEffect { ManaCost = 5,Type = AbilityType.Buff, EffectDescription = "For the next 2 turns, whenever you apply Block card, block amount is x2 more" },
-        new ManaCostandEffect { ManaCost = 10,Type = AbilityType.Block, EffectDescription = "apply 24 block and reflect 50% of damage taken for 1 turn." },
+        new ManaCostandEffect { ManaCost = 10,Type = AbilityType.Block, EffectDescription = "apply 24 block and reflect 50% of damage taken for 2 turn." },
     };
 
     public string CardName; 

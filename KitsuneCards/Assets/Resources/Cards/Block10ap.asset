@@ -37,8 +37,8 @@ MonoBehaviour:
     EffectDescription: next 3 turns target deals 80% less damage
   - ManaCost: 10
     Type: 2
-    EffectDescription: "for next 2 turns, Damage dealt, DoT applied \r\n                                                                                            
-      block applied, and buffs applied are x3"
+    EffectDescription: for next 2 turns, Damage dealt, DoT applied block applied,
+      and buffs applied are x3
   EarthAbilities:
   - ManaCost: 1
     Type: 1
@@ -66,7 +66,7 @@ MonoBehaviour:
   - ManaCost: 10
     Type: 3
     EffectDescription: apply 24 block and reflect 50% of damage taken for 1 turn.
-  CardName: Skeloton Horse
+  CardName: 
   CharacterImage: {fileID: 21300000, guid: 55f8be0083418984d9454d1dfd04a9a8, type: 3}
   elementType: 3
   selectedManaAndEffectIndex: 3

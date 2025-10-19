@@ -10,7 +10,7 @@ public interface IDamageable
 public interface IBlockable
 {
     void ApplyBlock(int amount);
-    void ApplyReflect(float percentage);
+    void ApplyReflect(int blockamount, int turns, float reflectPercentage);
 }
 
 public interface IBuffable

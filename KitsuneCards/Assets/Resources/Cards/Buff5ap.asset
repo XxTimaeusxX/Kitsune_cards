@@ -66,7 +66,7 @@ MonoBehaviour:
   - ManaCost: 10
     Type: 3
     EffectDescription: apply 24 block and reflect 50% of damage taken for 1 turn.
-  CardName: 
+  CardName: creature
   CharacterImage: {fileID: 21300000, guid: 48670799e2ec91c4c9e90f14d6b22f14, type: 3}
   elementType: 3
   selectedManaAndEffectIndex: 2
