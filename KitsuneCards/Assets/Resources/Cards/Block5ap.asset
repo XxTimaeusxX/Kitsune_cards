@@ -66,7 +66,7 @@ MonoBehaviour:
   - ManaCost: 10
     Type: 3
     EffectDescription: apply 24 block and reflect 50% of damage taken for 1 turn.
-  CardName: 
-  CharacterImage: {fileID: 21300000, guid: 88e285384dc158d49a3c2a51d9052fec, type: 3}
+  CardName: SkeletonHorse
+  CharacterImage: {fileID: 21300000, guid: 55f8be0083418984d9454d1dfd04a9a8, type: 3}
   elementType: 2
   selectedManaAndEffectIndex: 2

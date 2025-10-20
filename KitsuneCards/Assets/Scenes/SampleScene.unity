@@ -6895,7 +6895,7 @@ PrefabInstance:
       objectReference: {fileID: 1172033827}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: maxMana
-      value: 20
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: DoTSound
@@ -6943,7 +6943,7 @@ PrefabInstance:
       objectReference: {fileID: 1761941112}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: currentMana
-      value: 20
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: deckManager
