@@ -388,9 +388,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69cd5f9a434ea174a92ab3fd777262e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enemyData: {fileID: 11400000, guid: fe472e43eaceb7a4d9b5d3c8edb5ae0e, type: 2}
+  cardsResourceFolder: enemy1
   deckManager: {fileID: 1601799123}
   abilityManager: {fileID: 1137948735}
   enemyCards: []
+  enemyPortrait: {fileID: 591642361}
+  enemyNameText: {fileID: 250805973}
   DebuffEffect: {fileID: 1899031384}
   BuffEffect: {fileID: 0}
   ArmorEffect: {fileID: 0}
@@ -423,7 +427,7 @@ Transform:
   m_GameObject: {fileID: 186843722}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 836, y: -176.99998, z: 0}
+  m_LocalPosition: {x: 836, y: -66, z: 0}
   m_LocalScale: {x: 1.2916381, y: 1.2916381, z: 1.2916381}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -563,7 +567,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 68}
+  m_AnchoredPosition: {x: -60, y: 117}
   m_SizeDelta: {x: 215.8877, y: 77.4}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &250805973
@@ -615,14 +619,14 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 63.05
+  m_fontSize: 66.6
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
-  m_fontSizeMin: 18
+  m_fontSizeMin: 52
   m_fontSizeMax: 72
   m_fontStyle: 1
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -651,7 +655,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 1.6044312, w: 2.9911194}
+  m_margin: {x: -185.41785, y: 0, z: -310.47668, w: 2.9911194}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -1093,7 +1097,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -204}
+  m_AnchoredPosition: {x: 0, y: -362}
   m_SizeDelta: {x: 388, y: 608}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &591642361
@@ -4413,6 +4417,10 @@ MonoBehaviour:
   winPanel: {fileID: 449578862}
   resultText: {fileID: 283247424}
   currentTurn: 0
+  enemySequence:
+  - {fileID: 11400000, guid: 430cbfeb4d9d9a944b7338c5efd3e4d0, type: 2}
+  - {fileID: 11400000, guid: bf6c67413e816674f8f93f54d2c192e9, type: 2}
+  - {fileID: 11400000, guid: 325312daa3dc24d448f6a1c1f22a163c, type: 2}
 --- !u!4 &1601799124
 Transform:
   m_ObjectHideFlags: 0

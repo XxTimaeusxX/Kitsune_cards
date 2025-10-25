@@ -1,17 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEngine.GraphicsBuffer;
 
 public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffable
 {
+    [Header("Config")]
+    public EnemyData enemyData; // Assign a ScriptableObject to configure this instance
+    [Tooltip("Fallback folder if EnemyData.CardsResourceFolder is empty")]
+    public string cardsResourceFolder = "enemy1";
+
     public CardDeckManager deckManager;
     public CardAbilityManager abilityManager;
     private Player player;
     public List<CardData> enemyCards = new List<CardData>();
+
+    [Header("UI")]
+    public Image enemyPortrait;
+    public TMP_Text enemyNameText;
 
     [Header("Particle Effects")]
     public ParticleSystem DebuffEffect;
@@ -26,7 +33,6 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public AudioClip DoTSound;
     public AudioClip DeBuffSound;
 
-
     [Header("Health")]
     public int MaxHealth = 100;
     public int CurrentHealth = 100;
@@ -39,8 +45,6 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public TMP_Text enemymanaText;
     public Slider enemymanaBar;
 
-
-
     [Header("Enemy Debuffs")]
     public int activeDoTTurns = 0;
     public int activeDoTDamage = 0;
@@ -52,37 +56,107 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
 
     void Start()
     {
+        ApplyEnemyData();
+        InitializeForBattle();
+    }
+
+
+    public void InitializeForBattle()
+    {
+        // Re-apply data in case it was changed at runtime
+        ApplyEnemyData();
+
+        // Reset transient runtime state (debuffs, VFX, etc.)
+        ResetRuntimeState();
+
+        // Health and mana reset for the new enemy
+        CurrentHealth = MaxHealth;
+        Currentmana = Mathf.Clamp(Currentmana, 0, Maxmana); // or set to enemyData.StartMana if you expose it
+
+        // Rebuild deck
         LoadEnemyCards();
         ShuffleDeck();
+
+        // Refresh UI
         UpdateEnemyHealthUI();
         UpdateManaUI();
+    }
+
+    private void ResetRuntimeState()
+    {
+        activeDoTTurns = 0;
+        activeDoTDamage = 0;
+        damageDebuffTurns = 0;
+        damageDebuffMultiplier = 1f;
+        stunTurnsRemaining = 0;
+        IsStunned = false;
+
+        if (DebuffEffect != null) DebuffEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        if (BuffEffect != null) BuffEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        if (ArmorEffect != null) ArmorEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        if (DotFireEffect != null) DotFireEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+    }
+
+    // Allow spawners to set data at runtime before Start() runs
+    public void SetEnemyData(EnemyData data)
+    {
+        enemyData = data;
+        ApplyEnemyData();
+    }
+    private void ApplyEnemyData()
+    {
+        if (enemyData == null) return;
+
+        // Stats
+        MaxHealth = Mathf.Max(1, enemyData.MaxHealth);
+        CurrentHealth = MaxHealth;
+
+        Maxmana = Mathf.Max(0, enemyData.MaxMana);
+        Currentmana = Mathf.Clamp(enemyData.StartMana, 0, Maxmana);
+
+        // Portrait / Name
+        if (enemyPortrait != null && enemyData.EnemySprite != null)
+            enemyPortrait.sprite = enemyData.EnemySprite;
+
+        if (enemyNameText != null && !string.IsNullOrEmpty(enemyData.EnemyName))
+            enemyNameText.text = enemyData.EnemyName;
+
+        // Deck folder
+        if (!string.IsNullOrEmpty(enemyData.CardsResourceFolder))
+            cardsResourceFolder = enemyData.CardsResourceFolder;
     }
     public void LoadEnemyCards()
     {
         enemyCards.Clear();
         CardData[] loaded = Resources.LoadAll<CardData>("enemy1");
 
-        // Define mana costs and their limits (reuse from CardDeckManager or set boss-specific)
-        var manaLimits = new (int mana, int limit)[]
-        {
-        (1, 22),
-        (2, 40),
-        (5, 40),
-        (10, 6)
-        };
-        AbilityType[] abilityTypes = new AbilityType[]
-        {
-        AbilityType.Block,
-        AbilityType.Damage,
-            // Add more as needed
-        };
+        // Mana limits (from data or fallback)
+        List<EnemyData.ManaLimit> manaLimits =
+            (enemyData != null && enemyData.ManaLimits != null && enemyData.ManaLimits.Count > 0)
+                ? enemyData.ManaLimits
+                : new List<EnemyData.ManaLimit>
+                {
+                    new EnemyData.ManaLimit(1, 22),
+                    new EnemyData.ManaLimit(2, 40),
+                    new EnemyData.ManaLimit(5, 40),
+                    new EnemyData.ManaLimit(10, 6)
+                };
 
-        //  int deckSize = 10; // Or boss-specific size
+        // Ability order (from data or fallback)
+        AbilityType[] abilityTypes =
+            (enemyData != null && enemyData.PreferredAbilities != null && enemyData.PreferredAbilities.Length > 0)
+                ? enemyData.PreferredAbilities
+                : new AbilityType[] { AbilityType.Block, AbilityType.Damage };
+
+        int deckCap = (enemyData != null) ? Mathf.Max(1, enemyData.MaxDeckSize) : 200;
 
         foreach (var type in abilityTypes)
         {
-            foreach (var (mana, limit) in manaLimits)
+            foreach (var ml in manaLimits)
             {
+                int mana = ml.Mana;
+                int limit = ml.Limit;
+
                 List<CardData> candidates = new List<CardData>();
                 foreach (var card in loaded)
                 {
@@ -112,12 +186,12 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
                         candidates.Add(card);
                     }
                 }
-                // Add up to 'limit' cards, cycling if needed, but do not exceed a deck size (e.g., 10)
-                for (int i = 0; i < limit && enemyCards.Count < 200; i++)
+
+                for (int i = 0; i < limit && enemyCards.Count < deckCap; i++)
                 {
                     if (candidates.Count == 0) break;
                     enemyCards.Add(candidates[i % candidates.Count]);
-                    if (enemyCards.Count >= 200) break;
+                    if (enemyCards.Count >= deckCap) break;
                 }
             }
         }
@@ -197,7 +271,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
                     abilityManager.ExecuteCardAbility(
                         cardToPlay,
                         deckManager.player, // reference to player
-                        deckManager.enemy, // reference to enemy
+                        this, // reference to enemy
                         deckManager.player, // reference to IDamageable target(player)
                         null,             // reference to IBlockable target(enemy)
                         null,              // reference to IDebuffable target (none for now)
@@ -233,13 +307,21 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public void UpdateEnemyHealthUI()
     {
         if (enemyhealthText != null) enemyhealthText.text = $"{CurrentHealth}/{MaxHealth}";
-        if(enemyHealthBar != null) enemyHealthBar.maxValue = MaxHealth; enemyHealthBar.value = CurrentHealth;
+        if (enemyHealthBar != null)
+        {
+            enemyHealthBar.maxValue = MaxHealth;
+            enemyHealthBar.value = CurrentHealth;
+        }
 
     }
     public void UpdateManaUI()
     {
         if (enemymanaText != null) enemymanaText.text = $"{Currentmana}/{Maxmana}";
-        if (enemymanaBar != null) enemymanaBar.maxValue = Maxmana; enemymanaBar.value = Currentmana;
+        if (enemymanaBar != null)
+        {
+            enemymanaBar.maxValue = Maxmana;
+            enemymanaBar.value = Currentmana;
+        }
 
     }
     //////////// IDamageable ///////////////
@@ -262,7 +344,8 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         {
           if (deckManager != null)
             {
-                deckManager.OnPlayerWin();
+                deckManager.OnEnemyDefeated(this);
+                return;
             }            
         }
 

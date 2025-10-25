@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f43abc45139fa6141a6a8b876d856e11, type: 3}
-  m_Name: Sandal
+  m_Name: Jubukko
   m_EditorClassIdentifier: 
-  EnemyName: "Sandal Spirit \u2014 The Ghost Z\u014Dri"
-  EnemySprite: {fileID: 21300000, guid: c27b1e88435244a4d90901079ba58e86, type: 3}
-  MaxHealth: 20
-  MaxMana: 1
-  StartMana: 1
+  EnemyName: Jubokko - The Vampiric Tree
+  EnemySprite: {fileID: 21300000, guid: d557552d4e2640142b53c88127a640d1, type: 3}
+  MaxHealth: 50
+  MaxMana: 3
+  StartMana: 3
   CardsResourceFolder: enemy1
   MaxDeckSize: 200
   ManaLimits:

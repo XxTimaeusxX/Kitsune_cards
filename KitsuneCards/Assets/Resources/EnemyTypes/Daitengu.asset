@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f43abc45139fa6141a6a8b876d856e11, type: 3}
-  m_Name: Sandal
+  m_Name: Daitengu
   m_EditorClassIdentifier: 
-  EnemyName: "Sandal Spirit \u2014 The Ghost Z\u014Dri"
-  EnemySprite: {fileID: 21300000, guid: c27b1e88435244a4d90901079ba58e86, type: 3}
-  MaxHealth: 20
-  MaxMana: 1
-  StartMana: 1
+  EnemyName: Daitengu - Guardian of Sacred Mountains
+  EnemySprite: {fileID: 21300000, guid: 22db46e07d1bbf644a8add61be707c0d, type: 3}
+  MaxHealth: 100
+  MaxMana: 4
+  StartMana: 4
   CardsResourceFolder: enemy1
   MaxDeckSize: 200
   ManaLimits:
@@ -28,4 +28,4 @@ MonoBehaviour:
     Limit: 40
   - Mana: 10
     Limit: 6
-  PreferredAbilities: 01000000
+  PreferredAbilities: 0300000001000000

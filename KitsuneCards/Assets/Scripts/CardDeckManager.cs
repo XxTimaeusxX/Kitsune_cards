@@ -40,12 +40,48 @@ public class CardDeckManager : MonoBehaviour
         EnemyTurn
     }
     public TurnState currentTurn;
+
+    // NEW: sequence of enemies to fight one-by-one
+    public EnemyData[] enemySequence;
+    private int currentEnemyIndex = -1;
     void Start()
     {
         LoadcardsfromResources();
         ShuffleDeck();
         DrawCard(HandstartSize);
         StartPlayerTurn();    
+    }
+
+
+    private void NextEnemy()
+    {
+        currentEnemyIndex++;
+
+        // Reached end -> show win
+        if (enemySequence == null || currentEnemyIndex >= enemySequence.Length)
+        {
+            OnPlayerWin();
+            return;
+        }
+
+        // Configure the single enemy instance with next data
+        var data = enemySequence[currentEnemyIndex];
+        enemy.SetEnemyData(data);
+        enemy.InitializeForBattle();
+
+        // If you want to immediately give the turn to the enemy:
+        currentTurn = TurnState.EnemyTurn;
+        StartCoroutine(StartEnemyturn());
+    }
+    public void BeginEnemySequence()
+    {
+        currentEnemyIndex = -1;
+        NextEnemy();
+    }
+    // Called by Enemy when its health reaches 0
+    public void OnEnemyDefeated(Enemy defeated)
+    {
+        NextEnemy();
     }
     void LoadcardsfromResources()
     {
