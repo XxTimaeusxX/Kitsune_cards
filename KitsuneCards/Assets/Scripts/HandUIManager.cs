@@ -14,6 +14,11 @@ public class HandUIManager : MonoBehaviour
     public GameObject endTurnButton;
     public CardAbilityManager abilityManager;
 
+    [Header("Card prefab variants")]
+    [SerializeField] private CardUI firePrefab;
+    [SerializeField] private CardUI waterPrefab;
+    [SerializeField] private CardUI earthPrefab;
+    [SerializeField] private CardUI airPrefab;
     private void OnEnable()
     {
         CardDeckManager.OncardDiscard += HandleCardDiscarded;
@@ -39,25 +44,47 @@ public class HandUIManager : MonoBehaviour
         int cardCount = CardDeckManager.playerHand.Count;
         float spread = 28f; // degrees, how tilted the cards are
         float startAngle = -spread / 2f;
-       // float arcradius = 400f; // distance from center, how spread out the cards are
+        // float arcradius = 400f; // distance from center, how spread out the cards are
 
         // Create new card sprites for each card in the player's hand
-        for (int i = 0; i< CardDeckManager.playerHand.Count; i++)
+        // Create new card UI for each card in the player's hand
+        for (int i = 0; i < CardDeckManager.playerHand.Count; i++)
         {
-            var cardata = CardDeckManager.playerHand[i];
-            var generatecards = Instantiate(Cardprefab, handpanel);
-            // assign the card data name to text button
-            var cardUI = generatecards.GetComponent<CardUI>();
-            cardUI.LoadCard(cardata);
-           
-            //fan effect
-            float angle = (cardCount > 1) ? startAngle + (spread / (cardCount - 1)) * i : 0f;
-            generatecards.GetComponent<RectTransform>().anchoredPosition = new Vector2(
-                -Mathf.Sin(Mathf.Deg2Rad * angle) * 1800f, // higher value more straight, lower value more curve
-                -Mathf.Abs(Mathf.Deg2Rad * angle) * 150f // 
-            );
-            generatecards.GetComponent<RectTransform>().rotation = Quaternion.Euler(0, 0, angle);
+            var cardData = CardDeckManager.playerHand[i];
 
+            // Choose the correct prefab by element, fall back to Cardprefab
+            var chosen = GetPrefabFor(cardData.elementType);
+            GameObject instanceGO;
+
+            if (chosen != null)
+            {
+                var instance = Instantiate(chosen, handpanel, false);
+                instance.LoadCard(cardData);
+                instanceGO = instance.gameObject;
+            }
+            else
+            {
+                if (Cardprefab == null)
+                {
+                    Debug.LogError("HandUIManager: No prefab found (variants missing and Cardprefab is null).");
+                    continue;
+                }
+                instanceGO = Instantiate(Cardprefab, handpanel);
+                var cardUI = instanceGO.GetComponent<CardUI>();
+                if (cardUI != null)
+                    cardUI.LoadCard(cardData);
+                else
+                    Debug.LogWarning("HandUIManager: Instantiated fallback prefab has no CardUI component.");
+            }
+
+            // Fan effect
+            float angle = (cardCount > 1) ? startAngle + (spread / (cardCount - 1)) * i : 0f;
+            var rt = instanceGO.GetComponent<RectTransform>();
+            rt.anchoredPosition = new Vector2(
+                -Mathf.Sin(Mathf.Deg2Rad * angle) * 1800f,
+                -Mathf.Abs(Mathf.Deg2Rad * angle) * 150f
+            );
+            rt.rotation = Quaternion.Euler(0, 0, angle);
         }
     }
     
@@ -94,6 +121,17 @@ public class HandUIManager : MonoBehaviour
             var cardUI = child.GetComponent<CardUI>();
             if (cardUI != null)
                 cardUI.SetInteractable(interactable);
+        }
+    }
+    private CardUI GetPrefabFor(CardData.ElementType element)
+    {
+        switch (element)
+        {
+            case CardData.ElementType.Fire: return firePrefab;
+            case CardData.ElementType.Water: return waterPrefab;
+            case CardData.ElementType.Earth: return earthPrefab;
+            case CardData.ElementType.Air: return airPrefab;
+            default: return null;
         }
     }
 }

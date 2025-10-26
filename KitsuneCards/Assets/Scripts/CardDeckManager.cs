@@ -33,6 +33,8 @@ public class CardDeckManager : MonoBehaviour
     public Player player;
     public Enemy enemy;
     public GameObject winPanel; // Assign in Inspector
+    public GameObject Victory_UI;
+    public GameObject Defeat_UI;
     public TMP_Text resultText;
     public enum TurnState
     {
@@ -82,6 +84,7 @@ public class CardDeckManager : MonoBehaviour
     public void OnEnemyDefeated(Enemy defeated)
     {
         NextEnemy();
+
     }
     void LoadcardsfromResources()
     {
@@ -183,22 +186,6 @@ public class CardDeckManager : MonoBehaviour
             enemy.TakeDamage(enemy.activeDoTDamage);
             yield return new WaitForSeconds(2f); // Wait for 2 seconds to let player see the message
         }
-        /* if (enemy.stunTurnsRemaining > 1)
-         {
-             enemy.stunTurnsRemaining--;
-             Debug.Log($"Enemy is stunned for {enemy.stunTurnsRemaining}and skips its turn!");
-             GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {enemy.stunTurnsRemaining}, turn skipped.");
-             yield return new WaitForSeconds(2f); // Wait for 2 seconds to let player see the message
-             OnEnemyEndTurn();
-             //return;
-         }    
-         else if(enemy.stunTurnsRemaining <= 1)
-         { 
-             currentTurn = TurnState.EnemyTurn;
-             enemy.EstartTurn();
-             Debug.Log("Enemy's Turn Started");
-             GameTurnMessager.instance.ShowMessage("Enemy's Turn");
-         }*/
         if (enemy.stunTurnsRemaining > 0)
         {
             
@@ -232,15 +219,29 @@ public class CardDeckManager : MonoBehaviour
     public void OnPlayerWin()
     {
         if (winPanel != null)
-            winPanel.SetActive(true);
-        resultText.text = "Level Complete";
+        enemy.InitializeForBattle(); // reset enemy for next battle
+        StopAllCoroutines();
+        enemy.StopAllCoroutines();
+        Time.timeScale = 0f; // Pause the game
+        AudioListener.pause = true; // Mute all audio
+        enemy.audioSource.Stop(); // mute enemy audio
+        winPanel.SetActive(true);
+        Victory_UI.SetActive(true);
+       // resultText.text = "Level Complete";
         // Optionally: Stop further game input, etc.
     }
     public void OnPlayerLose()
     {
         if (winPanel != null)
-            winPanel.SetActive(true);
-        resultText.text = "GameOver";
+        enemy.InitializeForBattle(); // reset enemy for next battle
+        StopAllCoroutines();
+        enemy.StopAllCoroutines();
+        Time.timeScale = 0f; // Pause the game
+        AudioListener.pause = true; // Mute all audio
+        enemy.audioSource.Stop(); // mute enemy audio
+        winPanel.SetActive(true);
+        Defeat_UI.SetActive(true);
+       // resultText.text = "GameOver";
     }
     void ShuffleDeck()
     {
@@ -260,6 +261,8 @@ public class CardDeckManager : MonoBehaviour
     }
     public void OnReplayButtonPressed()
     {
+        Time.timeScale = 1f; // Resume the game
+        AudioListener.pause = false; // Unmute audio
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
     void DrawCard(int count)

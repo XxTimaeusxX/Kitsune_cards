@@ -53,10 +53,20 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public int stunTurnsRemaining = 0;
     public bool IsStunned = false;
 
-
+    [Header("Transitions")]
+    [Tooltip("Seconds to fade the portrait out on death.")]
+    public float DeathFadeOutDuration = 7;
+    [Tooltip("Seconds to wait after fully faded-out before notifying deck manager.")]
+    public float DelayBeforeSpawnSeconds = 15f;
+    [Tooltip("Seconds to fade the new portrait in.")]
+    public float SpawnFadeInDuration = 2;
+    [Tooltip("Fade in the portrait whenever InitializeForBattle runs.")]
+    public bool FadeOnInitialize = true;
+    // runtime state to avoid double death handling
+    private bool _isDying = false;
     void Start()
     {
-        ApplyEnemyData();
+       // ApplyEnemyData();
         InitializeForBattle();
     }
 
@@ -344,7 +354,8 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         {
           if (deckManager != null)
             {
-                deckManager.OnEnemyDefeated(this);
+               // deckManager.OnEnemyDefeated(this);
+               StartCoroutine(HandleDeathTransition());
                 return;
             }            
         }
@@ -434,5 +445,79 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         // Implement stun logic here
     }
 
-    
+    // ---------------------------
+    // Fade helpers and routines
+    // ---------------------------
+    private IEnumerator HandleDeathTransition()
+    {
+        _isDying = true;
+
+        // stop/clear ongoing effects so they don't float during fade
+        if (DebuffEffect != null) DebuffEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        if (BuffEffect != null) BuffEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        if (ArmorEffect != null) ArmorEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        if (DotFireEffect != null) DotFireEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+        // fade-out portrait
+        yield return FadeImageAlpha(enemyPortrait, GetPortraitAlphaOrDefault(1f), 0f, Mathf.Max(0.01f, DeathFadeOutDuration));
+
+        // pause before spawning the next enemy
+        if (DelayBeforeSpawnSeconds > 0f)
+            yield return new WaitForSeconds(DelayBeforeSpawnSeconds);
+
+        // notify the deck manager after transition completes
+        if (deckManager != null)
+            deckManager.OnEnemyDefeated(this);
+
+        // If this object is re-used and the next sprite is assigned immediately,
+        // fade-in the portrait. If this object is destroyed by OnEnemyDefeated, this code won't run (which is fine).
+        yield return null; // give a frame for sprite assignment if re-used
+
+        // Ensure we start fade-in from 0 alpha
+        EnsurePortraitAlpha(0f);
+        yield return FadeImageAlpha(enemyPortrait, 0f, 1f, Mathf.Max(0.01f, SpawnFadeInDuration));
+
+        _isDying = false;
+    }
+
+    private IEnumerator FadeInPortrait()
+    {
+        EnsurePortraitAlpha(0f);
+        yield return FadeImageAlpha(enemyPortrait, 0f, 1f, Mathf.Max(0.01f, SpawnFadeInDuration));
+    }
+
+    private static IEnumerator FadeImageAlpha(Image image, float from, float to, float duration)
+    {
+        if (image == null) yield break;
+
+        Color c = image.color;
+        c.a = from;
+        image.color = c;
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            c.a = Mathf.Lerp(from, to, t);
+            image.color = c;
+            yield return null;
+        }
+        c.a = to;
+        image.color = c;
+    }
+
+    private void EnsurePortraitAlpha(float alpha)
+    {
+        if (enemyPortrait == null) return;
+        var c = enemyPortrait.color;
+        c.a = alpha;
+        enemyPortrait.color = c;
+    }
+
+    private float GetPortraitAlphaOrDefault(float defaultAlpha)
+    {
+        if (enemyPortrait == null) return defaultAlpha;
+        return enemyPortrait.color.a;
+    }
 }
