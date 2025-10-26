@@ -34,11 +34,11 @@ MonoBehaviour:
     EffectDescription: Apply 4 block
   - ManaCost: 5
     Type: 0
-    EffectDescription: next 3 turns target deals 80% less damage
+    EffectDescription: next 3 turns target deals 50% less damage
   - ManaCost: 10
     Type: 2
-    EffectDescription: "for next 2 turns, Damage dealt, DoT applied \r\n                                                                                            
-      block applied, and buffs applied are x3"
+    EffectDescription: for next 2 turns, Damage dealt, DoT applied block applied,
+      and buffs applied are x3
   EarthAbilities:
   - ManaCost: 1
     Type: 1
@@ -51,7 +51,7 @@ MonoBehaviour:
     EffectDescription: Apply 12 block
   - ManaCost: 10
     Type: 1
-    EffectDescription: Deal 32 pts Damage and apply stun for 3 turn
+    EffectDescription: Deal 32 pts Damage and apply stun for 2 turn
   AirAbilities:
   - ManaCost: 1
     Type: 3
@@ -65,8 +65,8 @@ MonoBehaviour:
       amount is x2 more
   - ManaCost: 10
     Type: 3
-    EffectDescription: apply 24 block and reflect 50% of damage taken.
-  CardName: 
-  CharacterImage: {fileID: 21300000, guid: 2b11ef4ca4596494d95fc064d6e40fe3, type: 3}
+    EffectDescription: apply 24 block and reflect 50% of damage taken for 2 turn.
+  CardName: Chimera
+  CharacterImage: {fileID: 21300000, guid: 8b8bd36bb812ed74e87660268c562af9, type: 3}
   elementType: 1
   selectedManaAndEffectIndex: 2

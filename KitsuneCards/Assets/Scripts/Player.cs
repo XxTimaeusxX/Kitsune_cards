@@ -306,6 +306,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         buffBlockPercentage = blockamount;
         BuffEffect.Play();
         audioSource.PlayOneShot(buffSound);
+        GameTurnMessager.instance.ShowMessage($"Player's block cards value are doubled for 2 turns.");
         Debug.Log($"Player's block cards value are doubled for this turn.");
         // Implement block buff logic here
     }

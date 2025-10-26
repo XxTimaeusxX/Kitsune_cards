@@ -41,6 +41,15 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: SpiteBackground
+    uniqueID: 209420043
+    locked: 0
+  - name: cardframe
+    uniqueID: 1048735285
+    locked: 0
+  - name: text
+    uniqueID: 976377843
+    locked: 0
   - name: UI
     uniqueID: 3471255155
     locked: 0

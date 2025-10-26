@@ -61,6 +61,22 @@ Debuff abilities have particle system:
 debuff abilites card: now show a blue arrow particle system flowing down.
 block abilites card: show shield particles
 
+
+feature 3 10/19/25
+Core Systems: Added buff cards that enhance players stats. There are 4 buff types
+Buff extender: extend any debuffs currently applied to opponent by +1 (stun, Dot damage tick, damage reduction turns)
+Dot extender: any Dot damage cards applied to the opponent applies +1 and +1 damage to the current amount.
+Block multiplier: any block cards applied are doubled value
+Super buff: Damage dealt, DoT applied, block applied are x3 for 2 turns. 
+ 
+Audio:
+Buff cards abilities: now has audio
+Vfx: Particle system
+Buff cards: has red arrows particles flowing up onto the player. 
+
+
+
+
 Outside Assets Used
 "SFX sourced from www.zapsplat.com"
 

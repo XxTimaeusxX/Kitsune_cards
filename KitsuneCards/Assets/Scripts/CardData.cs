@@ -40,7 +40,7 @@ public class CardData : ScriptableObject
     {
         new ManaCostandEffect { ManaCost = 1,Type = AbilityType.Buff, EffectDescription = "add 1 additional turn to any current debuff to target" },
         new ManaCostandEffect { ManaCost = 2,Type = AbilityType.Block, EffectDescription = "Apply 4 block" },
-        new ManaCostandEffect { ManaCost = 5,Type = AbilityType.Debuff, EffectDescription = "next 3 turns target deals 80% less damage" },
+        new ManaCostandEffect { ManaCost = 5,Type = AbilityType.Debuff, EffectDescription = "next 3 turns target deals 50% less damage" },
         new ManaCostandEffect { ManaCost = 10,Type = AbilityType.Buff, EffectDescription = "for next 2 turns, Damage dealt, DoT applied block applied, and buffs applied are x3" },
     };
 
@@ -49,7 +49,7 @@ public class CardData : ScriptableObject
         new ManaCostandEffect { ManaCost = 1,Type = AbilityType.Damage, EffectDescription = "Deal 2 pts Damage" },
         new ManaCostandEffect { ManaCost = 2,Type = AbilityType.Debuff, EffectDescription = "Target Loses 3 energy" },
         new ManaCostandEffect { ManaCost = 5,Type = AbilityType.Block, EffectDescription = "Apply 12 block" },
-        new ManaCostandEffect { ManaCost = 10,Type = AbilityType.Damage, EffectDescription = "Deal 32 pts Damage and apply stun for 3 turn" },
+        new ManaCostandEffect { ManaCost = 10,Type = AbilityType.Damage, EffectDescription = "Deal 32 pts Damage and apply stun for 2 turn" },
     };
 
     public List<ManaCostandEffect> AirAbilities = new List<ManaCostandEffect>

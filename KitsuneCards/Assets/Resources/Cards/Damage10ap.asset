@@ -65,7 +65,7 @@ MonoBehaviour:
   - ManaCost: 10
     Type: 3
     EffectDescription: apply 24 block and reflect 25% of damage taken
-  CardName: LongNeck
-  CharacterImage: {fileID: 21300000, guid: 8b8bd36bb812ed74e87660268c562af9, type: 3}
+  CardName: Nue
+  CharacterImage: {fileID: 21300000, guid: 32ff5ffd37b652e45b264d3a8c118751, type: 3}
   elementType: 2
   selectedManaAndEffectIndex: 3
