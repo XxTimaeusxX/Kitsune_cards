@@ -43,37 +43,103 @@ public class CardDeckManager : MonoBehaviour
     }
     public TurnState currentTurn;
 
-    // NEW: sequence of enemies to fight one-by-one
-    public EnemyData[] enemySequence;
+    // New: unified wave list (prefer this)
+    [System.Serializable]
+    public class WaveEntry
+    {
+        public EnemyData enemyData; // required
+        public BossData bossData;   // optional: assign for boss waves
+    }
+
+    [Header("Wave Sequence")]
+    public List<WaveEntry> waveSequence = new List<WaveEntry>();
     private int currentEnemyIndex = -1;
+    // NEW: pending boss (spawned after the enemy of the same wave)
+    private EnemyData _pendingBossBaseEnemyData;
+    private BossData _pendingBossData;
     void Start()
     {
         LoadcardsfromResources();
         ShuffleDeck();
         DrawCard(HandstartSize);
+        BeginEnemySequence();
         StartPlayerTurn();    
     }
 
 
     private void NextEnemy()
     {
+        // 1) If a boss is pending from the previous wave entry, spawn it now (do not advance index)
+        if (_pendingBossData != null)
+        {
+            enemy.SetEnemyData(_pendingBossBaseEnemyData); // base for boss (same wave's enemyData)
+            enemy.bossData = _pendingBossData;
+            enemy.InitializeForBattle();
+
+            // clear pending boss
+            _pendingBossBaseEnemyData = null;
+            _pendingBossData = null;
+
+            // Player starts; enemy acts after player ends turn
+            return;
+        }
+
+        // 2) Advance to next wave entry
         currentEnemyIndex++;
 
-        // Reached end -> show win
-        if (enemySequence == null || currentEnemyIndex >= enemySequence.Length)
+        if (waveSequence == null || waveSequence.Count == 0 || currentEnemyIndex >= waveSequence.Count)
         {
             OnPlayerWin();
             return;
         }
 
-        // Configure the single enemy instance with next data
-        var data = enemySequence[currentEnemyIndex];
-        enemy.SetEnemyData(data);
-        enemy.InitializeForBattle();
+        var entry = waveSequence[currentEnemyIndex];
+
+        // invalid entry if neither is set
+        if (entry == null || (entry.enemyData == null && entry.bossData == null))
+        {
+            Debug.LogError("Wave entry is missing both EnemyData and BossData.");
+            OnPlayerWin();
+            return;
+        }
+
+        // Case A: both enemy and boss set -> spawn enemy now, schedule boss next
+        if (entry.enemyData != null && entry.bossData != null)
+        {
+            // spawn enemy now
+            enemy.SetEnemyData(entry.enemyData);
+            enemy.bossData = null; // ensure this spawn is NOT a boss
+            enemy.InitializeForBattle();
+
+            // schedule boss for next NextEnemy call
+            _pendingBossBaseEnemyData = entry.enemyData;
+            _pendingBossData = entry.bossData;
+
+            return;
+        }
+
+        // Case B: enemy only
+        if (entry.enemyData != null)
+        {
+            enemy.SetEnemyData(entry.enemyData);
+            enemy.bossData = null;
+            enemy.InitializeForBattle();
+            return;
+        }
+
+        // Case C: boss only (allowed)
+        if (entry.bossData != null)
+        {
+            // Optional: choose a default/base EnemyData if you want, otherwise leave enemy.enemyData as-is
+            enemy.enemyData = null; // let boss overrides + defaults apply
+            enemy.bossData = entry.bossData;
+            enemy.InitializeForBattle();
+            return;
+        }
 
         // If you want to immediately give the turn to the enemy:
-        currentTurn = TurnState.EnemyTurn;
-        StartCoroutine(StartEnemyturn());
+        //  currentTurn = TurnState.EnemyTurn;
+        //  StartCoroutine(StartEnemyturn());
     }
     public void BeginEnemySequence()
     {
@@ -186,6 +252,10 @@ public class CardDeckManager : MonoBehaviour
             enemy.TakeDamage(enemy.activeDoTDamage);
             yield return new WaitForSeconds(2f); // Wait for 2 seconds to let player see the message
         }
+        // Boss passive tick: after DoT, before stun skip
+        if (enemy != null)
+            enemy.OnBossTurnStart();
+
         if (enemy.stunTurnsRemaining > 0)
         {
             

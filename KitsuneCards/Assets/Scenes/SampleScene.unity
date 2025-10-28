@@ -388,7 +388,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69cd5f9a434ea174a92ab3fd777262e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyData: {fileID: 11400000, guid: fe472e43eaceb7a4d9b5d3c8edb5ae0e, type: 2}
+  enemyData: {fileID: 0}
   cardsResourceFolder: enemy1
   deckManager: {fileID: 1601799123}
   abilityManager: {fileID: 1137948735}
@@ -418,6 +418,8 @@ MonoBehaviour:
   damageDebuffMultiplier: 1
   stunTurnsRemaining: 0
   IsStunned: 0
+  bossData: {fileID: 0}
+  AutoInitializeOnStart: 0
   DeathFadeOutDuration: 0.35
   DelayBeforeSpawnSeconds: 1
   SpawnFadeInDuration: 0.35
@@ -4579,10 +4581,13 @@ MonoBehaviour:
   Defeat_UI: {fileID: 1152908436}
   resultText: {fileID: 283247424}
   currentTurn: 0
-  enemySequence:
-  - {fileID: 11400000, guid: 430cbfeb4d9d9a944b7338c5efd3e4d0, type: 2}
-  - {fileID: 11400000, guid: bf6c67413e816674f8f93f54d2c192e9, type: 2}
-  - {fileID: 11400000, guid: 325312daa3dc24d448f6a1c1f22a163c, type: 2}
+  waveSequence:
+  - enemyData: {fileID: 11400000, guid: fe472e43eaceb7a4d9b5d3c8edb5ae0e, type: 2}
+    bossData: {fileID: 11400000, guid: bc6577a6b07a0a24aa3e96399729a237, type: 2}
+  - enemyData: {fileID: 11400000, guid: 430cbfeb4d9d9a944b7338c5efd3e4d0, type: 2}
+    bossData: {fileID: 0}
+  - enemyData: {fileID: 11400000, guid: bf6c67413e816674f8f93f54d2c192e9, type: 2}
+    bossData: {fileID: 11400000, guid: f6111041befcc1e4997bd82d1f277fd1, type: 2}
 --- !u!4 &1601799124
 Transform:
   m_ObjectHideFlags: 0

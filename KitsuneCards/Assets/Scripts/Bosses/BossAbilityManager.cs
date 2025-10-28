@@ -4,11 +4,23 @@ using UnityEngine;
 
 public class BossAbilityManager : MonoBehaviour
 {
+
+    // Singleton
+    public static BossAbilityManager Instance { get; private set; }
+
     // Map enum -> handler method
     private Dictionary<BossData.BossAbilityType, System.Action<BossData, Enemy, Player, int>> _abilityHandlers;
 
     private void Awake()
     {
+        // Singleton bootstrap
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
         InitializeHandlers();
     }
 
