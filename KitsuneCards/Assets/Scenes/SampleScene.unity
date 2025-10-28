@@ -4583,7 +4583,7 @@ MonoBehaviour:
   currentTurn: 0
   waveSequence:
   - enemyData: {fileID: 11400000, guid: fe472e43eaceb7a4d9b5d3c8edb5ae0e, type: 2}
-    bossData: {fileID: 11400000, guid: bc6577a6b07a0a24aa3e96399729a237, type: 2}
+    bossData: {fileID: 0}
   - enemyData: {fileID: 11400000, guid: 430cbfeb4d9d9a944b7338c5efd3e4d0, type: 2}
     bossData: {fileID: 0}
   - enemyData: {fileID: 11400000, guid: bf6c67413e816674f8f93f54d2c192e9, type: 2}

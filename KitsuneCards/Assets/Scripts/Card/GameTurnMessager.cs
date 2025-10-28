@@ -14,11 +14,12 @@ public class GameTurnMessager : MonoBehaviour
             messageText.text = "";
     }
 
-    public void ShowMessage(string msg )
+    public void ShowMessage(string msg, float duration = 3f)
     {
         StopAllCoroutines();
         messageText.text = msg;
-        
+        if (duration > 0f)
+            StartCoroutine(ClearAfterDelay(duration));
     }
 
     private System.Collections.IEnumerator ClearAfterDelay(float delay)

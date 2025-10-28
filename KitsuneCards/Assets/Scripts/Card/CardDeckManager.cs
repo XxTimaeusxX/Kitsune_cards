@@ -230,7 +230,7 @@ public class CardDeckManager : MonoBehaviour
     {
         GameTurnMessager.instance.ShowMessage("Player's Turn");
         handUIManager.SetHandCardsInteractable(true);
-        player.StartTurnMana();
+       // player.StartTurnMana();
         currentTurn = TurnState.PlayerTurn;
         Debug.Log("Player's Turn Started");
         player.PstartTurn();
@@ -255,7 +255,7 @@ public class CardDeckManager : MonoBehaviour
         // Boss passive tick: after DoT, before stun skip
         if (enemy != null)
             enemy.OnBossTurnStart();
-
+        yield return new WaitForSeconds(1f); // brief pause before stun check
         if (enemy.stunTurnsRemaining > 0)
         {
             
