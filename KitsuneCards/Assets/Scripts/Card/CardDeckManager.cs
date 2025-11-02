@@ -25,6 +25,18 @@ public class CardDeckManager : MonoBehaviour
     private List<CardData> discardDeck = new List<CardData>();
     public List<CardData> playerfield = new List<CardData>(); // public getter for discard pile
 
+    [Header("Deck Bias")]
+    [Tooltip("If true, not all cards are available each scene (random subset).")]
+    public bool randomizeAvailability = false;
+    [Range(0f, 1f)]
+    [Tooltip("Chance a card is available when randomizing.")]
+    public float availabilityChance = 0.75f;
+    [Tooltip("If true, sorts Damage/Debuff to the top after building the deck.")]
+    public bool offenseFirstSort = true;
+    [Range(0, 10)]
+    [Tooltip("When offense-first sorting, after every N offensive cards, insert one defensive if available. 0 = disabled.")]
+    public int interleaveDefensiveEvery = 0;
+
     //////////////////////////// event system
 
     public event System.Action<CardData> OncardDiscard;
@@ -54,6 +66,11 @@ public class CardDeckManager : MonoBehaviour
     [Header("Wave Sequence")]
     public List<WaveEntry> waveSequence = new List<WaveEntry>();
     private int currentEnemyIndex = -1;
+    // Boss-only sequence (used only when GameMode == BossOnly)
+    [Header("Boss Wave Sequence")]
+    public List<BossData> bossWaveSequence = new List<BossData>();
+    private int currentBossIndex = -1;
+
     // NEW: pending boss (spawned after the enemy of the same wave)
     private EnemyData _pendingBossBaseEnemyData;
     private BossData _pendingBossData;
@@ -69,6 +86,32 @@ public class CardDeckManager : MonoBehaviour
 
     private void NextEnemy()
     {
+        // Boss-only mode: use bossWaveSequence and ignore waveSequence completely
+        if (GameModeConfig.CurrentMode == GameMode.BossOnly)
+        {
+            // No pending base-enemy/boss sequencing in boss-only mode
+            _pendingBossBaseEnemyData = null;
+            _pendingBossData = null;
+
+            while (true)
+            {
+                currentBossIndex++;
+
+                if (bossWaveSequence == null || bossWaveSequence.Count == 0 || currentBossIndex >= bossWaveSequence.Count)
+                {
+                    OnPlayerWin();
+                    return;
+                }
+
+                var boss = bossWaveSequence[currentBossIndex];
+                if (boss == null) continue; // skip empty slots
+
+                enemy.enemyData = null; // rely on boss overrides/defaults
+                enemy.bossData = boss;
+                enemy.InitializeForBattle();
+                return;
+            }
+        }
         // 1) If a boss is pending from the previous wave entry, spawn it now (do not advance index)
         if (_pendingBossData != null)
         {
@@ -144,6 +187,7 @@ public class CardDeckManager : MonoBehaviour
     public void BeginEnemySequence()
     {
         currentEnemyIndex = -1;
+        currentBossIndex = -1;
         NextEnemy();
     }
     // Called by Enemy when its health reaches 0
@@ -157,24 +201,43 @@ public class CardDeckManager : MonoBehaviour
         // here we are telling the method to clear list, then load all card data from resources/cards folder and add to list
         cards.Clear();
         CardData[] loadedCards = Resources.LoadAll<CardData>("Cards");
+
+        // Option 1: Randomly limit availability per scene
+        if (randomizeAvailability)
+        {
+            var filtered = new List<CardData>(loadedCards.Length);
+            for (int i = 0; i < loadedCards.Length; i++)
+            {
+                if (Random.value <= availabilityChance)
+                    filtered.Add(loadedCards[i]);
+            }
+            loadedCards = filtered.ToArray();
+        }
+
         // Define mana costs and their limits
         var manaLimits = new (int mana, int limit)[]
         {
-        (1, oneAPLimit),
-        (2, twoAPLimit),
-        (5, fiveAPLimit),
-        (10, tenAPLimit)
+            (1, oneAPLimit),
+            (2, twoAPLimit),
+            (5, fiveAPLimit),
+            (10, tenAPLimit)
         };
-        // Define all ability types you want to include
+        // Define all ability types you want to include (Damage/Debuff first biases deck fill)
         AbilityType[] abilityTypes = new AbilityType[]
         {
-        AbilityType.Damage,
-        AbilityType.Block,
-        AbilityType.Buff,
-        AbilityType.Debuff,
-  
+            AbilityType.Damage,
+            AbilityType.Debuff,
+            AbilityType.Block,
+            AbilityType.Buff,
             // Add more as needed
         };
+        // Apply Game Mode filter: BuffOnly -> only Buff cards, disable offense-first sorting
+        if (GameModeConfig.CurrentMode == GameMode.BuffAndDebuff)
+        {
+            abilityTypes = new AbilityType[] { AbilityType.Buff, AbilityType.Debuff };
+            offenseFirstSort = false;
+            interleaveDefensiveEvery = 0;
+        }
         foreach (var (mana, limit) in manaLimits)
         {
             foreach (var type in abilityTypes)
@@ -182,26 +245,7 @@ public class CardDeckManager : MonoBehaviour
                 List<CardData> candidates = new List<CardData>();
                 foreach (var card in loadedCards)
                 {
-                    ManaCostandEffect? selectedAbility = null;
-                    switch (card.elementType)
-                    {
-                        case CardData.ElementType.Fire:
-                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.FireAbilities.Count)
-                                selectedAbility = card.FireAbilities[card.selectedManaAndEffectIndex];
-                            break;
-                        case CardData.ElementType.Water:
-                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.WaterAbilities.Count)
-                                selectedAbility = card.WaterAbilities[card.selectedManaAndEffectIndex];
-                            break;
-                        case CardData.ElementType.Earth:
-                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.EarthAbilities.Count)
-                                selectedAbility = card.EarthAbilities[card.selectedManaAndEffectIndex];
-                            break;
-                        case CardData.ElementType.Air:
-                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.AirAbilities.Count)
-                                selectedAbility = card.AirAbilities[card.selectedManaAndEffectIndex];
-                            break;
-                    }
+                    ManaCostandEffect? selectedAbility = GetSelectedAbility(card);
 
                     // Only add cards whose selected ability matches the type and mana
                     if (selectedAbility.HasValue && selectedAbility.Value.Type == type && selectedAbility.Value.ManaCost == mana)
@@ -210,22 +254,83 @@ public class CardDeckManager : MonoBehaviour
                     }
                 }
 
-                // Add up to 'limit' cards, cycling if needed, but do not exceed deckSize
+                // Add up to 'limit' cards, randomly picking from candidates, but do not exceed deckSize
                 for (int i = 0; i < limit && cards.Count < deckSize; i++)
                 {
                     if (candidates.Count == 0)
                     {
-                        Debug.Log($"No cards found for {type} at {mana}AP");
+                        // No cards for this type/mana; continue
                         break;
                     }
-                    
-                    cards.Add(candidates[i % candidates.Count]);
+
+                    int pick = Random.Range(0, candidates.Count);
+                    cards.Add(candidates[pick]);
                 }
             }
         }
 
+        // Option 2: Offense-first sort (Damage + Debuff on top), optionally interleave some defensive cards
+        if (offenseFirstSort && cards.Count > 1)
+        {
+            var offense = new List<CardData>(cards.Count);
+            var defense = new List<CardData>(cards.Count);
+
+            for (int i = 0; i < cards.Count; i++)
+            {
+                var ab = GetSelectedAbility(cards[i]);
+                if (ab.HasValue && (ab.Value.Type == AbilityType.Damage || ab.Value.Type == AbilityType.Debuff))
+                    offense.Add(cards[i]);
+                else
+                    defense.Add(cards[i]);
+            }
+
+            if (interleaveDefensiveEvery > 0)
+            {
+                var mixed = new List<CardData>(cards.Count);
+                int o = 0, d = 0;
+                while (o < offense.Count || d < defense.Count)
+                {
+                    int toTake = interleaveDefensiveEvery;
+                    while (toTake-- > 0 && o < offense.Count)
+                        mixed.Add(offense[o++]);
+
+                    if (d < defense.Count)
+                        mixed.Add(defense[d++]);
+                }
+                cards.Clear();
+                cards.AddRange(mixed);
+            }
+            else
+            {
+                offense.AddRange(defense);
+                cards.Clear();
+                cards.AddRange(offense);
+            }
+        }
     }
-    
+
+    private ManaCostandEffect? GetSelectedAbility(CardData card)
+    {
+        ManaCostandEffect? selectedAbility = null;
+        int idx = card.selectedManaAndEffectIndex;
+        switch (card.elementType)
+        {
+            case CardData.ElementType.Fire:
+                if (idx >= 0 && idx < card.FireAbilities.Count) selectedAbility = card.FireAbilities[idx];
+                break;
+            case CardData.ElementType.Water:
+                if (idx >= 0 && idx < card.WaterAbilities.Count) selectedAbility = card.WaterAbilities[idx];
+                break;
+            case CardData.ElementType.Earth:
+                if (idx >= 0 && idx < card.EarthAbilities.Count) selectedAbility = card.EarthAbilities[idx];
+                break;
+            case CardData.ElementType.Air:
+                if (idx >= 0 && idx < card.AirAbilities.Count) selectedAbility = card.AirAbilities[idx];
+                break;
+        }
+        return selectedAbility;
+    }
+
     public void StartPlayerTurn()
     {
         GameTurnMessager.instance.ShowMessage("Player's Turn");
