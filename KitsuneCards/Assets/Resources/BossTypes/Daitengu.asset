@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd918e169d060724ab72c7f535bd0abd, type: 3}
+  m_Name: Daitengu
+  m_EditorClassIdentifier: 
+  BossName: Daitengu
+  BossSprite: {fileID: 21300000, guid: 22db46e07d1bbf644a8add61be707c0d, type: 3}
+  Ability: 1
+  OverrideStats: 1
+  BossMaxHealth: 120
+  BossMaxMana: 5
+  BossStartMana: 5
+  healEveryTurns: 2
+  healAmount: 30
+  drainEveryTurns: 3
+  drainAmount: 4

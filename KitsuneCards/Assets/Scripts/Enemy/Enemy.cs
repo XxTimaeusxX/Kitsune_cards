@@ -53,6 +53,14 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public int stunTurnsRemaining = 0;
     public bool IsStunned = false;
 
+    [Header("Boss (optional)")]
+    public BossData bossData; // optional; set by CardDeckManager per wave
+    public bool AutoInitializeOnStart = false;
+
+    // Add near other private fields
+    private int _bossTurnIndex = 0;
+    private BossAbilityManager _bossMgr;
+
     [Header("Transitions")]
     [Tooltip("Seconds to fade the portrait out on death.")]
     public float DeathFadeOutDuration = 7;
@@ -66,22 +74,73 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     private bool _isDying = false;
     void Start()
     {
-       // ApplyEnemyData();
-        InitializeForBattle();
+        if (AutoInitializeOnStart)
+        {
+            InitializeForBattle();
+        }
+       
+        // ApplyEnemyData();
+        //  InitializeForBattle();
     }
 
+    // Effective config built from EnemyData (+ optional BossData)
+    private struct EffectiveConfig
+    {
+        public string Name;
+        public Sprite Portrait;
+        public int MaxHealth;
+        public int MaxMana;
+        public int StartMana;
+    }
 
+    private EffectiveConfig BuildEffectiveConfig()
+    {
+        var cfg = new EffectiveConfig
+        {
+            Name = enemyData != null ? enemyData.EnemyName : "Enemy",
+            Portrait = enemyData != null ? enemyData.EnemySprite : null,
+            MaxHealth = enemyData != null ? Mathf.Max(1, enemyData.MaxHealth) : MaxHealth,
+            MaxMana = enemyData != null ? Mathf.Max(0, enemyData.MaxMana) : Maxmana,
+            StartMana = enemyData != null ? Mathf.Clamp(enemyData.StartMana, 0, (enemyData != null ? enemyData.MaxMana : Maxmana)) : Currentmana
+        };
+
+        // Identity: boss overrides name/sprite if provided
+        if (bossData != null)
+        {
+            if (!string.IsNullOrEmpty(bossData.BossName)) cfg.Name = bossData.BossName;
+            if (bossData.BossSprite != null) cfg.Portrait = bossData.BossSprite;
+
+            // Stats: optionally override from boss
+            if (bossData.OverrideStats)
+            {
+                cfg.MaxHealth = Mathf.Max(1, bossData.BossMaxHealth);
+                cfg.MaxMana = Mathf.Max(0, bossData.BossMaxMana);
+                cfg.StartMana = Mathf.Clamp(bossData.BossStartMana, 0, cfg.MaxMana);
+            }
+        }
+
+        return cfg;
+    }
     public void InitializeForBattle()
     {
-        // Re-apply data in case it was changed at runtime
+        // Apply any non-stat config (like deck folder) from EnemyData
         ApplyEnemyData();
 
         // Reset transient runtime state (debuffs, VFX, etc.)
         ResetRuntimeState();
 
-        // Health and mana reset for the new enemy
+        // Build effective config from EnemyData + optional BossData
+        var cfg = BuildEffectiveConfig();
+
+        // Assign runtime maxima and currents
+        MaxHealth = cfg.MaxHealth;
+        Maxmana = cfg.MaxMana;
         CurrentHealth = MaxHealth;
-        Currentmana = Mathf.Clamp(Currentmana, 0, Maxmana); // or set to enemyData.StartMana if you expose it
+        Currentmana = Mathf.Clamp(cfg.StartMana, 0, Maxmana);
+
+        // Identity
+        if (enemyPortrait != null) enemyPortrait.sprite = cfg.Portrait;
+        if (enemyNameText != null) enemyNameText.text = string.IsNullOrEmpty(cfg.Name) ? "Enemy" : cfg.Name;
 
         // Rebuild deck
         LoadEnemyCards();
@@ -90,6 +149,16 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         // Refresh UI
         UpdateEnemyHealthUI();
         UpdateManaUI();
+
+        _bossTurnIndex = 0;
+        if (bossData != null)
+        {
+            if (_bossMgr == null) _bossMgr = FindObjectOfType<BossAbilityManager>();
+            if (_bossMgr == null) // auto-create if missing
+                _bossMgr = new GameObject("BossAbilityManager").AddComponent<BossAbilityManager>();
+
+            _bossMgr.OnSpawn(bossData, this, deckManager != null ? deckManager.player : null);
+        }
     }
 
     private void ResetRuntimeState()
@@ -106,7 +175,15 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         if (ArmorEffect != null) ArmorEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         if (DotFireEffect != null) DotFireEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
+    public void OnBossTurnStart()
+    {
+        if (bossData == null) return;
+        if (_bossMgr == null) _bossMgr = FindObjectOfType<BossAbilityManager>();
+        if (_bossMgr == null) return;
 
+        _bossTurnIndex++;
+        _bossMgr.OnTurnStart(bossData, this, deckManager != null ? deckManager.player : null, _bossTurnIndex);
+    }
     // Allow spawners to set data at runtime before Start() runs
     public void SetEnemyData(EnemyData data)
     {
@@ -117,21 +194,8 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     {
         if (enemyData == null) return;
 
-        // Stats
-        MaxHealth = Mathf.Max(1, enemyData.MaxHealth);
-        CurrentHealth = MaxHealth;
-
-        Maxmana = Mathf.Max(0, enemyData.MaxMana);
-        Currentmana = Mathf.Clamp(enemyData.StartMana, 0, Maxmana);
-
-        // Portrait / Name
-        if (enemyPortrait != null && enemyData.EnemySprite != null)
-            enemyPortrait.sprite = enemyData.EnemySprite;
-
-        if (enemyNameText != null && !string.IsNullOrEmpty(enemyData.EnemyName))
-            enemyNameText.text = enemyData.EnemyName;
-
-        // Deck folder
+        // Do NOT set stats here (hub shouldn’t hard-code).
+        // Keep deck folder and baseline visuals only.
         if (!string.IsNullOrEmpty(enemyData.CardsResourceFolder))
             cardsResourceFolder = enemyData.CardsResourceFolder;
     }

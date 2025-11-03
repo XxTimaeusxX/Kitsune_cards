@@ -132,7 +132,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1357279187339007938, guid: 6d1b3e8b059f3bf4d881d63657d96aa5, type: 3}
       propertyPath: m_SortingLayer
-      value: 1
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 1357279187339007938, guid: 6d1b3e8b059f3bf4d881d63657d96aa5, type: 3}
       propertyPath: m_SortingOrder
@@ -388,7 +388,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69cd5f9a434ea174a92ab3fd777262e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyData: {fileID: 11400000, guid: fe472e43eaceb7a4d9b5d3c8edb5ae0e, type: 2}
+  enemyData: {fileID: 0}
   cardsResourceFolder: enemy1
   deckManager: {fileID: 1601799123}
   abilityManager: {fileID: 1137948735}
@@ -418,6 +418,8 @@ MonoBehaviour:
   damageDebuffMultiplier: 1
   stunTurnsRemaining: 0
   IsStunned: 0
+  bossData: {fileID: 0}
+  AutoInitializeOnStart: 0
   DeathFadeOutDuration: 0.35
   DelayBeforeSpawnSeconds: 1
   SpawnFadeInDuration: 0.35
@@ -437,6 +439,7 @@ Transform:
   m_Children:
   - {fileID: 875609883}
   - {fileID: 1899031382}
+  - {fileID: 591642360}
   - {fileID: 299446295}
   - {fileID: 1847471050}
   m_Father: {fileID: 1675413347}
@@ -832,7 +835,7 @@ Transform:
   m_GameObject: {fileID: 299446294}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.0012286057, y: -0.0003839393, z: 0}
   m_LocalScale: {x: 0.77421063, y: 0.77421063, z: 0.77421063}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -840,7 +843,6 @@ Transform:
   - {fileID: 1716820633}
   - {fileID: 1977231372}
   - {fileID: 250805972}
-  - {fileID: 591642360}
   m_Father: {fileID: 186843724}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &395746689
@@ -1085,7 +1087,7 @@ GameObject:
   - component: {fileID: 591642362}
   - component: {fileID: 591642361}
   m_Layer: 0
-  m_Name: Image
+  m_Name: EnemySprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1098,17 +1100,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 591642359}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.77421063, y: 0.77421063, z: 0.77421063}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 299446295}
+  m_Father: {fileID: 186843724}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -362}
-  m_SizeDelta: {x: 388, y: 608}
+  m_AnchoredPosition: {x: -43, y: -282}
+  m_SizeDelta: {x: 372.48, y: 583.68}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &591642361
 MonoBehaviour:
@@ -1132,7 +1134,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: c27b1e88435244a4d90901079ba58e86, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -4572,6 +4574,10 @@ MonoBehaviour:
   playerHand: []
   discardDeck: []
   playerfield: []
+  randomizeAvailability: 0
+  availabilityChance: 1
+  offenseFirstSort: 1
+  interleaveDefensiveEvery: 0
   player: {fileID: 1339832367}
   enemy: {fileID: 186843723}
   winPanel: {fileID: 449578862}
@@ -4579,10 +4585,16 @@ MonoBehaviour:
   Defeat_UI: {fileID: 1152908436}
   resultText: {fileID: 283247424}
   currentTurn: 0
-  enemySequence:
-  - {fileID: 11400000, guid: 430cbfeb4d9d9a944b7338c5efd3e4d0, type: 2}
-  - {fileID: 11400000, guid: bf6c67413e816674f8f93f54d2c192e9, type: 2}
-  - {fileID: 11400000, guid: 325312daa3dc24d448f6a1c1f22a163c, type: 2}
+  waveSequence:
+  - enemyData: {fileID: 11400000, guid: fe472e43eaceb7a4d9b5d3c8edb5ae0e, type: 2}
+    bossData: {fileID: 0}
+  - enemyData: {fileID: 11400000, guid: 430cbfeb4d9d9a944b7338c5efd3e4d0, type: 2}
+    bossData: {fileID: 0}
+  - enemyData: {fileID: 11400000, guid: bf6c67413e816674f8f93f54d2c192e9, type: 2}
+    bossData: {fileID: 11400000, guid: f6111041befcc1e4997bd82d1f277fd1, type: 2}
+  bossWaveSequence:
+  - {fileID: 11400000, guid: bc6577a6b07a0a24aa3e96399729a237, type: 2}
+  - {fileID: 11400000, guid: f6111041befcc1e4997bd82d1f277fd1, type: 2}
 --- !u!4 &1601799124
 Transform:
   m_ObjectHideFlags: 0
@@ -4814,12 +4826,12 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1957435388}
+  - {fileID: 186843724}
   - {fileID: 1930670626}
   - {fileID: 1002558601}
   - {fileID: 727647248}
   - {fileID: 602039534}
   - {fileID: 1761941111}
-  - {fileID: 186843724}
   - {fileID: 1808662433}
   - {fileID: 449578865}
   m_Father: {fileID: 0}
@@ -5520,7 +5532,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -36}
+  m_AnchoredPosition: {x: 0.0010223389, y: -35.999332}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!4 &1892332329 stripped
@@ -5646,7 +5658,7 @@ RectTransform:
   m_GameObject: {fileID: 1930670625}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.7991198, y: 0.7991198, z: 0.7991198}
+  m_LocalScale: {x: 0.6790361, y: 0.6790361, z: 0.6790361}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1675413347}
@@ -6003,7 +6015,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5038097155463040540, guid: ee9d60c306aebd241b882bbf36b1a50f, type: 3}
       propertyPath: m_SortingLayer
-      value: 1
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 5038097155463040540, guid: ee9d60c306aebd241b882bbf36b1a50f, type: 3}
       propertyPath: m_SortingOrder

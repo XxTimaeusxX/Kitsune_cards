@@ -122,6 +122,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     }
     public void PendTurn()
     {
+        StartTurnMana();
         deckManager.OnPlayerEndTurn();
         
     }
