@@ -6,13 +6,15 @@ using System.Collections;
 
 public class CardDeckManager : MonoBehaviour
 {
+    [Header("APLimit")]
     // Set your per-AP limits here (can be scaled up) = 30 cards based on ap limit rules
-    private readonly int oneAPLimit = 16;
-    private readonly int twoAPLimit = 12;
-    private readonly int fiveAPLimit = 8;
-    private readonly int tenAPLimit = 4;
+    public  int oneAPLimit = 16;
+    public  int twoAPLimit = 12;
+    public  int fiveAPLimit = 8;
+    public  int tenAPLimit = 4;
 
     /////////////////////////////deck features
+    [Header("Deck and Hand Settings")]
     public int DrawperHand;
     public int HandstartSize;
     public int deckSize = 10; // max deck size

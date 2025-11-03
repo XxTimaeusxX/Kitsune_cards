@@ -4566,6 +4566,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8173ec2ddb2d1a9459312f591dfa0a1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  oneAPLimit: 12
+  twoAPLimit: 8
+  fiveAPLimit: 4
+  tenAPLimit: 2
   DrawperHand: 3
   HandstartSize: 5
   deckSize: 160
@@ -4575,9 +4579,9 @@ MonoBehaviour:
   discardDeck: []
   playerfield: []
   randomizeAvailability: 0
-  availabilityChance: 1
+  availabilityChance: 0.169
   offenseFirstSort: 1
-  interleaveDefensiveEvery: 0
+  interleaveDefensiveEvery: 1
   player: {fileID: 1339832367}
   enemy: {fileID: 186843723}
   winPanel: {fileID: 449578862}
