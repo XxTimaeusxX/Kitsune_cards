@@ -18,6 +18,14 @@ public class MainMenuController : MonoBehaviour
         GameModeConfig.SetMode(GameMode.BossOnly);
         SceneManager.LoadScene("RegularModeScene");
     }
+    public void LoadCredits()
+    {
+      SceneManager.LoadScene("Credits");
+    }
+    public void LoadMainMenu()
+    {
+       SceneManager.LoadScene("MainMenu");
+    }
     // Optional: Quit button
     public void QuitGame()
     {
