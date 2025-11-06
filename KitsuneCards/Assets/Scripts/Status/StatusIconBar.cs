@@ -65,9 +65,9 @@ public class StatusIconBar : MonoBehaviour
         else Hide(StatusKind.AllX3);
     }
 
-    public void UpdateWeaken(float multiplier, int turns)
+    public void UpdateWeaken(float attackDamage, int turns)
     {
-        if (turns > 0) Show(StatusKind.Weaken, "x" + multiplier.ToString("0.##"), turns);
+        if (turns > 0) Show(StatusKind.Weaken, "-" + Mathf.RoundToInt(attackDamage * 100f) + "%", turns);
         else Hide(StatusKind.Weaken);
     }
 
@@ -88,7 +88,11 @@ public class StatusIconBar : MonoBehaviour
         if (turns > 0) Show(StatusKind.DotAmp, "+" + bonusDamage.ToString(), turns);
         else Hide(StatusKind.DotAmp);
     }
-
+    public void UpdateStun(int turns)
+    {
+        if (turns > 0) Show(StatusKind.Stun, "", turns);
+        else Hide(StatusKind.Stun);
+    }
     // --- Internals ---
     private StatusIconItem Ensure(StatusKind kind)
     {

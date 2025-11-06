@@ -45,6 +45,13 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public TMP_Text enemymanaText;
     public Slider enemymanaBar;
 
+    [Header("Damage")]
+    public Animator DamageVFX;
+    public int damageAmount = 0;
+
+    [Header("Status HUD")]
+    public StatusIconBar EnemystatusHUD; // Drag your statusHUD (with StatusIconBar) here
+
     [Header("Enemy Debuffs")]
     public int activeDoTTurns = 0;
     public int activeDoTDamage = 0;
@@ -174,6 +181,8 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         if (BuffEffect != null) BuffEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         if (ArmorEffect != null) ArmorEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         if (DotFireEffect != null) DotFireEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+        EnemystatusHUD.Clear();
     }
     public void OnBossTurnStart()
     {
@@ -283,8 +292,9 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         }
     }
     public void EstartTurn()
-    {    
-            deckManager.StartCoroutine(EnemyLogicRoutine());        
+    {
+
+        deckManager.StartCoroutine(EnemyLogicRoutine());
     }
     private IEnumerator EnemyLogicRoutine()
     {
@@ -402,6 +412,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public void TakeDamage(int amount)
     {
         audioSource.PlayOneShot(TakeDamageSound);
+        DamageVFX.SetTrigger("ClawSlash");
         CurrentHealth -= amount;
         UpdateEnemyHealthUI();
         Debug.Log($"Boss takes {amount} damage. Health: {CurrentHealth}/{MaxHealth}");
@@ -472,6 +483,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         activeDoTTurns += turns;
         activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
         DebuffEffect.Play();// play debuff particle effect
+        EnemystatusHUD.UpdateDot(activeDoTDamage,activeDoTTurns);
         GameTurnMessager.instance.ShowMessage($"Enemy takes {activeDoTDamage} DoT damage for {activeDoTTurns} turns!");
     }
     public void TripleDoT()
@@ -488,9 +500,12 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
 
     public void ApplyDamageDebuff(int turns, float multiplier)
     {
-        //only players uses this
+        
         damageDebuffTurns = turns;
         damageDebuffMultiplier = multiplier;
+        audioSource.PlayOneShot(DeBuffSound);
+        DebuffEffect.Play();
+        EnemystatusHUD.UpdateWeaken(damageDebuffMultiplier, damageDebuffTurns);
     }
 
     public void LoseEnergy(int amount)
@@ -505,6 +520,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     {
         stunTurnsRemaining = Mathf.Max(stunTurnsRemaining, turns);
         IsStunned = true;
+        EnemystatusHUD.UpdateStun(stunTurnsRemaining);
         GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {stunTurnsRemaining} turns!");
         // Implement stun logic here
     }

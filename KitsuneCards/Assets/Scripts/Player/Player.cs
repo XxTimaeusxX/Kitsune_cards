@@ -42,6 +42,11 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public float reflectPercentage = 1f;
     public Animator ArmorUIvfx;
 
+    [Header("Damage")]
+    public Animator DamageVFX;
+    public int damageAmount = 0;
+
+
     [Header("Status HUD")]
     public StatusIconBar statusHUD; // Drag your statusHUD (with StatusIconBar) here
 
@@ -198,6 +203,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public void TakeDamage(int amount)
     {
         audioSource.PlayOneShot(TakeDamageSound);
+        DamageVFX.SetTrigger("ClawSlash");
         // Apply damage debuff if active
         int debuffedAmount = amount;
         if (damageDebuffTurns > 0)

@@ -382,39 +382,64 @@ public class CardDeckManager : MonoBehaviour
         Debug.Log("Player's Turn Started");
         player.PstartTurn();
     }
+
+    // Centralized enemy status upkeep + HUD updates
+    private void RefreshEnemyStatusHUD()
+    {
+        var hud = enemy.EnemystatusHUD;
+        hud.UpdateDot(enemy.activeDoTDamage, enemy.activeDoTTurns);
+        hud.UpdateWeaken(enemy.damageDebuffMultiplier, enemy.damageDebuffTurns);
+        hud.UpdateStun(enemy.stunTurnsRemaining);
+    }
+
     public IEnumerator StartEnemyturn()
     {
         handUIManager.HideEndTurnButton();
         handUIManager.SetHandCardsInteractable(false);
+
+        // Turn-based upkeep: DoT tick
         if (enemy.activeDoTTurns > 0)
         {
             Debug.Log("doteffect");
             GameTurnMessager.instance.ShowMessage($"Enemy takes {enemy.activeDoTDamage} damage, {enemy.activeDoTTurns} DoT turns remaining ");
             enemy.DotFireEffect.Play();
             enemy.audioSource.PlayOneShot(enemy.DoTSound);
+
             enemy.activeDoTTurns--;
             enemy.TakeDamage(enemy.activeDoTDamage);
-            yield return new WaitForSeconds(2f); // Wait for 2 seconds to let player see the message
+            RefreshEnemyStatusHUD();
+            yield return new WaitForSeconds(2f);
         }
-        // Boss passive tick: after DoT, before stun skip
+
+        // Turn-based upkeep: Weaken (damage debuff)
+        if (enemy.damageDebuffTurns > 0)
+        {
+            enemy.damageDebuffTurns--;
+            if (enemy.damageDebuffTurns == 0) enemy.damageDebuffMultiplier = 1f;
+            RefreshEnemyStatusHUD();
+        }
+
+        // Boss passive tick
         if (enemy != null)
             enemy.OnBossTurnStart();
-        yield return new WaitForSeconds(1f); // brief pause before stun check
+
+        yield return new WaitForSeconds(1f);
+
+        // Stun check
         if (enemy.stunTurnsRemaining > 0)
         {
-
-
             Debug.Log($"Enemy is stunned for {enemy.stunTurnsRemaining} and skips its turn!");
             GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {enemy.stunTurnsRemaining}, turn skipped.");
+            RefreshEnemyStatusHUD();
             yield return new WaitForSeconds(2f);
+
             enemy.stunTurnsRemaining--;
+            RefreshEnemyStatusHUD();
+
             OnEnemyEndTurn();
             yield break;
-
-            // If stun just ended (now 0), let the enemy act below
         }
 
-        // If not stunned, enemy acts
         currentTurn = TurnState.EnemyTurn;
         enemy.EstartTurn();
         Debug.Log("Enemy's Turn Started");

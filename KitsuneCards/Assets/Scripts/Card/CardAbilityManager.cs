@@ -5,9 +5,9 @@ using UnityEngine;
 
 public class CardAbilityManager : MonoBehaviour
 {
-    public void ExecuteCardAbility(CardData card,Player player, Enemy enemy, IDamageable Opponent, IBlockable TargetBlock,IBuffable TargetBuff, IDebuffable TargetDebuff)
+    public void ExecuteCardAbility(CardData card, Player player, Enemy enemy, IDamageable Opponent, IBlockable TargetBlock, IBuffable TargetBuff, IDebuffable TargetDebuff)
     {
-        ManaCostandEffect ability =default;
+        ManaCostandEffect ability = default;
 
         switch (card.elementType)
         {
@@ -24,66 +24,69 @@ public class CardAbilityManager : MonoBehaviour
                 return;
         }
 
+        // Determine who is acting: if Opponent is Player, the actor is Enemy; else actor is Player
+        bool actorIsEnemy = Opponent is Player;
+
+        // Attacker-wide multipliers
+        float actorAllX = 1f;
+        float actorWeaken = 1f;
+
+        if (!actorIsEnemy)
+        {
+            if (player.buffAllEffectsTurns > 0) actorAllX = player.buffAllEffectsMultiplier;
+            if (player.damageDebuffTurns > 0) actorWeaken = player.damageDebuffMultiplier;
+        }
+        else
+        {
+            // Enemy currently has no "AllX" buff fields; keep 1f
+            if (enemy.damageDebuffTurns > 0) actorWeaken = enemy.damageDebuffMultiplier;
+        }
+
+        int ScaleDamage(int baseDamage)
+        {
+            // apply attacker’s AllX buff and attacker’s damage debuff (weaken)
+            float scaled = baseDamage * actorAllX * actorWeaken;
+            return Mathf.Max(0, Mathf.RoundToInt(scaled));
+        }
+
+        int ScaleDot(int baseDot)
+        {
+            // DoT magnitude is scaled by the attacker’s AllX buff only (commonly how these work)
+            float scaled = baseDot * actorAllX;
+            return Mathf.Max(0, Mathf.RoundToInt(scaled));
+        }
+
         switch (ability.Type)
         {
-            // Example: Damage logic
-            // Fire 5AP: Deal 8 damage
-            // Earth 1AP: Deal 2 damage
-            // Earth 10AP: Deal 32 damage and stun
-            // Air 2AP: Deal 8 damage
             case AbilityType.Damage:
-                if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 5) 
+                if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 5)
                 {
                     int baseDamage = 12;
-                    int damage = baseDamage;
-                    if (player.buffAllEffectsTurns > 0)
-                    {
-                        damage = Mathf.RoundToInt(baseDamage * player.buffAllEffectsMultiplier);
-                    }
-                    Opponent.TakeDamage(damage);
-                     
+                    Opponent.TakeDamage(ScaleDamage(baseDamage));
                 }
-                else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 10) 
+                else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 10)
                 {
                     int baseDamage = 32;
-                    int damage = baseDamage;
-                    if (player.buffAllEffectsTurns > 0)
-                    {
-                        damage = Mathf.RoundToInt(baseDamage * player.buffAllEffectsMultiplier);
-                    }
-                    Opponent.TakeDamage(damage); TargetDebuff.ApplyStun(3);
+                    Opponent.TakeDamage(ScaleDamage(baseDamage));
+                    TargetDebuff.ApplyStun(3);
                 }
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 2)
                 {
                     int baseDamage = 8;
-                    int damage = baseDamage;
-                    if (player.buffAllEffectsTurns > 0)
-                    {
-                        damage = Mathf.RoundToInt(baseDamage * player.buffAllEffectsMultiplier);
-                    }
-                    Opponent.TakeDamage(damage);
+                    Opponent.TakeDamage(ScaleDamage(baseDamage));
                 }
                 else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 1)
                 {
                     int baseDamage = 2;
-                    int damage = baseDamage;
-                    if (player.buffAllEffectsTurns > 0)
-                    {
-                        damage = Mathf.RoundToInt(baseDamage * player.buffAllEffectsMultiplier);
-                    }
-                    Opponent.TakeDamage(damage);
+                    Opponent.TakeDamage(ScaleDamage(baseDamage));
                 }
                 else
                 {
                     Debug.Log("Damage ability not implemented.");
                 }
                 break;
+
             case AbilityType.Block:
-                // Example: Block logic
-                // Water 2AP: Apply 4 block
-                // Earth 5AP: Apply 12 block
-                // Air 1AP: Apply 2 block
-                // Air 10AP: Apply 24 block and reflect all damage for 2 t
                 if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 2)
                     TargetBlock.ApplyBlock(4);
                 else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 5)
@@ -91,38 +94,26 @@ public class CardAbilityManager : MonoBehaviour
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 1)
                     TargetBlock.ApplyBlock(2);
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 10)
-                {
-                  //  TargetBlock.ApplyBlock(24);
-                    TargetBlock.ApplyReflect(24,2,.50f);
-                }
+                    TargetBlock.ApplyReflect(24, 2, .50f);
                 break;
+
             case AbilityType.Buff:
-                // Example: Buff logic
-                // Fire 2AP: For next 2 turns, DoT applies +1 more
-                // Water 10AP: DAmage dealt, DoT applied, block applied are x3 for 2 turns
-                // Water 1AP: Add 1 turn to debuff
-                // Air 5AP: Block cards are doubled in amount for 2 turns
                 if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 2)
                 {
                     TargetBuff.BuffDoT(2, 1);
                     if (enemy.activeDoTTurns > 0)
                     {
-                        enemy.activeDoTTurns +=2;
+                        enemy.activeDoTTurns += 2;
                         enemy.activeDoTDamage += 1;
-                        
-                        GameTurnMessager.instance.ShowMessage($"Player's DoT buff + 2 turns +1damage");
-                        
+                        GameTurnMessager.instance.ShowMessage($"Player's DoT buff + 2 turns +1 damage");
                     }
-                    
                 }
-                    
-                
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 10)
                     TargetBuff.BuffAllEffects(2, 2f);
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 1)
                 {
                     TargetBuff.ExtendDebuff(1);
-                    // Retroactively extend all debuffs on enemy
+                    // Retro-extend on enemy
                     if (enemy.activeDoTTurns > 0)
                     {
                         enemy.activeDoTTurns += 1;
@@ -133,40 +124,30 @@ public class CardAbilityManager : MonoBehaviour
                         enemy.damageDebuffTurns += 1;
                         GameTurnMessager.instance.ShowMessage($"Enemy's damage debuff extended by 1 turn due to buff!");
                     }
-                    if(enemy.stunTurnsRemaining > 0)
+                    if (enemy.stunTurnsRemaining > 0)
                     {
                         enemy.stunTurnsRemaining += 1;
                         GameTurnMessager.instance.ShowMessage($"Enemy's stun extended by 1 turn due to buff!");
                     }
                 }
-                    
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 5)
-                    TargetBuff.BuffBlock(2, 2);//might change it to percentage instead.
+                    TargetBuff.BuffBlock(2, 2);
                 break;
 
             case AbilityType.Debuff:
-                // Example: Debuff logic
-                // Fire 10AP: Triple current DoT
-                // Fire 1AP: Apply 2 DoT
-                // Earth 2AP: Target loses 3 energy
-                // Water 5AP: Target deals 25% less damage for 3 turns
                 if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 10)
                     TargetDebuff.TripleDoT();
                 else if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 1)
                 {
-                    int totalTurns = 2 + player.activeDoTTurns;
                     int baseDot = 3;
-                    int dotDamage = baseDot;
-                    if (player.buffAllEffectsTurns > 0)
-                    {
-                        dotDamage = Mathf.RoundToInt(baseDot * player.buffAllEffectsMultiplier);
-                    }
+                    int dotDamage = ScaleDot(baseDot);
+                    int totalTurns = 2 + player.activeDoTTurns; // if actor is enemy, this stays 2 (player.activeDoTTurns is 0); keep simple for now
                     TargetDebuff.ApplyDoT(totalTurns, dotDamage);
                 }
                 else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 2)
                     TargetDebuff.LoseEnergy(3);
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 5)
-                    player.ApplyDamageDebuff(3, .50f);
+                    TargetDebuff.ApplyDamageDebuff(3, .50f); // apply weaken to the target (enemy when player casts)
                 break;
         }
     }
