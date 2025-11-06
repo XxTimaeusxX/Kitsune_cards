@@ -7,37 +7,36 @@ using System.Collections;
 public class CardDeckManager : MonoBehaviour
 {
     [Header("APLimit")]
-    // Set your per-AP limits here (can be scaled up) = 30 cards based on ap limit rules
-    public  int oneAPLimit = 16;
-    public  int twoAPLimit = 12;
-    public  int fiveAPLimit = 8;
-    public  int tenAPLimit = 4;
+    // Set your per-AP limits here. These are summed to compute the deck size.
+    public int oneAPLimit = 16;
+    public int twoAPLimit = 12;
+    public int fiveAPLimit = 8;
+    public int tenAPLimit = 4;
 
     /////////////////////////////deck features
     [Header("Deck and Hand Settings")]
     public int DrawperHand;
     public int HandstartSize;
-    public int deckSize = 10; // max deck size
+    // Kept for Inspector visibility; it is computed from AP limits on Start/Load.
+    public int deckSize = 40;
     [SerializeField]
     public HandUIManager handUIManager;
     public List<CardData> cards = new List<CardData>();
     [SerializeField]
     public List<CardData> playerHand = new List<CardData>();
     [SerializeField]
-    private List<CardData> discardDeck = new List<CardData>();
+    public List<CardData> discardDeck = new List<CardData>();
     public List<CardData> playerfield = new List<CardData>(); // public getter for discard pile
 
-    [Header("Deck Bias")]
-    [Tooltip("If true, not all cards are available each scene (random subset).")]
-    public bool randomizeAvailability = false;
-    [Range(0f, 1f)]
-    [Tooltip("Chance a card is available when randomizing.")]
-    public float availabilityChance = 0.75f;
-    [Tooltip("If true, sorts Damage/Debuff to the top after building the deck.")]
-    public bool offenseFirstSort = true;
-    [Range(0, 10)]
-    [Tooltip("When offense-first sorting, after every N offensive cards, insert one defensive if available. 0 = disabled.")]
-    public int interleaveDefensiveEvery = 0;
+    [Header("Deck Rules")]
+    [Tooltip("If true, tries to add one of each unique card in a mana bucket first, then allows duplicates to reach the bucket limit.")]
+    public bool uniqueFirstThenDup = true;
+
+    [Header("Deck Recycling")]
+    [Tooltip("If true, when the deck is empty or reaches this threshold, the discard pile is shuffled back into the deck.")]
+    public bool autoReshuffle = true;
+    [Min(0)]
+    public int reshuffleThreshold = 5;
 
     //////////////////////////// event system
 
@@ -78,11 +77,14 @@ public class CardDeckManager : MonoBehaviour
     private BossData _pendingBossData;
     void Start()
     {
+        // Ensure deckSize matches the sum of AP limits
+        deckSize = oneAPLimit + twoAPLimit + fiveAPLimit + tenAPLimit;
+
         LoadcardsfromResources();
-        ShuffleDeck();
+        Shuffle(cards);
         DrawCard(HandstartSize);
         BeginEnemySequence();
-        StartPlayerTurn();    
+        StartPlayerTurn();
     }
 
 
@@ -200,23 +202,11 @@ public class CardDeckManager : MonoBehaviour
     }
     void LoadcardsfromResources()
     {
-        // here we are telling the method to clear list, then load all card data from resources/cards folder and add to list
+        // Build a deck with balanced per-ability quotas per mana bucket.
+        // Unique-first; then fill shortfall with well-distributed duplicates (round-robin).
         cards.Clear();
         CardData[] loadedCards = Resources.LoadAll<CardData>("Cards");
 
-        // Option 1: Randomly limit availability per scene
-        if (randomizeAvailability)
-        {
-            var filtered = new List<CardData>(loadedCards.Length);
-            for (int i = 0; i < loadedCards.Length; i++)
-            {
-                if (Random.value <= availabilityChance)
-                    filtered.Add(loadedCards[i]);
-            }
-            loadedCards = filtered.ToArray();
-        }
-
-        // Define mana costs and their limits
         var manaLimits = new (int mana, int limit)[]
         {
             (1, oneAPLimit),
@@ -224,90 +214,140 @@ public class CardDeckManager : MonoBehaviour
             (5, fiveAPLimit),
             (10, tenAPLimit)
         };
-        // Define all ability types you want to include (Damage/Debuff first biases deck fill)
-        AbilityType[] abilityTypes = new AbilityType[]
-        {
-            AbilityType.Damage,
-            AbilityType.Debuff,
-            AbilityType.Block,
-            AbilityType.Buff,
-            // Add more as needed
-        };
-        // Apply Game Mode filter: BuffOnly -> only Buff cards, disable offense-first sorting
-        if (GameModeConfig.CurrentMode == GameMode.BuffAndDebuff)
-        {
-            abilityTypes = new AbilityType[] { AbilityType.Buff, AbilityType.Debuff };
-            offenseFirstSort = false;
-            interleaveDefensiveEvery = 0;
-        }
-        foreach (var (mana, limit) in manaLimits)
-        {
-            foreach (var type in abilityTypes)
-            {
-                List<CardData> candidates = new List<CardData>();
-                foreach (var card in loadedCards)
-                {
-                    ManaCostandEffect? selectedAbility = GetSelectedAbility(card);
 
-                    // Only add cards whose selected ability matches the type and mana
-                    if (selectedAbility.HasValue && selectedAbility.Value.Type == type && selectedAbility.Value.ManaCost == mana)
-                    {
-                        candidates.Add(card);
-                    }
+        // Ability types we balance across
+        AbilityType[] abilityTypes = new AbilityType[] { AbilityType.Damage, AbilityType.Buff, AbilityType.Debuff, AbilityType.Block };
+
+        // Pre-bucketize: mana -> (type -> list of CardData)
+        var byManaByType = new Dictionary<int, Dictionary<AbilityType, List<CardData>>>();
+        for (int i = 0; i < loadedCards.Length; i++)
+        {
+            var card = loadedCards[i];
+            var ab = GetSelectedAbility(card);
+            if (!ab.HasValue) continue;
+
+            int mana = ab.Value.ManaCost;
+            AbilityType type = ab.Value.Type;
+
+            if (!byManaByType.TryGetValue(mana, out var byType))
+            {
+                byType = new Dictionary<AbilityType, List<CardData>>();
+                byManaByType[mana] = byType;
+            }
+            if (!byType.TryGetValue(type, out var list))
+            {
+                list = new List<CardData>();
+                byType[type] = list;
+            }
+            list.Add(card);
+        }
+
+        for (int b = 0; b < manaLimits.Length; b++)
+        {
+            int mana = manaLimits[b].mana;
+            int limit = manaLimits[b].limit;
+            if (limit <= 0) continue;
+
+            byManaByType.TryGetValue(mana, out var typesDict);
+            if (typesDict == null)
+            {
+                Debug.LogWarning($"No cards found for mana {mana}. Will attempt to repeat any available cards to reach {limit}, but none exist.");
+                continue;
+            }
+
+            // Determine per-type quotas for this mana bucket
+            int basePerType = limit / abilityTypes.Length;
+            int remainder = limit % abilityTypes.Length;
+
+            // Deterministic type order for remainder distribution
+            var typesOrder = new List<AbilityType>(abilityTypes);
+
+            int addedInBucket = 0;
+
+            // First: unique-first per type, then fill with per-type duplicates if needed
+            for (int i = 0; i < typesOrder.Count; i++)
+            {
+                AbilityType type = typesOrder[i];
+                int targetForType = basePerType + (i < remainder ? 1 : 0);
+                if (targetForType == 0) continue;
+
+                typesDict.TryGetValue(type, out var pool);
+                pool = pool ?? new List<CardData>();
+
+                // Shuffle the pool to avoid picking the same card first every time
+                Shuffle(pool);
+
+                // Unique-first
+                int takeUnique = Mathf.Min(targetForType, pool.Count);
+                for (int u = 0; u < takeUnique; u++)
+                {
+                    cards.Add(pool[u]);
+                    addedInBucket++;
                 }
 
-                // Add up to 'limit' cards, randomly picking from candidates, but do not exceed deckSize
-                for (int i = 0; i < limit && cards.Count < deckSize; i++)
-                {
-                    if (candidates.Count == 0)
-                    {
-                        // No cards for this type/mana; continue
-                        break;
-                    }
+                int shortfall = targetForType - takeUnique;
 
-                    int pick = Random.Range(0, candidates.Count);
-                    cards.Add(candidates[pick]);
+                // Fill shortfall with well-distributed duplicates from this type, if any
+                if (shortfall > 0 && pool.Count > 0)
+                {
+                    AddRoundRobin(pool, shortfall, cards);
+                    addedInBucket += shortfall;
                 }
             }
-        }
 
-        // Option 2: Offense-first sort (Damage + Debuff on top), optionally interleave some defensive cards
-        if (offenseFirstSort && cards.Count > 1)
-        {
-            var offense = new List<CardData>(cards.Count);
-            var defense = new List<CardData>(cards.Count);
-
-            for (int i = 0; i < cards.Count; i++)
+            // If still short (e.g., some type had zero cards at this mana), fill remaining
+            // from any available cards at this mana using round-robin (this may skew type balance if you truly have gaps)
+            int remaining = limit - addedInBucket;
+            if (remaining > 0)
             {
-                var ab = GetSelectedAbility(cards[i]);
-                if (ab.HasValue && (ab.Value.Type == AbilityType.Damage || ab.Value.Type == AbilityType.Debuff))
-                    offense.Add(cards[i]);
+                var anyPool = new List<CardData>();
+                foreach (var kvp in typesDict)
+                {
+                    if (kvp.Value != null && kvp.Value.Count > 0)
+                        anyPool.AddRange(kvp.Value);
+                }
+
+                if (anyPool.Count == 0)
+                {
+                    Debug.LogWarning($"Mana {mana}: no cards available to fill remaining {remaining}. Bucket will be undersized.");
+                }
                 else
-                    defense.Add(cards[i]);
-            }
-
-            if (interleaveDefensiveEvery > 0)
-            {
-                var mixed = new List<CardData>(cards.Count);
-                int o = 0, d = 0;
-                while (o < offense.Count || d < defense.Count)
                 {
-                    int toTake = interleaveDefensiveEvery;
-                    while (toTake-- > 0 && o < offense.Count)
-                        mixed.Add(offense[o++]);
-
-                    if (d < defense.Count)
-                        mixed.Add(defense[d++]);
+                    Shuffle(anyPool);
+                    AddRoundRobin(anyPool, remaining, cards);
+                    addedInBucket += remaining;
                 }
-                cards.Clear();
-                cards.AddRange(mixed);
             }
-            else
+
+            if (addedInBucket < limit)
             {
-                offense.AddRange(defense);
-                cards.Clear();
-                cards.AddRange(offense);
+                Debug.LogWarning($"Mana {mana}: Requested {limit}, built {addedInBucket}. Not enough cards; duplicates limited by available pools.");
             }
+        }
+
+        // Keep in sync for Inspector visibility
+        deckSize = cards.Count;
+    }
+
+    private static void AddRoundRobin(List<CardData> pool, int count, List<CardData> destination)
+    {
+        if (pool == null || pool.Count == 0 || count <= 0) return;
+        int idx = 0;
+        for (int i = 0; i < count; i++)
+        {
+            destination.Add(pool[idx]);
+            idx++;
+            if (idx >= pool.Count) idx = 0;
+        }
+    }
+
+    // Single generic shuffler used everywhere
+    private static void Shuffle<T>(IList<T> list)
+    {
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (list[i], list[j]) = (list[j], list[i]);
         }
     }
 
@@ -336,18 +376,15 @@ public class CardDeckManager : MonoBehaviour
     public void StartPlayerTurn()
     {
         GameTurnMessager.instance.ShowMessage("Player's Turn");
-        handUIManager.SetHandCardsInteractable(true);
-       // player.StartTurnMana();
         currentTurn = TurnState.PlayerTurn;
+        DrawCard(DrawperHand);
+        handUIManager.SetHandCardsInteractable(true);
         Debug.Log("Player's Turn Started");
         player.PstartTurn();
-        
-        // Player turn logic here
     }
     public IEnumerator StartEnemyturn()
     {
         handUIManager.HideEndTurnButton();
-        handUIManager.Hidebutton();
         handUIManager.SetHandCardsInteractable(false);
         if (enemy.activeDoTTurns > 0)
         {
@@ -365,15 +402,15 @@ public class CardDeckManager : MonoBehaviour
         yield return new WaitForSeconds(1f); // brief pause before stun check
         if (enemy.stunTurnsRemaining > 0)
         {
-            
-            
-                Debug.Log($"Enemy is stunned for {enemy.stunTurnsRemaining} and skips its turn!");
-                GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {enemy.stunTurnsRemaining}, turn skipped.");
-                yield return new WaitForSeconds(2f);
-                enemy.stunTurnsRemaining--;
-                OnEnemyEndTurn();
-                yield break;
-            
+
+
+            Debug.Log($"Enemy is stunned for {enemy.stunTurnsRemaining} and skips its turn!");
+            GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {enemy.stunTurnsRemaining}, turn skipped.");
+            yield return new WaitForSeconds(2f);
+            enemy.stunTurnsRemaining--;
+            OnEnemyEndTurn();
+            yield break;
+
             // If stun just ended (now 0), let the enemy act below
         }
 
@@ -386,7 +423,7 @@ public class CardDeckManager : MonoBehaviour
     public void OnPlayerEndTurn()
     {
         Debug.Log("Player's Turn Ended");
-       StartCoroutine(StartEnemyturn());
+        StartCoroutine(StartEnemyturn());
     }
     public void OnEnemyEndTurn()
     {
@@ -396,7 +433,7 @@ public class CardDeckManager : MonoBehaviour
     public void OnPlayerWin()
     {
         if (winPanel != null)
-        enemy.InitializeForBattle(); // reset enemy for next battle
+            enemy.InitializeForBattle(); // reset enemy for next battle
         StopAllCoroutines();
         enemy.StopAllCoroutines();
         Time.timeScale = 0f; // Pause the game
@@ -404,13 +441,13 @@ public class CardDeckManager : MonoBehaviour
         enemy.audioSource.Stop(); // mute enemy audio
         winPanel.SetActive(true);
         Victory_UI.SetActive(true);
-       // resultText.text = "Level Complete";
+        // resultText.text = "Level Complete";
         // Optionally: Stop further game input, etc.
     }
     public void OnPlayerLose()
     {
         if (winPanel != null)
-        enemy.InitializeForBattle(); // reset enemy for next battle
+            enemy.InitializeForBattle(); // reset enemy for next battle
         StopAllCoroutines();
         enemy.StopAllCoroutines();
         Time.timeScale = 0f; // Pause the game
@@ -418,24 +455,20 @@ public class CardDeckManager : MonoBehaviour
         enemy.audioSource.Stop(); // mute enemy audio
         winPanel.SetActive(true);
         Defeat_UI.SetActive(true);
-       // resultText.text = "GameOver";
+        // resultText.text = "GameOver";
     }
-    void ShuffleDeck()
+
+    private void RefillDeckFromDiscard()
     {
-        // shuffle card data
-        for (int i = cards.Count - 1; i>0; i-- )
-        {
-            int shuffle = Random.Range(0, i + 1);
-            var temp = cards[i];
-            cards[i] = cards[shuffle];
-            cards[shuffle] = temp;
-        }
+        if (discardDeck.Count == 0)
+            return;
+
+        cards.AddRange(discardDeck);
+        discardDeck.Clear();
+        Shuffle(cards);
+        Debug.Log("Deck refilled from discard and shuffled.");
     }
-   public void OnbuttonDrawpress() // Button Ui will call this function when pressed = drawcard and show card.
-    {
-        DrawCard(DrawperHand);
-        
-    }
+
     public void OnReplayButtonPressed()
     {
         Time.timeScale = 1f; // Resume the game
@@ -444,8 +477,14 @@ public class CardDeckManager : MonoBehaviour
     }
     void DrawCard(int count)
     {
-        for(int i = 0; i < count; i++)
+        for (int i = 0; i < count; i++)
         {
+            // Auto-reshuffle when empty or when at/under the threshold
+            if (autoReshuffle && (cards.Count == 0 || cards.Count <= reshuffleThreshold))
+            {
+                RefillDeckFromDiscard();
+            }
+
             if (cards.Count > 0)// if theres any cards to pick up from deck
             {
                 CardData drawnCard = cards[0]; //  draw the top card [0] = top of deck [10] = bottom of deck
@@ -456,9 +495,10 @@ public class CardDeckManager : MonoBehaviour
             else
             {
                 Debug.Log("No more cards to draw!");
+                break;
             }
         }
-        if(handUIManager != null)
+        if (handUIManager != null)
         {
             handUIManager.UpdateHandUI(); // Update the hand UI after drawing cards
         }

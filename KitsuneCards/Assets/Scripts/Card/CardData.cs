@@ -1,6 +1,6 @@
-
 using System.Collections.Generic;
 using UnityEngine;
+
 [System.Serializable]
 public struct ManaCostandEffect
 {
@@ -92,3 +92,4 @@ Card Rules & Deck Limits
 
 - Card effects are determined by AP and element type.
 */
+

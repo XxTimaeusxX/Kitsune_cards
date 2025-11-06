@@ -40,9 +40,10 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public int armor = 0;
     public int reflectTurnsRemaining = 0;
     public float reflectPercentage = 1f;
-    public TMP_Text armorText;
-    public GameObject armorIcon;
     public Animator ArmorUIvfx;
+
+    [Header("Status HUD")]
+    public StatusIconBar statusHUD; // Drag your statusHUD (with StatusIconBar) here
 
     [Header("Buff settings")]
     private int buffBlockTurns = 0;
@@ -117,32 +118,46 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
                 Debug.Log("Reflect effect expired.");
             }
         }
+        // HUD refresh for turn-based statuses (hides when turns == 0)
+        statusHUD.UpdateBlockX(buffBlockPercentage, buffBlockTurns);
+        statusHUD.UpdateAllX(buffAllEffectsMultiplier, buffAllEffectsTurns);
+        statusHUD.UpdateReflect(reflectPercentage, reflectTurnsRemaining);
         Debug.Log("Player now have draw and discard phases.");
         
     }
+   /* private void RefreshStatusHUD()
+    {
+        // Block
+        if (armor > 0) statusHUD.Show(StatusKind.Block, armor.ToString(), null);
+        else statusHUD.Hide(StatusKind.Block);
+
+        // Block multiplier (e.g., x2 for N turns)
+        if (buffBlockTurns > 0) statusHUD.Show(StatusKind.BlockX, "x" + buffBlockPercentage.ToString("0.#"), buffBlockTurns);
+        else statusHUD.Hide(StatusKind.BlockX);
+
+        // All effects multiplier (show current multiplier with remaining turns)
+        if (buffAllEffectsTurns > 0) statusHUD.Show(StatusKind.AllX3, "x" + buffAllEffectsMultiplier.ToString("0.#"), buffAllEffectsTurns);
+        else statusHUD.Hide(StatusKind.AllX3);
+
+        // DoT amplification (bonus damage over time)
+        if (activeDoTTurns > 0 && buffDotDamage > 0) statusHUD.Show(StatusKind.DotAmp, "+" + buffDotDamage.ToString(), activeDoTTurns);
+        else statusHUD.Hide(StatusKind.DotAmp);
+
+        // Reflect (percentage with remaining turns)
+        if (reflectTurnsRemaining > 0) statusHUD.Show(StatusKind.Reflect, Mathf.RoundToInt(reflectPercentage * 100f) + "%", reflectTurnsRemaining);
+        else statusHUD.Hide(StatusKind.Reflect);
+
+        // Weaken (damage debuff multiplier)
+        if (damageDebuffTurns > 0) statusHUD.Show(StatusKind.Weaken, "x" + damageDebuffMultiplier.ToString("0.##"), damageDebuffTurns);
+        else statusHUD.Hide(StatusKind.Weaken);
+    }*/
     public void PendTurn()
     {
         StartTurnMana();
         deckManager.OnPlayerEndTurn();
         
     }
-    public void OndrawCard()
-    {
-        if (!HasDrawn)
-        {
-            deckManager.OnbuttonDrawpress();
-            HasDrawn = true;
-            if(deckManager.handUIManager != null)
-               deckManager.handUIManager.Hidebutton(); // Hide the draw button after drawing cards
-           
-            Debug.Log("Player has drawn cards.");
-        }
-        else
-        {
-            Debug.Log("Player has already drawn cards this turn.");
-        }
-    }
-   
+ 
     public void UpdateHealthUI()
     {
         if (healthText != null) healthText.text = $"{currentHealth}/{PlayerMaxHealth}";
@@ -156,8 +171,8 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     }
     public void UpdateArmorUI()
     {
-        if (armorText != null) { armorText.text = armor.ToString();armorText.gameObject.SetActive(armor > 0); }
-        if (armorIcon != null) armorIcon.SetActive(armor > 0);
+       // RefreshStatusHUD();
+         statusHUD.UpdateBlock(armor);
     }
     ///////////// mana phases ///////////////
     public void StartTurnMana()
@@ -266,6 +281,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         ArmorEffect.Play();
         audioSource.PlayOneShot(buffSound);
         Debug.Log($"Player gains {reflectPercentage * 100}% reflect.");
+        statusHUD.UpdateReflect(reflectPercentage,reflectTurnsRemaining);
         // Implement reflect logic here
     }
 
@@ -288,7 +304,8 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         buffAllEffectsMultiplier = multiplier;
         BuffEffect.Play();
         audioSource.PlayOneShot(buffSound);
-       // GameTurnMessager.instance.ShowMessage($"All debuffs extended by {turns} turns.");      
+        statusHUD.UpdateAllX(buffAllEffectsMultiplier,buffAllEffectsTurns);
+        // GameTurnMessager.instance.ShowMessage($"All debuffs extended by {turns} turns.");      
         // Implement buff logic here
     }
 
@@ -309,12 +326,14 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         audioSource.PlayOneShot(buffSound);
         GameTurnMessager.instance.ShowMessage($"Player's block cards value are doubled for 2 turns.");
         Debug.Log($"Player's block cards value are doubled for this turn.");
+        statusHUD.UpdateBlockX(buffBlockPercentage, buffBlockTurns);
         // Implement block buff logic here
     }
     ///////////// IDeBuffable///////////////
     public void ApplyDoT(int turns, int damageAmount)
     {
-        
+        Debug.Log("dddddddddddoooottt");
+        statusHUD.UpdateDot(damageAmount, turns);
         activeDoTTurns += turns;
         activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
     }
