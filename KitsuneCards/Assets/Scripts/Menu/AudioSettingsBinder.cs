@@ -7,35 +7,51 @@ public class AudioSettingsBinder : MonoBehaviour
 
     [SerializeField] private Slider musicSlider;
     [SerializeField] private Slider sfxSlider;
+    [SerializeField] private bool initializeOnEnable = true;
+
+    private bool _bound;
 
     private void OnEnable()
     {
+        if (initializeOnEnable)
+            BindAndInitialize();
+    }
+
+    public void BindAndInitialize()
+    {
         var mgr = AudioManager.Instance ?? FindObjectOfType<AudioManager>(true);
-        if (mgr == null) { Debug.LogWarning("AudioManager not found in scene."); return; }
-
-        // Wire up UI -> mixer
-        if (musicSlider != null)
+        if (mgr == null)
         {
-            musicSlider.onValueChanged.AddListener(mgr.SetMusicVolume);
-        }
-        if (sfxSlider != null)
-        {
-            sfxSlider.onValueChanged.AddListener(mgr.SetSFXVolume);
+            Debug.LogWarning("AudioSettingsBinder: AudioManager not found.");
+            return;
         }
 
-        // Sync mixer -> UI
-        mgr.SyncSliders(musicSlider, sfxSlider);
+        UnbindListeners(mgr);
+
+        if (musicSlider && mgr.TryGetMusicLinear(out float musicLinear))
+            musicSlider.SetValueWithoutNotify(musicLinear);
+
+        if (sfxSlider && mgr.TryGetSfxLinear(out float sfxLinear))
+            sfxSlider.SetValueWithoutNotify(sfxLinear);
+
+        if (musicSlider) musicSlider.onValueChanged.AddListener(mgr.SetMusicVolume);
+        if (sfxSlider)   sfxSlider.onValueChanged.AddListener(mgr.SetSFXVolume);
+
+        _bound = true;
     }
 
     private void OnDisable()
     {
         var mgr = AudioManager.Instance;
-        if (mgr == null) return;
+        if (mgr != null)
+            UnbindListeners(mgr);
+        _bound = false;
+    }
 
-        if (musicSlider != null)
-            musicSlider.onValueChanged.RemoveListener(mgr.SetMusicVolume);
-
-        if (sfxSlider != null)
-            sfxSlider.onValueChanged.RemoveListener(mgr.SetSFXVolume);
+    private void UnbindListeners(AudioManager mgr)
+    {
+        if (!_bound) return;
+        if (musicSlider) musicSlider.onValueChanged.RemoveListener(mgr.SetMusicVolume);
+        if (sfxSlider)   sfxSlider.onValueChanged.RemoveListener(mgr.SetSFXVolume);
     }
 }

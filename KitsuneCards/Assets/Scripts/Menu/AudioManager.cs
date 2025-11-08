@@ -1,24 +1,21 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.Audio;
+using UnityEngine.SceneManagement;
 
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
+
     [SerializeField] private AudioMixer MainMixer;
-    [SerializeField] private Slider MusicSlider;
-    [SerializeField] private Slider SFXSlider;
 
-    private const float MinLinearVolume = 0.0001f; // prevents -Infinity dB when slider is at 0
+    private const float MinLinearVolume = 0.0001f;
 
-    [Header("Music SFX")]
+    [Header("Music Clips")]
     public AudioClip MenuMusicClip;
     public AudioClip RegularModeMusicClip;
     public AudioClip BossModeMusicClip;
 
-    [Header("Abilities SFX")]
+    [Header("Ability SFX")]
     public AudioClip AttackClip;
     public AudioClip BlockClip;
     public AudioClip DoTclip;
@@ -28,41 +25,108 @@ public class AudioManager : MonoBehaviour
     [Header("UI SFX")]
     public AudioClip CardSelectClip;
 
-    void Awake()
+    private AudioSource _musicSource;
+
+    private void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        // Ensure UI reflects current mixer settings when opening the menu
-        LoadAudioSettings();
+
+        EnsureMusicSource();
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    public void SetMusicVolume(float volume)
+    private void OnDestroy()
     {
-        MainMixer.SetFloat("MusicVolume", Mathf.Log10(Mathf.Max(volume, MinLinearVolume)) * 20f);
+        if (Instance == this)
+            SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    public void SetSFXVolume(float volume)
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        MainMixer.SetFloat("SFXVolume", Mathf.Log10(Mathf.Max(volume, MinLinearVolume)) * 20f);
+        if (scene.name == "MainMenu")
+        {
+            PlayMenuMusic();
+        }
+        else if (scene.name == "RegularModeScene")
+        {
+            var current = GameModeConfig.CurrentMode; // ensure this exists
+            if (current == GameMode.BossOnly)
+                PlayBossModeMusic();
+            else
+                PlayRegularModeMusic();
+        }
+        else if (scene.name == "Credits")
+        {
+            StopMusic();
+        }
     }
 
-    public void LoadAudioSettings()
+    private void EnsureMusicSource()
     {
-        float musicVolumeDb;
-        float sfxVolumeDb;
-
-        if (MainMixer.GetFloat("MusicVolume", out musicVolumeDb))
-            MusicSlider.value = Mathf.Pow(10f, musicVolumeDb / 20f);
-
-        if (MainMixer.GetFloat("SFXVolume", out sfxVolumeDb))
-            SFXSlider.value = Mathf.Pow(10f, sfxVolumeDb / 20f);
+        if (_musicSource != null) return;
+        _musicSource = GetComponent<AudioSource>() ?? gameObject.AddComponent<AudioSource>();
+        _musicSource.playOnAwake = false;
+        _musicSource.loop = true;
+        _musicSource.spatialBlend = 0f;
+        // Optionally assign a Music mixer group here if you have one via another serialized field.
     }
-    // Preferred: let a scene binder pass its sliders and we sync them immediately
-    public void SyncSliders(Slider music, Slider sfx)
+
+    // Volume setters (called by UI binder; value is linear 0..1)
+    public void SetMusicVolume(float linear)
     {
-        MusicSlider = music;
-        SFXSlider = sfx;
-        LoadAudioSettings();
+        if (!MainMixer) return;
+        MainMixer.SetFloat("MusicVolume", Mathf.Log10(Mathf.Max(linear, MinLinearVolume)) * 20f);
     }
+
+    public void SetSFXVolume(float linear)
+    {
+        if (!MainMixer) return;
+        MainMixer.SetFloat("SFXVolume", Mathf.Log10(Mathf.Max(linear, MinLinearVolume)) * 20f);
+    }
+
+    // For binder to initialize sliders
+    public bool TryGetMusicLinear(out float linear)
+    {
+        linear = 1f;
+        if (!MainMixer) return false;
+        if (MainMixer.GetFloat("MusicVolume", out float db))
+        {
+            linear = Mathf.Pow(10f, db / 20f);
+            return true;
+        }
+        return false;
+    }
+
+    public bool TryGetSfxLinear(out float linear)
+    {
+        linear = 1f;
+        if (!MainMixer) return false;
+        if (MainMixer.GetFloat("SFXVolume", out float db))
+        {
+            linear = Mathf.Pow(10f, db / 20f);
+            return true;
+        }
+        return false;
+    }
+
+    public void PlayMusic(AudioClip clip, bool loop = true)
+    {
+        if (!clip) return;
+        EnsureMusicSource();
+        if (_musicSource.clip == clip && _musicSource.isPlaying) return;
+        _musicSource.loop = loop;
+        _musicSource.clip = clip;
+        _musicSource.Play();
+    }
+
+    public void StopMusic()
+    {
+        if (_musicSource != null) _musicSource.Stop();
+    }
+
+    public void PlayMenuMusic()        => PlayMusic(MenuMusicClip, true);
+    public void PlayRegularModeMusic() => PlayMusic(RegularModeMusicClip, true);
+    public void PlayBossModeMusic()    => PlayMusic(BossModeMusicClip, true);
 }
