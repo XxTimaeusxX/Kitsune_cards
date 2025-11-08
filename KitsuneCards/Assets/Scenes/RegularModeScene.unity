@@ -1109,7 +1109,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &695296736
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2040,6 +2040,7 @@ GameObject:
   - component: {fileID: 1118439429}
   - component: {fileID: 1118439431}
   - component: {fileID: 1118439430}
+  - component: {fileID: 1118439432}
   m_Layer: 5
   m_Name: Options
   m_TagString: Untagged
@@ -2111,6 +2112,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1118439428}
   m_CullTransparentMesh: 1
+--- !u!114 &1118439432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1118439428}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a861ca0f4a9c6443b14fee927e7d02c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  musicSlider: {fileID: 1352913866}
+  sfxSlider: {fileID: 1640220816}
 --- !u!1 &1137948734
 GameObject:
   m_ObjectHideFlags: 0
@@ -2172,7 +2187,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1152908437
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5551,6 +5566,10 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4511888868085924734, guid: c1be35cc40f37924eaf7f81324f8939d, type: 3}
+      propertyPath: OutputAudioMixerGroup
+      value: 
+      objectReference: {fileID: -2732585784348165357, guid: d8017c057c0fb3b41ace469e9cb46b37, type: 2}
     - target: {fileID: 5627594413333021258, guid: c1be35cc40f37924eaf7f81324f8939d, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -5611,6 +5630,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: FieldPanel
       objectReference: {fileID: 0}
+    - target: {fileID: 6608273075261459729, guid: 3d46a8f5cab966f428bb39fc703af6bd, type: 3}
+      propertyPath: OutputAudioMixerGroup
+      value: 
+      objectReference: {fileID: -2732585784348165357, guid: d8017c057c0fb3b41ace469e9cb46b37, type: 2}
     - target: {fileID: 8137105775165927520, guid: 3d46a8f5cab966f428bb39fc703af6bd, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -5725,6 +5748,10 @@ PrefabInstance:
       propertyPath: m_ChildControlHeight
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1141642706506742248, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: OutputAudioMixerGroup
+      value: 
+      objectReference: {fileID: -2732585784348165357, guid: d8017c057c0fb3b41ace469e9cb46b37, type: 2}
     - target: {fileID: 1378524928327520391, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -5917,6 +5944,18 @@ PrefabInstance:
       propertyPath: deckManager
       value: 
       objectReference: {fileID: 1601799123}
+    - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: currentHealth
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: PlayerMaxHealth
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 8727582991116292977, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:

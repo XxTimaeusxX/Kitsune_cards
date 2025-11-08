@@ -12,10 +12,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: FireCardFrame
       objectReference: {fileID: 0}
-    - target: {fileID: 2447753563235289416, guid: ebe46b3cf70ab5c42a48b6df748698eb, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 2622821283582020108, guid: ebe46b3cf70ab5c42a48b6df748698eb, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -96,20 +92,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3846527610620608258, guid: ebe46b3cf70ab5c42a48b6df748698eb, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4345369285942562212, guid: ebe46b3cf70ab5c42a48b6df748698eb, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: d107ed72b62442f4bbc1b2ec437332ae, type: 3}
-    - target: {fileID: 5040147338115186419, guid: ebe46b3cf70ab5c42a48b6df748698eb, type: 3}
-      propertyPath: m_CullTransparentMesh
-      value: 1
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 7537568646062984525, guid: ebe46b3cf70ab5c42a48b6df748698eb, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
