@@ -21,13 +21,13 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public float PlayerMaxHealth = 100;
     public float currentHealth = 100;
     public TMP_Text healthText;
-    public Slider Healthbar;
+    public Image Healthbar;
 
     [Header("Mana")]
-    public int maxMana = 2;
-    public int currentMana = 2;
+    public float maxMana = 2;
+    public float currentMana = 2;
     public TMP_Text manaText;
-    public Slider Manabar;
+    public Image Manabar;
 
     [Header("Armor")]
     public int armor = 0;
@@ -159,12 +159,13 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public void UpdateHealthUI()
     {
         if (healthText != null) healthText.text = $"{currentHealth}/{PlayerMaxHealth}";
-        if (Healthbar != null) Healthbar.maxValue = PlayerMaxHealth; Healthbar.value = currentHealth;
+        if (Healthbar != null) Healthbar.fillAmount = PlayerMaxHealth > 0 ? currentHealth / PlayerMaxHealth : 0f;
     }
     public void UpdateManaUI()
     {
         if (manaText != null) manaText.text = $"{currentMana}/{maxMana}";
-        if(Manabar !=null)Manabar.maxValue = maxMana; Manabar.value = currentMana;
+        if(Manabar !=null)Manabar.fillAmount = maxMana > 0 ? currentMana / maxMana : 0f;
+       
 
     }
     public void UpdateArmorUI()
@@ -183,7 +184,8 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
 
     public void SpendMana(int amount)
     {
-        currentMana -= amount;
+
+        currentMana = Mathf.Max(0, currentMana - amount);
         UpdateManaUI();
     }
 

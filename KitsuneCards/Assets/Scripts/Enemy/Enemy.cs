@@ -30,13 +30,13 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public int MaxHealth = 100;
     public int CurrentHealth = 100;
     public TMP_Text enemyhealthText;
-    public Slider enemyHealthBar;
+    public Image enemyHealthBar;
 
     [Header("Mana")]
     public int Maxmana = 10;
     public int Currentmana = 5;
     public TMP_Text enemymanaText;
-    public Slider enemymanaBar;
+    public Image enemymanaBar;
 
     [Header("Damage")]
     public Animator DamageVFX;
@@ -386,20 +386,20 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         if (enemyhealthText != null) enemyhealthText.text = $"{CurrentHealth}/{MaxHealth}";
         if (enemyHealthBar != null)
         {
-            enemyHealthBar.maxValue = MaxHealth;
-            enemyHealthBar.value = CurrentHealth;
+            float normalized = MaxHealth > 0 ? (float)CurrentHealth / MaxHealth : 0f;
+            enemyHealthBar.fillAmount = Mathf.Clamp01(normalized);
         }
-
     }
+
     public void UpdateManaUI()
     {
         if (enemymanaText != null) enemymanaText.text = $"{Currentmana}/{Maxmana}";
         if (enemymanaBar != null)
         {
-            enemymanaBar.maxValue = Maxmana;
-            enemymanaBar.value = Currentmana;
-        }
 
+            float normalized = Maxmana > 0 ? (float)Currentmana / Maxmana : 0f;
+            enemymanaBar.fillAmount = Mathf.Clamp01(normalized);
+        }
     }
     //////////// IDamageable ///////////////
     public void TakeDamage(int amount)
