@@ -830,14 +830,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MainMixer: {fileID: 24100000, guid: d8017c057c0fb3b41ace469e9cb46b37, type: 2}
+  musicOutputGroup: {fileID: -8658299192096770291, guid: d8017c057c0fb3b41ace469e9cb46b37, type: 2}
+  sfxOutputGroup: {fileID: -2732585784348165357, guid: d8017c057c0fb3b41ace469e9cb46b37, type: 2}
   MenuMusicClip: {fileID: 8300000, guid: 62abd310d03064b4ea06aa32c1609aa6, type: 3}
   RegularModeMusicClip: {fileID: 8300000, guid: e0e518afa2cc53346adb47a29e2e5cbc, type: 3}
   BossModeMusicClip: {fileID: 8300000, guid: e0e518afa2cc53346adb47a29e2e5cbc, type: 3}
-  AttackClip: {fileID: 8300000, guid: 8322358b314e1e64891079dd47bce197, type: 3}
+  AttackClip: {fileID: 8300000, guid: 533882329291e2b4da0088d5c45c84ca, type: 3}
   BlockClip: {fileID: 8300000, guid: 291f4666b23818e41b95c4984be1f0c7, type: 3}
   DoTclip: {fileID: 8300000, guid: ea8bca6460121e64e9f991409ac7ad49, type: 3}
   BuffClip: {fileID: 8300000, guid: 5619c85dc2cdc714389406f165431333, type: 3}
   DeBUffClip: {fileID: 8300000, guid: 5934ff62c917de94db832deccd09194a, type: 3}
+  ReflectClip: {fileID: 0}
   CardSelectClip: {fileID: 8300000, guid: e8b3452601d574a4db8c56eea4efc7b5, type: 3}
 --- !u!82 &729018549
 AudioSource:

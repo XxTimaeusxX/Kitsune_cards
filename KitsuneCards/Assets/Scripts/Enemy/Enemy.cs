@@ -26,13 +26,6 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public ParticleSystem ArmorEffect;
     public ParticleSystem DotFireEffect;
 
-    [Header("Audio")]
-    public AudioSource audioSource;
-    public AudioClip damageArmorDebuffSound;
-    public AudioClip TakeDamageSound;
-    public AudioClip DoTSound;
-    public AudioClip DeBuffSound;
-
     [Header("Health")]
     public int MaxHealth = 100;
     public int CurrentHealth = 100;
@@ -411,7 +404,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     //////////// IDamageable ///////////////
     public void TakeDamage(int amount)
     {
-        audioSource.PlayOneShot(TakeDamageSound);
+        AudioManager.Instance.PlayAttackSFX();
         DamageVFX.SetTrigger("ClawSlash");
         CurrentHealth -= amount;
         UpdateEnemyHealthUI();
@@ -467,8 +460,8 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         if (activeDoTTurns > 0) activeDoTTurns += turns;
         if (damageDebuffTurns > 0) damageDebuffTurns += turns;
         if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
-        audioSource.PlayOneShot(DeBuffSound);
-       // DebuffEffect.Play();
+        AudioManager.Instance.PlayBuffSFX();
+        // DebuffEffect.Play();
         GameTurnMessager.instance.ShowMessage($"all Enemy's debuffs are extended by {turns} turns!");
     }
     public void BuffBlock(int turns, float BlockAmount)
@@ -479,7 +472,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
 
     public void ApplyDoT(int turns, int damageAmount)
     {
-        audioSource.PlayOneShot(DeBuffSound);
+        AudioManager.Instance.PlayDoTSFX();
         activeDoTTurns += turns;
         activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
         DebuffEffect.Play();// play debuff particle effect
@@ -487,30 +480,27 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         GameTurnMessager.instance.ShowMessage($"Enemy takes {activeDoTDamage} DoT damage for {activeDoTTurns} turns!");
     }
     public void TripleDoT()
-    {
-            audioSource.PlayOneShot(DeBuffSound);
-            activeDoTDamage *= 3;
-            DebuffEffect.Play();
-            audioSource.PlayOneShot(DeBuffSound);
-            GameTurnMessager.instance.ShowMessage($"Enemy's DoT damage is tripled!");
-            Debug.Log("Player's DoT damage is tripled.");
-        
+    {     
+        activeDoTDamage *= 3;
+        DebuffEffect.Play();
+        AudioManager.Instance.PlayDeBuffSFX();
+        GameTurnMessager.instance.ShowMessage($"Enemy's DoT damage is tripled!");
+        Debug.Log("Player's DoT damage is tripled.");    
     }
    
 
     public void ApplyDamageDebuff(int turns, float multiplier)
     {
-        
         damageDebuffTurns = turns;
         damageDebuffMultiplier = multiplier;
-        audioSource.PlayOneShot(DeBuffSound);
+        AudioManager.Instance.PlayDeBuffSFX();
         DebuffEffect.Play();
         EnemystatusHUD.UpdateWeaken(damageDebuffMultiplier, damageDebuffTurns);
     }
 
     public void LoseEnergy(int amount)
     {
-        audioSource.PlayOneShot(DeBuffSound);
+        AudioManager.Instance.PlayDeBuffSFX();
         Currentmana = Mathf.Max(0, Currentmana - amount);
         DebuffEffect.Play();
         UpdateManaUI();

@@ -403,7 +403,7 @@ public class CardDeckManager : MonoBehaviour
             Debug.Log("doteffect");
             GameTurnMessager.instance.ShowMessage($"Enemy takes {enemy.activeDoTDamage} damage, {enemy.activeDoTTurns} DoT turns remaining ");
             enemy.DotFireEffect.Play();
-            enemy.audioSource.PlayOneShot(enemy.DoTSound);
+            AudioManager.Instance.PlayDoTSFX();
 
             enemy.activeDoTTurns--;
             enemy.TakeDamage(enemy.activeDoTDamage);
@@ -463,7 +463,8 @@ public class CardDeckManager : MonoBehaviour
         enemy.StopAllCoroutines();
         Time.timeScale = 0f; // Pause the game
         AudioListener.pause = true; // Mute all audio
-        enemy.audioSource.Stop(); // mute enemy audio
+       // AudioManager.Instance.StopMusic(); // stop music
+        AudioManager.Instance.StopSFX(); // stop sfx
         winPanel.SetActive(true);
         Victory_UI.SetActive(true);
         // resultText.text = "Level Complete";
@@ -477,7 +478,8 @@ public class CardDeckManager : MonoBehaviour
         enemy.StopAllCoroutines();
         Time.timeScale = 0f; // Pause the game
         AudioListener.pause = true; // Mute all audio
-        enemy.audioSource.Stop(); // mute enemy audio
+      //  AudioManager.Instance.StopMusic(); // stop music
+        AudioManager.Instance.StopSFX(); // stop sfx
         winPanel.SetActive(true);
         Defeat_UI.SetActive(true);
         // resultText.text = "GameOver";
