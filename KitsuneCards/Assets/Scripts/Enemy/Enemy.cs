@@ -26,24 +26,24 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public ParticleSystem ArmorEffect;
     public ParticleSystem DotFireEffect;
 
-    [Header("Audio")]
-    public AudioSource audioSource;
-    public AudioClip damageArmorDebuffSound;
-    public AudioClip TakeDamageSound;
-    public AudioClip DoTSound;
-    public AudioClip DeBuffSound;
-
     [Header("Health")]
     public int MaxHealth = 100;
     public int CurrentHealth = 100;
     public TMP_Text enemyhealthText;
-    public Slider enemyHealthBar;
+    public Image enemyHealthBar;
 
     [Header("Mana")]
     public int Maxmana = 10;
     public int Currentmana = 5;
     public TMP_Text enemymanaText;
-    public Slider enemymanaBar;
+    public Image enemymanaBar;
+
+    [Header("Damage")]
+    public Animator DamageVFX;
+    public int damageAmount = 0;
+
+    [Header("Status HUD")]
+    public StatusIconBar EnemystatusHUD; // Drag your statusHUD (with StatusIconBar) here
 
     [Header("Enemy Debuffs")]
     public int activeDoTTurns = 0;
@@ -174,6 +174,8 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         if (BuffEffect != null) BuffEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         if (ArmorEffect != null) ArmorEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         if (DotFireEffect != null) DotFireEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+        EnemystatusHUD.Clear();
     }
     public void OnBossTurnStart()
     {
@@ -283,8 +285,9 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         }
     }
     public void EstartTurn()
-    {    
-            deckManager.StartCoroutine(EnemyLogicRoutine());        
+    {
+
+        deckManager.StartCoroutine(EnemyLogicRoutine());
     }
     private IEnumerator EnemyLogicRoutine()
     {
@@ -383,25 +386,26 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         if (enemyhealthText != null) enemyhealthText.text = $"{CurrentHealth}/{MaxHealth}";
         if (enemyHealthBar != null)
         {
-            enemyHealthBar.maxValue = MaxHealth;
-            enemyHealthBar.value = CurrentHealth;
+            float normalized = MaxHealth > 0 ? (float)CurrentHealth / MaxHealth : 0f;
+            enemyHealthBar.fillAmount = Mathf.Clamp01(normalized);
         }
-
     }
+
     public void UpdateManaUI()
     {
         if (enemymanaText != null) enemymanaText.text = $"{Currentmana}/{Maxmana}";
         if (enemymanaBar != null)
         {
-            enemymanaBar.maxValue = Maxmana;
-            enemymanaBar.value = Currentmana;
-        }
 
+            float normalized = Maxmana > 0 ? (float)Currentmana / Maxmana : 0f;
+            enemymanaBar.fillAmount = Mathf.Clamp01(normalized);
+        }
     }
     //////////// IDamageable ///////////////
     public void TakeDamage(int amount)
     {
-        audioSource.PlayOneShot(TakeDamageSound);
+        AudioManager.Instance.PlayAttackSFX();
+        DamageVFX.SetTrigger("ClawSlash");
         CurrentHealth -= amount;
         UpdateEnemyHealthUI();
         Debug.Log($"Boss takes {amount} damage. Health: {CurrentHealth}/{MaxHealth}");
@@ -456,8 +460,8 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         if (activeDoTTurns > 0) activeDoTTurns += turns;
         if (damageDebuffTurns > 0) damageDebuffTurns += turns;
         if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
-        audioSource.PlayOneShot(DeBuffSound);
-       // DebuffEffect.Play();
+        AudioManager.Instance.PlayBuffSFX();
+        // DebuffEffect.Play();
         GameTurnMessager.instance.ShowMessage($"all Enemy's debuffs are extended by {turns} turns!");
     }
     public void BuffBlock(int turns, float BlockAmount)
@@ -468,34 +472,35 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
 
     public void ApplyDoT(int turns, int damageAmount)
     {
-        audioSource.PlayOneShot(DeBuffSound);
+        AudioManager.Instance.PlayDoTSFX();
         activeDoTTurns += turns;
         activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
         DebuffEffect.Play();// play debuff particle effect
+        EnemystatusHUD.UpdateDot(activeDoTDamage,activeDoTTurns);
         GameTurnMessager.instance.ShowMessage($"Enemy takes {activeDoTDamage} DoT damage for {activeDoTTurns} turns!");
     }
     public void TripleDoT()
-    {
-            audioSource.PlayOneShot(DeBuffSound);
-            activeDoTDamage *= 3;
-            DebuffEffect.Play();
-            audioSource.PlayOneShot(DeBuffSound);
-            GameTurnMessager.instance.ShowMessage($"Enemy's DoT damage is tripled!");
-            Debug.Log("Player's DoT damage is tripled.");
-        
+    {     
+        activeDoTDamage *= 3;
+        DebuffEffect.Play();
+        AudioManager.Instance.PlayDeBuffSFX();
+        GameTurnMessager.instance.ShowMessage($"Enemy's DoT damage is tripled!");
+        Debug.Log("Player's DoT damage is tripled.");    
     }
    
 
     public void ApplyDamageDebuff(int turns, float multiplier)
     {
-        //only players uses this
         damageDebuffTurns = turns;
         damageDebuffMultiplier = multiplier;
+        AudioManager.Instance.PlayDeBuffSFX();
+        DebuffEffect.Play();
+        EnemystatusHUD.UpdateWeaken(damageDebuffMultiplier, damageDebuffTurns);
     }
 
     public void LoseEnergy(int amount)
     {
-        audioSource.PlayOneShot(DeBuffSound);
+        AudioManager.Instance.PlayDeBuffSFX();
         Currentmana = Mathf.Max(0, Currentmana - amount);
         DebuffEffect.Play();
         UpdateManaUI();
@@ -505,6 +510,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     {
         stunTurnsRemaining = Mathf.Max(stunTurnsRemaining, turns);
         IsStunned = true;
+        EnemystatusHUD.UpdateStun(stunTurnsRemaining);
         GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {stunTurnsRemaining} turns!");
         // Implement stun logic here
     }

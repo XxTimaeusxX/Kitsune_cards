@@ -17,30 +17,28 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public ParticleSystem DebuffEffect;
     public ParticleSystem ArmorEffect;
 
-    [Header("Audio")]
-    public AudioSource audioSource;
-    public AudioClip TakeDamageSound;
-    public AudioClip damageArmorDebuffSound;
-    public AudioClip DoTSound;
-    public AudioClip buffSound;
-
     [Header("Health")]
     public float PlayerMaxHealth = 100;
     public float currentHealth = 100;
     public TMP_Text healthText;
-    public Slider Healthbar;
+    public Image Healthbar;
 
     [Header("Mana")]
-    public int maxMana = 2;
-    public int currentMana = 2;
+    public float maxMana = 2;
+    public float currentMana = 2;
     public TMP_Text manaText;
-    public Slider Manabar;
+    public Image Manabar;
 
     [Header("Armor")]
     public int armor = 0;
     public int reflectTurnsRemaining = 0;
     public float reflectPercentage = 1f;
     public Animator ArmorUIvfx;
+
+    [Header("Damage")]
+    public Animator DamageVFX;
+    public int damageAmount = 0;
+
 
     [Header("Status HUD")]
     public StatusIconBar statusHUD; // Drag your statusHUD (with StatusIconBar) here
@@ -161,12 +159,13 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public void UpdateHealthUI()
     {
         if (healthText != null) healthText.text = $"{currentHealth}/{PlayerMaxHealth}";
-        if (Healthbar != null) Healthbar.maxValue = PlayerMaxHealth; Healthbar.value = currentHealth;
+        if (Healthbar != null) Healthbar.fillAmount = PlayerMaxHealth > 0 ? currentHealth / PlayerMaxHealth : 0f;
     }
     public void UpdateManaUI()
     {
         if (manaText != null) manaText.text = $"{currentMana}/{maxMana}";
-        if(Manabar !=null)Manabar.maxValue = maxMana; Manabar.value = currentMana;
+        if(Manabar !=null)Manabar.fillAmount = maxMana > 0 ? currentMana / maxMana : 0f;
+       
 
     }
     public void UpdateArmorUI()
@@ -185,7 +184,8 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
 
     public void SpendMana(int amount)
     {
-        currentMana -= amount;
+
+        currentMana = Mathf.Max(0, currentMana - amount);
         UpdateManaUI();
     }
 
@@ -197,7 +197,8 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     ///////////// IDamageable///////////////   
     public void TakeDamage(int amount)
     {
-        audioSource.PlayOneShot(TakeDamageSound);
+        AudioManager.Instance.PlayAttackSFX();
+        DamageVFX.SetTrigger("ClawSlash");
         // Apply damage debuff if active
         int debuffedAmount = amount;
         if (damageDebuffTurns > 0)
@@ -268,7 +269,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         armor += finalBlock;
         UpdateArmorUI();
         ArmorEffect.Play();
-        audioSource.PlayOneShot(damageArmorDebuffSound);
+        AudioManager.Instance.PlayBlockSFX();
         Debug.Log($"Player gains {blockamount} block.");
         // Implement block logic here
     }
@@ -279,7 +280,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         reflectTurnsRemaining = turns;
         reflectPercentage = reflectPercent;
         ArmorEffect.Play();
-        audioSource.PlayOneShot(buffSound);
+        AudioManager.Instance.PlayReflectSFX();
         Debug.Log($"Player gains {reflectPercentage * 100}% reflect.");
         statusHUD.UpdateReflect(reflectPercentage,reflectTurnsRemaining);
         // Implement reflect logic here
@@ -295,7 +296,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         // int totalTurns = 2 + activeDoTTurns;
 
         BuffEffect.Play();
-        audioSource.PlayOneShot(buffSound);
+        AudioManager.Instance.PlayBuffSFX();
         // Implement DoT buff logic here
     }
     public void BuffAllEffects(int turns, float multiplier)
@@ -303,7 +304,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         buffAllEffectsTurns += turns;
         buffAllEffectsMultiplier = multiplier;
         BuffEffect.Play();
-        audioSource.PlayOneShot(buffSound);
+        AudioManager.Instance.PlayBuffSFX();
         statusHUD.UpdateAllX(buffAllEffectsMultiplier,buffAllEffectsTurns);
         // GameTurnMessager.instance.ShowMessage($"All debuffs extended by {turns} turns.");      
         // Implement buff logic here
@@ -313,7 +314,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public void ExtendDebuff(int turns)
     {
         BuffEffect.Play();
-        audioSource.PlayOneShot(buffSound);
+        AudioManager.Instance.PlayBuffSFX();
         if (activeDoTTurns > 0) activeDoTTurns += turns;
         if (damageDebuffTurns > 0) damageDebuffTurns += turns;
         if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
@@ -323,7 +324,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         buffBlockTurns = turns;
         buffBlockPercentage = blockamount;
         BuffEffect.Play();
-        audioSource.PlayOneShot(buffSound);
+        AudioManager.Instance.PlayBuffSFX();
         GameTurnMessager.instance.ShowMessage($"Player's block cards value are doubled for 2 turns.");
         Debug.Log($"Player's block cards value are doubled for this turn.");
         statusHUD.UpdateBlockX(buffBlockPercentage, buffBlockTurns);
@@ -332,7 +333,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     ///////////// IDeBuffable///////////////
     public void ApplyDoT(int turns, int damageAmount)
     {
-        Debug.Log("dddddddddddoooottt");
+       // Debug.Log("dddddddddddoooottt");
         statusHUD.UpdateDot(damageAmount, turns);
         activeDoTTurns += turns;
         activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
@@ -343,7 +344,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         if (activeDoTTurns > 0)
         {
             activeDoTDamage *= 3;
-            Debug.Log("Player's DoT damage is tripled.");
+         //   Debug.Log("Player's DoT damage is tripled.");
         }
     }
     public void ApplyDamageDebuff(int turns, float multiplier)
@@ -351,7 +352,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         ArmorEffect.Play();
         damageDebuffTurns = turns;
         damageDebuffMultiplier = multiplier;
-         audioSource.PlayOneShot(damageArmorDebuffSound);
+        AudioManager.Instance.PlayDeBuffSFX();
         GameTurnMessager.instance.ShowMessage($"next 3 turns Enemy deals 80% less damage.");
     }
 
@@ -360,7 +361,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         currentMana = Mathf.Max(0, currentMana - amount);
         UpdateManaUI();
         GameTurnMessager.instance.ShowMessage($"Player loses {amount} mana.");
-        audioSource.PlayOneShot(damageArmorDebuffSound);
+        AudioManager.Instance.PlayDeBuffSFX();
         Debug.Log($"Player loses {amount} mana.");
     }
     

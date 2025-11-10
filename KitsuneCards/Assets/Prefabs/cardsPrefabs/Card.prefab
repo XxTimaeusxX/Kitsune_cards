@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: -6524560271162710750}
   - component: {fileID: -7226442169530205913}
   - component: {fileID: 154265375251212321}
-  - component: {fileID: 7537568646062984525}
   m_Layer: 0
   m_Name: Card
   m_TagString: Untagged
@@ -69,7 +68,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardData: {fileID: 0}
   imageHolder: {fileID: 6773935234614404049}
-  fieldCardCanvas: {fileID: 0}
   cardNameText: {fileID: 5114071681492389349}
   abilityText: {fileID: 6805226960164115089}
   manacostText: {fileID: 1737458291255731113}
@@ -97,7 +95,7 @@ AudioSource:
   m_GameObject: {fileID: 2447753563235289416}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -2732585784348165357, guid: d8017c057c0fb3b41ace469e9cb46b37, type: 2}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 1
   m_Volume: 1
@@ -184,18 +182,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &7537568646062984525
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2447753563235289416}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f2fcbc92ffd7f9d4a9e34c895b204dc7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2520656600575193095
 GameObject:
   m_ObjectHideFlags: 0
@@ -547,7 +533,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 64a232b09aa6a2b408672e96ae52b4c4, type: 3}
+  m_Sprite: {fileID: 21300000, guid: d107ed72b62442f4bbc1b2ec437332ae, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
