@@ -11,6 +11,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/RegularModeScene.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/Scenes/Credits.unity
+    guid: 26791eab93018774c8ce3b6fc835025b
   - enabled: 0
     path: Assets/Scenes/ArtPrototypeScene.unity
     guid: b6064ec565eeeb242906adfb180cae65

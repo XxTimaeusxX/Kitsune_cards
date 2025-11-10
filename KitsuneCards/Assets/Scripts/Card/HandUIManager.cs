@@ -10,7 +10,6 @@ public class HandUIManager : MonoBehaviour
     public GameObject Cardprefab;
     public Transform handpanel;
     public CardDeckManager CardDeckManager;
-    public GameObject drawButton;
     public GameObject endTurnButton;
     public CardAbilityManager abilityManager;
 
@@ -91,17 +90,11 @@ public class HandUIManager : MonoBehaviour
     /// show the button at the start of the players turn
     public void Showbutton()
     {
-        if(drawButton != null)
-           drawButton.SetActive(true);  
         if(endTurnButton != null)
-            endTurnButton.SetActive(true);
+           endTurnButton.SetActive(true);
     }
     /// hide the button when player draws card
-    public void Hidebutton()
-    {
-        if (drawButton != null)
-            drawButton.SetActive(false);
-    }
+
     public void HideEndTurnButton()
     {
         if (endTurnButton != null)

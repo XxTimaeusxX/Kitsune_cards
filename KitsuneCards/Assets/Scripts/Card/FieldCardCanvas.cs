@@ -24,8 +24,7 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
         {
             if(TryPlayCard(CardUI.cardData))
             {
-                cardDeckManager.playerHand.Remove(CardUI.cardData);
-                cardDeckManager.playerfield.Add(CardUI.cardData); // Optionally add to a field list if needed
+                cardDeckManager.DiscardCard(CardUI.cardData);
                 CardUI.transform.SetParent(playerfield, false);
                 CardUI.transform.localPosition = Vector3.zero; // Center in the field
                 CardUI.transform.localScale = Vector3.one; // Reset scale
@@ -34,17 +33,13 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
                 {
                     canvasGroup.blocksRaycasts = true;
                 }
-                // Hide the draw button after playing a card to the field
-                if (cardDeckManager.handUIManager != null)
-                    cardDeckManager.handUIManager.Hidebutton();
+
                 audioSource.PlayOneShot(playCardClip);
                 PlayCard(CardUI);
 
-               
                 if (handUIManager != null)
                 {
                     handUIManager.UpdateHandUI(); // Update the hand UI after drawing cards
-
                 }
             }
             else

@@ -3,22 +3,45 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuController : MonoBehaviour
 {
+    public void Start()
+    {
+        Time.timeScale = 1;
+        // No direct PlayMenuMusic here; AudioManager will handle it on scene load
+    }
+
     public void LoadRegularmode()
     {
+        Time.timeScale = 1;
+        GameModeConfig.SetMode(GameMode.Regular);
         SceneManager.LoadScene("RegularModeScene");
     }
+
     public void LoadBuffOnlyMode()
     {
+        Time.timeScale = 1;
         GameModeConfig.SetMode(GameMode.BuffAndDebuff);
-        // Use the same gameplay scene unless you have a dedicated BuffOnly scene
         SceneManager.LoadScene("RegularModeScene");
     }
+
     public void LoadBossOnlyMode()
     {
+        Time.timeScale = 1;
         GameModeConfig.SetMode(GameMode.BossOnly);
         SceneManager.LoadScene("RegularModeScene");
     }
-    // Optional: Quit button
+
+    public void LoadCredits()
+    {
+        Time.timeScale = 1;
+        SceneManager.LoadScene("Credits");
+    }
+
+    public void LoadMainMenu()
+    {
+        Time.timeScale = 1;
+        SceneManager.LoadScene("MainMenu");
+    }
+
     public void QuitGame()
     {
 #if UNITY_EDITOR
