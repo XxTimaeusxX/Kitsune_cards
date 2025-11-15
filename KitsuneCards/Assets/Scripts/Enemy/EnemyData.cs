@@ -17,15 +17,15 @@ public class EnemyData : ScriptableObject
     [Header("Deck/AI")]
     // Folder inside Resources that contains CardData assets for this enemy (e.g., "enemy1", "enemyBandit", etc.)
     public string CardsResourceFolder = "enemy1";
-    public int MaxDeckSize = 200;
+    public int MaxDeckSize = 40;
 
     // How many cards of a given mana cost to include when building the deck
     public List<ManaLimit> ManaLimits = new List<ManaLimit>
     {
-        new ManaLimit(1, 22),
-        new ManaLimit(2, 40),
-        new ManaLimit(5, 40),
-        new ManaLimit(10, 6)
+        new ManaLimit(1, 16),
+        new ManaLimit(2, 12),
+        new ManaLimit(5, 8),
+        new ManaLimit(10, 4)
     };
 
     // Preferred ability order influences how the deck is composed (outer loop),

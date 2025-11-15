@@ -216,7 +216,22 @@ public class CardDeckManager : MonoBehaviour
         };
 
         // Ability types we balance across
-        AbilityType[] abilityTypes = new AbilityType[] { AbilityType.Damage, AbilityType.Buff, AbilityType.Debuff, AbilityType.Block };
+        // Decide which ability types to include based on current game mode
+        AbilityType[] abilityTypes;
+        switch (GameModeConfig.CurrentMode)
+        {
+            case GameMode.BuffAndDebuff:
+                abilityTypes = new AbilityType[] { AbilityType.Buff, AbilityType.Debuff };
+                break;
+            case GameMode.BossOnly:
+                // BossOnly can still use full distribution or a different set; keep full by default
+                abilityTypes = new AbilityType[] { AbilityType.Damage, AbilityType.Buff, AbilityType.Debuff, AbilityType.Block };
+                break;
+            case GameMode.Regular:
+            default:
+                abilityTypes = new AbilityType[] { AbilityType.Damage, AbilityType.Buff, AbilityType.Debuff, AbilityType.Block };
+                break;
+        }
 
         // Pre-bucketize: mana -> (type -> list of CardData)
         var byManaByType = new Dictionary<int, Dictionary<AbilityType, List<CardData>>>();

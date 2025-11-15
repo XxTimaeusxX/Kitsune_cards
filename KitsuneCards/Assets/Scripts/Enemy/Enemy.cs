@@ -15,6 +15,8 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public CardAbilityManager abilityManager;
     private Player player;
     public List<CardData> enemyCards = new List<CardData>();
+    // discard pile for enemy (used for reshuffle)
+    public List<CardData> enemyDiscard = new List<CardData>();
 
     [Header("UI")]
     public Image enemyPortrait;
@@ -78,9 +80,6 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         {
             InitializeForBattle();
         }
-       
-        // ApplyEnemyData();
-        //  InitializeForBattle();
     }
 
     // Effective config built from EnemyData (+ optional BossData)
@@ -143,6 +142,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         if (enemyNameText != null) enemyNameText.text = string.IsNullOrEmpty(cfg.Name) ? "Enemy" : cfg.Name;
 
         // Rebuild deck
+        enemyDiscard.Clear();
         LoadEnemyCards();
         ShuffleDeck();
 
@@ -201,10 +201,14 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         if (!string.IsNullOrEmpty(enemyData.CardsResourceFolder))
             cardsResourceFolder = enemyData.CardsResourceFolder;
     }
+
+    // Build an enemy deck sized like the player (use deckManager.deckSize when available).
     public void LoadEnemyCards()
     {
         enemyCards.Clear();
-        CardData[] loaded = Resources.LoadAll<CardData>("enemy1");
+
+        string folder = string.IsNullOrEmpty(cardsResourceFolder) ? "enemy1" : cardsResourceFolder;
+        CardData[] loaded = Resources.LoadAll<CardData>(folder);
 
         // Mana limits (from data or fallback)
         List<EnemyData.ManaLimit> manaLimits =
@@ -212,71 +216,195 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
                 ? enemyData.ManaLimits
                 : new List<EnemyData.ManaLimit>
                 {
-                    new EnemyData.ManaLimit(1, 22),
-                    new EnemyData.ManaLimit(2, 40),
-                    new EnemyData.ManaLimit(5, 40),
-                    new EnemyData.ManaLimit(10, 6)
+                    new EnemyData.ManaLimit(1, 16),
+                    new EnemyData.ManaLimit(2, 12),
+                    new EnemyData.ManaLimit(5, 8),
+                    new EnemyData.ManaLimit(10, 4)
                 };
 
-        // Ability order (from data or fallback)
+        // Choose ability types: prefer enemyData.PreferredAbilities, but if global mode requests buff/debuff only, honor that.
         AbilityType[] abilityTypes =
             (enemyData != null && enemyData.PreferredAbilities != null && enemyData.PreferredAbilities.Length > 0)
                 ? enemyData.PreferredAbilities
                 : new AbilityType[] { AbilityType.Block, AbilityType.Damage };
-
-        int deckCap = (enemyData != null) ? Mathf.Max(1, enemyData.MaxDeckSize) : 200;
-
-        foreach (var type in abilityTypes)
+        ////------------- Load enemy cards based on game mode-------------////
+        switch (GameModeConfig.CurrentMode)
         {
-            foreach (var ml in manaLimits)
+            case GameMode.BossOnly:
+                abilityTypes = new AbilityType[] {AbilityType.Damage };
+                break;
+            case GameMode.BuffAndDebuff:
+                abilityTypes = new AbilityType[] { AbilityType.Buff, AbilityType.Debuff };
+                break;
+            case GameMode.Regular:
+                abilityTypes = new AbilityType[] { AbilityType.Damage };
+                break;
+
+        }
+
+        // Deck cap: prefer deckManager.deckSize (player deck size) to keep parity; fallback to 40
+        int desiredDeckSize = (deckManager != null) ? Mathf.Max(1, deckManager.deckSize) : 40;
+        // Also respect enemyData.MaxDeckSize if present (take min)
+        int deckCap = (enemyData != null) ? Mathf.Min(Mathf.Max(1, enemyData.MaxDeckSize), desiredDeckSize) : desiredDeckSize;
+
+        // Pre-bucketize: mana -> type -> pool
+        var byManaByType = new Dictionary<int, Dictionary<AbilityType, List<CardData>>>();
+        for (int i = 0; i < loaded.Length; i++)
+        {
+            var card = loaded[i];
+            ManaCostandEffect? ab = null;
+            int idx = card.selectedManaAndEffectIndex;
+            switch (card.elementType)
             {
-                int mana = ml.Mana;
-                int limit = ml.Limit;
+                case CardData.ElementType.Fire:
+                    if (idx >= 0 && idx < card.FireAbilities.Count) ab = card.FireAbilities[idx];
+                    break;
+                case CardData.ElementType.Water:
+                    if (idx >= 0 && idx < card.WaterAbilities.Count) ab = card.WaterAbilities[idx];
+                    break;
+                case CardData.ElementType.Earth:
+                    if (idx >= 0 && idx < card.EarthAbilities.Count) ab = card.EarthAbilities[idx];
+                    break;
+                case CardData.ElementType.Air:
+                    if (idx >= 0 && idx < card.AirAbilities.Count) ab = card.AirAbilities[idx];
+                    break;
+            }
 
-                List<CardData> candidates = new List<CardData>();
-                foreach (var card in loaded)
+            if (!ab.HasValue) continue;
+            int mana = ab.Value.ManaCost;
+            AbilityType type = ab.Value.Type;
+
+            if (!byManaByType.TryGetValue(mana, out var byType))
+            {
+                byType = new Dictionary<AbilityType, List<CardData>>();
+                byManaByType[mana] = byType;
+            }
+            if (!byType.TryGetValue(type, out var list))
+            {
+                list = new List<CardData>();
+                byType[type] = list;
+            }
+            list.Add(card);
+        }
+
+     
+
+        // Use the same default limits as existing code (we'll reuse enemyData.ManaLimits if present)
+        // We'll iterate the manaLimits list to add cards up to deckCap
+        int added = 0;
+        foreach (var ml in manaLimits)
+        {
+            if (added >= deckCap) break;
+            int mana = ml.Mana;
+            int limit = ml.Limit;
+            if (limit <= 0) continue;
+
+            byManaByType.TryGetValue(mana, out var typesDict);
+            if (typesDict == null) continue;
+
+            // Distribute target across allowed abilityTypes
+            int basePerType = limit / abilityTypes.Length;
+            int remainder = limit % abilityTypes.Length;
+            var typesOrder = new List<AbilityType>(abilityTypes);
+
+            for (int i = 0; i < typesOrder.Count && added < deckCap; i++)
+            {
+                AbilityType type = typesOrder[i];
+                int targetForType = basePerType + (i < remainder ? 1 : 0);
+                if (targetForType == 0) continue;
+
+                typesDict.TryGetValue(type, out var pool);
+                pool = pool ?? new List<CardData>();
+                Shuffle(pool);
+
+                int takeUnique = Mathf.Min(targetForType, pool.Count);
+                for (int u = 0; u < takeUnique && added < deckCap; u++)
                 {
-                    ManaCostandEffect? selectedAbility = null;
-                    switch (card.elementType)
-                    {
-                        case CardData.ElementType.Fire:
-                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.FireAbilities.Count)
-                                selectedAbility = card.FireAbilities[card.selectedManaAndEffectIndex];
-                            break;
-                        case CardData.ElementType.Water:
-                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.WaterAbilities.Count)
-                                selectedAbility = card.WaterAbilities[card.selectedManaAndEffectIndex];
-                            break;
-                        case CardData.ElementType.Earth:
-                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.EarthAbilities.Count)
-                                selectedAbility = card.EarthAbilities[card.selectedManaAndEffectIndex];
-                            break;
-                        case CardData.ElementType.Air:
-                            if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.AirAbilities.Count)
-                                selectedAbility = card.AirAbilities[card.selectedManaAndEffectIndex];
-                            break;
-                    }
-
-                    if (selectedAbility.HasValue && selectedAbility.Value.ManaCost == mana && selectedAbility.Value.Type == type)
-                    {
-                        candidates.Add(card);
-                    }
+                    enemyCards.Add(pool[u]);
+                    added++;
                 }
 
-                for (int i = 0; i < limit && enemyCards.Count < deckCap; i++)
+                int shortfall = targetForType - takeUnique;
+                if (shortfall > 0 && pool.Count > 0)
                 {
-                    if (candidates.Count == 0) break;
-                    enemyCards.Add(candidates[i % candidates.Count]);
-                    if (enemyCards.Count >= deckCap) break;
+                    // Round-robin duplicates for shortfall
+                    int idx = 0;
+                    for (int s = 0; s < shortfall && added < deckCap; s++)
+                    {
+                        enemyCards.Add(pool[idx]);
+                        idx++;
+                        if (idx >= pool.Count) idx = 0;
+                        added++;
+                    }
+                }
+            }
+
+            // If still short in this bucket, fill from any allowed pools
+            int remaining = limit - (basePerType * abilityTypes.Length + remainder);
+            if (added >= deckCap) break;
+            if (added < deckCap)
+            {
+                var anyPool = new List<CardData>();
+                foreach (var allowedType in typesOrder)
+                {
+                    if (typesDict.TryGetValue(allowedType, out var p) && p != null && p.Count > 0)
+                        anyPool.AddRange(p);
+                }
+
+                if (anyPool.Count > 0)
+                {
+                    Shuffle(anyPool);
+                    int need = Mathf.Min(deckCap - added, limit); // conservative fill
+                    int rr = 0;
+                    for (int n = 0; n < need && added < deckCap; n++)
+                    {
+                        enemyCards.Add(anyPool[rr]);
+                        rr++;
+                        if (rr >= anyPool.Count) rr = 0;
+                        added++;
+                    }
+                }
+            }
+        }
+
+        // If still under deckCap (rare), repeat any available card to reach deckCap
+        if (enemyCards.Count < deckCap)
+        {
+            var any = new List<CardData>();
+            foreach (var kv in byManaByType)
+            {
+                foreach (var kv2 in kv.Value)
+                {
+                    if (kv2.Value != null && kv2.Value.Count > 0)
+                        any.AddRange(kv2.Value);
+                }
+            }
+            if (any.Count > 0)
+            {
+                Shuffle(any);
+                int idx = 0;
+                while (enemyCards.Count < deckCap)
+                {
+                    enemyCards.Add(any[idx]);
+                    idx++;
+                    if (idx >= any.Count) idx = 0;
                 }
             }
         }
     }
-
+    private static void Shuffle<T>(IList<T> list)
+    {
+        if (list == null || list.Count <= 1) return;
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (list[i], list[j]) = (list[j], list[i]);
+        }
+    }
     void ShuffleDeck()
     {
         // shuffle card data
-        for (int i = enemyCards .Count - 1; i > 0; i--)
+        for (int i = enemyCards.Count - 1; i > 0; i--)
         {
             int shuffle = Random.Range(0, i + 1);
             var temp = enemyCards[i];
@@ -284,11 +412,40 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
             enemyCards[shuffle] = temp;
         }
     }
+
+    // Ensure deck has cards, reshuffle discard when threshold reached or deck empty
+    private void MaybeReshuffleEnemyDeck()
+    {
+        if (deckManager == null)
+        {
+            // fallback: if deck empty and discard has cards, always reshuffle
+            if (enemyCards.Count == 0 && enemyDiscard.Count > 0)
+            {
+                enemyCards.AddRange(enemyDiscard);
+                enemyDiscard.Clear();
+                ShuffleDeck();
+                Debug.Log("Enemy reshuffled discard into deck (no deckManager).");
+            }
+            return;
+        }
+
+        int threshold = deckManager.reshuffleThreshold;
+        bool autoReshuffle = deckManager.autoReshuffle;
+
+        if ((enemyCards.Count <= threshold || enemyCards.Count == 0) && enemyDiscard.Count > 0 && autoReshuffle)
+        {
+            enemyCards.AddRange(enemyDiscard);
+            enemyDiscard.Clear();
+            ShuffleDeck();
+            Debug.Log("Enemy reshuffled discard into deck.");
+        }
+    }
+
     public void EstartTurn()
     {
-
         deckManager.StartCoroutine(EnemyLogicRoutine());
     }
+
     private IEnumerator EnemyLogicRoutine()
     {
         yield return new WaitForSeconds(1f); // Preparation phase
@@ -298,6 +455,9 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         // Loop: play as many cards as possible with available mana
         while (true)
         {
+            // Reshuffle if needed before selecting playable card
+            MaybeReshuffleEnemyDeck();
+
             CardData cardToPlay = null;
             ManaCostandEffect? selectedAbility = null;
 
@@ -348,16 +508,16 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
                     abilityManager.ExecuteCardAbility(
                         cardToPlay,
                         deckManager.player, // reference to player
-                        this, // reference to enemy
+                        deckManager.enemy, // reference to enemy
                         deckManager.player, // reference to IDamageable target(player)
-                        null,             // reference to IBlockable target(enemy)
-                        null,              // reference to IDebuffable target (none for now)
-                        null              // reference to IBuffable target (none for now)
+                        deckManager.enemy,             // reference to IBlockable target(enemy)
+                        deckManager.enemy, // reference to IBuffable target (none for now)
+                        deckManager.player             // reference to IDebuffable target (none for now)
                     );
                 }
-                // TODO: Add logic for other ability types
-
+                // move played card to discard
                 enemyCards.Remove(cardToPlay);
+                enemyDiscard.Add(cardToPlay);
 
                 yield return new WaitForSeconds(0.5f); // Small delay between plays
             }
@@ -410,19 +570,10 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         UpdateEnemyHealthUI();
         Debug.Log($"Boss takes {amount} damage. Health: {CurrentHealth}/{MaxHealth}");
 
-        // Reflect logic: reflect damage back to the player if reflect is active
-       /* if (player.reflectTurnsRemaining > 0 && player.reflectPercentage > 0f && deckManager != null && deckManager.player != null)
-        {
-            int reflectedDamage = Mathf.RoundToInt(amount * player.reflectPercentage);
-            player.TakeDamage(reflectedDamage);
-            Debug.Log($"Enemy reflected {reflectedDamage} damage to player!");
-        }*/
-
         if (CurrentHealth <= 0)
         {
           if (deckManager != null)
             {
-               // deckManager.OnEnemyDefeated(this);
                StartCoroutine(HandleDeathTransition());
                 return;
             }            
@@ -468,7 +619,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     {
         throw new System.NotImplementedException();
     }
-    ///////////// IDebuffable///////////////
+    ///////////// IDEBUFFABLE///////////////
 
     public void ApplyDoT(int turns, int damageAmount)
     {
@@ -485,7 +636,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         DebuffEffect.Play();
         AudioManager.Instance.PlayDeBuffSFX();
         GameTurnMessager.instance.ShowMessage($"Enemy's DoT damage is tripled!");
-        Debug.Log("Player's DoT damage is tripled.");    
+          
     }
    
 

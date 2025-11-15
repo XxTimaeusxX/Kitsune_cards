@@ -99,55 +99,32 @@ public class CardAbilityManager : MonoBehaviour
 
             case AbilityType.Buff:
                 if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 2)
-                {
                     TargetBuff.BuffDoT(2, 1);
-                    if (enemy.activeDoTTurns > 0)
-                    {
-                        enemy.activeDoTTurns += 2;
-                        enemy.activeDoTDamage += 1;
-                        GameTurnMessager.instance.ShowMessage($"Player's DoT buff + 2 turns +1 damage");
-                    }
-                }
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 10)
                     TargetBuff.BuffAllEffects(2, 2f);
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 1)
-                {
                     TargetBuff.ExtendDebuff(1);
-                    // Retro-extend on enemy
-                    if (enemy.activeDoTTurns > 0)
-                    {
-                        enemy.activeDoTTurns += 1;
-                        GameTurnMessager.instance.ShowMessage($"Enemy's DoT extended +1 turn");
-                    }
-                    if (enemy.damageDebuffTurns > 0)
-                    {
-                        enemy.damageDebuffTurns += 1;
-                        GameTurnMessager.instance.ShowMessage($"Enemy's damage debuff extended by 1 turn due to buff!");
-                    }
-                    if (enemy.stunTurnsRemaining > 0)
-                    {
-                        enemy.stunTurnsRemaining += 1;
-                        GameTurnMessager.instance.ShowMessage($"Enemy's stun extended by 1 turn due to buff!");
-                    }
-                }
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 5)
                     TargetBuff.BuffBlock(2, 2);
                 break;
 
             case AbilityType.Debuff:
+
                 if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 10)
                     TargetDebuff.TripleDoT();
                 else if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 1)
                 {
                     int baseDot = 3;
                     int dotDamage = ScaleDot(baseDot);
-                    int totalTurns = 2 + player.activeDoTTurns; // if actor is enemy, this stays 2 (player.activeDoTTurns is 0); keep simple for now
+                    // Use a fixed base duration (2). Call site decides targets and any extensions.
+                    int totalTurns = 2;
                     TargetDebuff.ApplyDoT(totalTurns, dotDamage);
+                    GameTurnMessager.instance.ShowMessage($"Applied DoT to target: {dotDamage} for {totalTurns} turns");
                 }
                 else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 2)
                     TargetDebuff.LoseEnergy(3);
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 5)
-                    TargetDebuff.ApplyDamageDebuff(3, .50f); // apply weaken to the target (enemy when player casts)
+                    TargetDebuff.ApplyDamageDebuff(3, .50f);
                 break;
         }
     }

@@ -18,14 +18,14 @@ MonoBehaviour:
   MaxMana: 2
   StartMana: 2
   CardsResourceFolder: enemy1
-  MaxDeckSize: 200
+  MaxDeckSize: 40
   ManaLimits:
   - Mana: 1
-    Limit: 22
+    Limit: 16
   - Mana: 2
-    Limit: 40
+    Limit: 12
   - Mana: 5
-    Limit: 40
+    Limit: 8
   - Mana: 10
-    Limit: 6
-  PreferredAbilities: 01000000
+    Limit: 4
+  PreferredAbilities: 0300000001000000

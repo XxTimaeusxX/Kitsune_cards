@@ -10,22 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f43abc45139fa6141a6a8b876d856e11, type: 3}
-  m_Name: Daitengu
+  m_Name: Jubokko
   m_EditorClassIdentifier: 
-  EnemyName: Daitengu - Guardian of Sacred Mountains
-  EnemySprite: {fileID: 21300000, guid: 22db46e07d1bbf644a8add61be707c0d, type: 3}
-  MaxHealth: 100
-  MaxMana: 4
-  StartMana: 4
+  EnemyName: Jubokko - The Vampiric Tree
+  EnemySprite: {fileID: 21300000, guid: d557552d4e2640142b53c88127a640d1, type: 3}
+  MaxHealth: 50
+  MaxMana: 3
+  StartMana: 3
   CardsResourceFolder: enemy1
-  MaxDeckSize: 200
+  MaxDeckSize: 40
   ManaLimits:
   - Mana: 1
-    Limit: 22
+    Limit: 16
   - Mana: 2
-    Limit: 40
+    Limit: 12
   - Mana: 5
-    Limit: 40
+    Limit: 8
   - Mana: 10
-    Limit: 6
+    Limit: 4
   PreferredAbilities: 0300000001000000

@@ -69,6 +69,20 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     }
     public void PstartTurn()
     {
+        // --- Player DoT upkeep (mirror enemy logic) ---
+        if (activeDoTTurns > 0)
+        {
+            Debug.Log("Player DoT tick");
+            GameTurnMessager.instance.ShowMessage($"Player takes {activeDoTDamage} damage, {activeDoTTurns} DoT turns remaining");
+            if (DebuffEffect != null) DebuffEffect.Play();
+            AudioManager.Instance.PlayDoTSFX();
+
+            activeDoTTurns--;
+            TakeDamage(activeDoTDamage);
+            statusHUD.UpdateDot(activeDoTDamage, activeDoTTurns);
+            // no yield here (this method is not a coroutine). If you want pauses/animations,
+            // process DoT from CardDeckManager.StartPlayerTurn coroutine instead.
+        }
         if (buffAllEffectsTurns > 0)
         {
             buffAllEffectsTurns--;
@@ -123,32 +137,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         Debug.Log("Player now have draw and discard phases.");
         
     }
-   /* private void RefreshStatusHUD()
-    {
-        // Block
-        if (armor > 0) statusHUD.Show(StatusKind.Block, armor.ToString(), null);
-        else statusHUD.Hide(StatusKind.Block);
-
-        // Block multiplier (e.g., x2 for N turns)
-        if (buffBlockTurns > 0) statusHUD.Show(StatusKind.BlockX, "x" + buffBlockPercentage.ToString("0.#"), buffBlockTurns);
-        else statusHUD.Hide(StatusKind.BlockX);
-
-        // All effects multiplier (show current multiplier with remaining turns)
-        if (buffAllEffectsTurns > 0) statusHUD.Show(StatusKind.AllX3, "x" + buffAllEffectsMultiplier.ToString("0.#"), buffAllEffectsTurns);
-        else statusHUD.Hide(StatusKind.AllX3);
-
-        // DoT amplification (bonus damage over time)
-        if (activeDoTTurns > 0 && buffDotDamage > 0) statusHUD.Show(StatusKind.DotAmp, "+" + buffDotDamage.ToString(), activeDoTTurns);
-        else statusHUD.Hide(StatusKind.DotAmp);
-
-        // Reflect (percentage with remaining turns)
-        if (reflectTurnsRemaining > 0) statusHUD.Show(StatusKind.Reflect, Mathf.RoundToInt(reflectPercentage * 100f) + "%", reflectTurnsRemaining);
-        else statusHUD.Hide(StatusKind.Reflect);
-
-        // Weaken (damage debuff multiplier)
-        if (damageDebuffTurns > 0) statusHUD.Show(StatusKind.Weaken, "x" + damageDebuffMultiplier.ToString("0.##"), damageDebuffTurns);
-        else statusHUD.Hide(StatusKind.Weaken);
-    }*/
+ 
     public void PendTurn()
     {
         StartTurnMana();
