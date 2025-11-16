@@ -55,6 +55,15 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public int stunTurnsRemaining = 0;
     public bool IsStunned = false;
 
+    [Header("Buff settings")]
+    private int buffBlockTurns = 0;
+   // public int buffDotTurns { get; set; }
+  //  public int buffDotDamage { get; set; }
+    public int buffAllEffectsTurns { get; set; }
+    public float buffAllEffectsMultiplier { get; set; } = 1f;
+
+    private float buffBlockPercentage = 1f;
+
     [Header("Boss (optional)")]
     public BossData bossData; // optional; set by CardDeckManager per wave
     public bool AutoInitializeOnStart = false;
@@ -165,10 +174,17 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     {
         activeDoTTurns = 0;
         activeDoTDamage = 0;
+
         damageDebuffTurns = 0;
         damageDebuffMultiplier = 1f;
+
         stunTurnsRemaining = 0;
         IsStunned = false;
+
+        // Reset buff state kept for enemy
+        buffBlockTurns = 0;
+        buffBlockPercentage = 1f;
+        buffAllEffectsMultiplier = 1f;
 
         if (DebuffEffect != null) DebuffEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         if (BuffEffect != null) BuffEffect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
@@ -207,47 +223,44 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     {
         enemyCards.Clear();
 
-        string folder = string.IsNullOrEmpty(cardsResourceFolder) ? "enemy1" : cardsResourceFolder;
+        // Use folder from EnemyData when provided, otherwise fallback to the component's default folder.
+        string folder = (!string.IsNullOrEmpty(enemyData?.CardsResourceFolder)) ? enemyData.CardsResourceFolder : cardsResourceFolder;
         CardData[] loaded = Resources.LoadAll<CardData>(folder);
 
-        // Mana limits (from data or fallback)
-        List<EnemyData.ManaLimit> manaLimits =
-            (enemyData != null && enemyData.ManaLimits != null && enemyData.ManaLimits.Count > 0)
-                ? enemyData.ManaLimits
-                : new List<EnemyData.ManaLimit>
-                {
-                    new EnemyData.ManaLimit(1, 16),
-                    new EnemyData.ManaLimit(2, 12),
-                    new EnemyData.ManaLimit(5, 8),
-                    new EnemyData.ManaLimit(10, 4)
-                };
+        // Mana limits (from deckManager if available, otherwise fallback)
+        var manaLimits = new (int Mana, int Limit)[]
+        {
+            (1, deckManager != null ? deckManager.oneAPLimit : 16),
+            (2, deckManager != null ? deckManager.twoAPLimit : 12),
+            (5, deckManager != null ? deckManager.fiveAPLimit : 8),
+            (10, deckManager != null ? deckManager.tenAPLimit : 4)
+        };
 
-        // Choose ability types: prefer enemyData.PreferredAbilities, but if global mode requests buff/debuff only, honor that.
+        // Ability order (from data or fallback)
         AbilityType[] abilityTypes =
             (enemyData != null && enemyData.PreferredAbilities != null && enemyData.PreferredAbilities.Length > 0)
                 ? enemyData.PreferredAbilities
                 : new AbilityType[] { AbilityType.Block, AbilityType.Damage };
-        ////------------- Load enemy cards based on game mode-------------////
+
         switch (GameModeConfig.CurrentMode)
         {
             case GameMode.BossOnly:
-                abilityTypes = new AbilityType[] {AbilityType.Damage };
+                abilityTypes = new AbilityType[] { AbilityType.Damage };
                 break;
             case GameMode.BuffAndDebuff:
                 abilityTypes = new AbilityType[] { AbilityType.Buff, AbilityType.Debuff };
                 break;
             case GameMode.Regular:
+            default:
                 abilityTypes = new AbilityType[] { AbilityType.Damage };
                 break;
-
         }
 
-        // Deck cap: prefer deckManager.deckSize (player deck size) to keep parity; fallback to 40
-        int desiredDeckSize = (deckManager != null) ? Mathf.Max(1, deckManager.deckSize) : 40;
-        // Also respect enemyData.MaxDeckSize if present (take min)
-        int deckCap = (enemyData != null) ? Mathf.Min(Mathf.Max(1, enemyData.MaxDeckSize), desiredDeckSize) : desiredDeckSize;
+        int deckCap = (enemyData != null && enemyData.MaxDeckSize > 0)
+            ? Mathf.Max(1, enemyData.MaxDeckSize)
+            : (deckManager != null ? Mathf.Max(1, deckManager.deckSize) : 40);
 
-        // Pre-bucketize: mana -> type -> pool
+        // Pre-bucketize: mana -> (type -> list of CardData)
         var byManaByType = new Dictionary<int, Dictionary<AbilityType, List<CardData>>>();
         for (int i = 0; i < loaded.Length; i++)
         {
@@ -271,6 +284,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
             }
 
             if (!ab.HasValue) continue;
+
             int mana = ab.Value.ManaCost;
             AbilityType type = ab.Value.Type;
 
@@ -287,27 +301,27 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
             list.Add(card);
         }
 
-     
-
-        // Use the same default limits as existing code (we'll reuse enemyData.ManaLimits if present)
-        // We'll iterate the manaLimits list to add cards up to deckCap
-        int added = 0;
-        foreach (var ml in manaLimits)
+        // Fill buckets like CardDeckManager: unique-first then duplicates (round-robin).
+        for (int b = 0; b < manaLimits.Length; b++)
         {
-            if (added >= deckCap) break;
-            int mana = ml.Mana;
-            int limit = ml.Limit;
+            int mana = manaLimits[b].Mana;
+            int limit = manaLimits[b].Limit;
             if (limit <= 0) continue;
 
             byManaByType.TryGetValue(mana, out var typesDict);
-            if (typesDict == null) continue;
+            if (typesDict == null)
+            {
+                Debug.LogWarning($"Enemy: No cards found for mana {mana} in '{folder}'. Bucket will be undersized.");
+                continue;
+            }
 
-            // Distribute target across allowed abilityTypes
             int basePerType = limit / abilityTypes.Length;
             int remainder = limit % abilityTypes.Length;
             var typesOrder = new List<AbilityType>(abilityTypes);
 
-            for (int i = 0; i < typesOrder.Count && added < deckCap; i++)
+            int addedInBucket = 0;
+
+            for (int i = 0; i < typesOrder.Count; i++)
             {
                 AbilityType type = typesOrder[i];
                 int targetForType = basePerType + (i < remainder ? 1 : 0);
@@ -315,83 +329,78 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
 
                 typesDict.TryGetValue(type, out var pool);
                 pool = pool ?? new List<CardData>();
+
                 Shuffle(pool);
 
                 int takeUnique = Mathf.Min(targetForType, pool.Count);
-                for (int u = 0; u < takeUnique && added < deckCap; u++)
+                for (int u = 0; u < takeUnique; u++)
                 {
                     enemyCards.Add(pool[u]);
-                    added++;
+                    addedInBucket++;
                 }
 
                 int shortfall = targetForType - takeUnique;
                 if (shortfall > 0 && pool.Count > 0)
                 {
-                    // Round-robin duplicates for shortfall
-                    int idx = 0;
-                    for (int s = 0; s < shortfall && added < deckCap; s++)
-                    {
-                        enemyCards.Add(pool[idx]);
-                        idx++;
-                        if (idx >= pool.Count) idx = 0;
-                        added++;
-                    }
+                    AddRoundRobin(pool, shortfall, enemyCards);
+                    addedInBucket += shortfall;
                 }
             }
 
-            // If still short in this bucket, fill from any allowed pools
-            int remaining = limit - (basePerType * abilityTypes.Length + remainder);
-            if (added >= deckCap) break;
-            if (added < deckCap)
+            // Fill remaining slots at this mana from any available cards at this mana (same-mana fallback)
+            int remaining = limit - addedInBucket;
+            if (remaining > 0)
             {
                 var anyPool = new List<CardData>();
-                foreach (var allowedType in typesOrder)
+                foreach (var kvp in typesDict)
                 {
-                    if (typesDict.TryGetValue(allowedType, out var p) && p != null && p.Count > 0)
-                        anyPool.AddRange(p);
+                    if (kvp.Value != null && kvp.Value.Count > 0)
+                        anyPool.AddRange(kvp.Value);
                 }
 
-                if (anyPool.Count > 0)
+                if (anyPool.Count == 0)
+                {
+                    Debug.LogWarning($"Enemy mana {mana}: no cards available to fill remaining {remaining}. Bucket will be undersized.");
+                }
+                else
                 {
                     Shuffle(anyPool);
-                    int need = Mathf.Min(deckCap - added, limit); // conservative fill
-                    int rr = 0;
-                    for (int n = 0; n < need && added < deckCap; n++)
-                    {
-                        enemyCards.Add(anyPool[rr]);
-                        rr++;
-                        if (rr >= anyPool.Count) rr = 0;
-                        added++;
-                    }
+                    AddRoundRobin(anyPool, remaining, enemyCards);
+                    addedInBucket += remaining;
                 }
             }
+
+            if (addedInBucket < limit)
+            {
+                Debug.LogWarning($"Enemy mana {mana}: Requested {limit}, built {addedInBucket}. Not enough cards; bucket undersized.");
+            }
+
+            if (enemyCards.Count >= deckCap) break;
         }
 
-        // If still under deckCap (rare), repeat any available card to reach deckCap
-        if (enemyCards.Count < deckCap)
+        // Keep deck sized to deckCap (if we built more than deckCap, trim)
+        if (enemyCards.Count > deckCap)
         {
-            var any = new List<CardData>();
-            foreach (var kv in byManaByType)
-            {
-                foreach (var kv2 in kv.Value)
-                {
-                    if (kv2.Value != null && kv2.Value.Count > 0)
-                        any.AddRange(kv2.Value);
-                }
-            }
-            if (any.Count > 0)
-            {
-                Shuffle(any);
-                int idx = 0;
-                while (enemyCards.Count < deckCap)
-                {
-                    enemyCards.Add(any[idx]);
-                    idx++;
-                    if (idx >= any.Count) idx = 0;
-                }
-            }
+            enemyCards.RemoveRange(deckCap, enemyCards.Count - deckCap);
+        }
+
+        // Final shuffle so enemy draw order is not grouped by type
+        ShuffleDeck();
+    }
+
+    // Helper: round-robin adder (same behavior as CardDeckManager.AddRoundRobin)
+    private static void AddRoundRobin(List<CardData> pool, int count, List<CardData> destination)
+    {
+        if (pool == null || pool.Count == 0 || count <= 0) return;
+        int idx = 0;
+        for (int i = 0; i < count; i++)
+        {
+            destination.Add(pool[idx]);
+            idx++;
+            if (idx >= pool.Count) idx = 0;
         }
     }
+
     private static void Shuffle<T>(IList<T> list)
     {
         if (list == null || list.Count <= 1) return;
@@ -458,37 +467,51 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
             // Reshuffle if needed before selecting playable card
             MaybeReshuffleEnemyDeck();
 
+            // Find the best playable card by scoring candidates (prefers debuff/buff when allowed)
             CardData cardToPlay = null;
             ManaCostandEffect? selectedAbility = null;
+            int bestScore = int.MinValue;
 
-            // Find the first playable card
+            AbilityType[] allowed = GetAllowedAbilityTypes();
+
             for (int i = 0; i < enemyCards.Count; i++)
             {
                 var card = enemyCards[i];
+                ManaCostandEffect? ability = null;
                 switch (card.elementType)
                 {
                     case CardData.ElementType.Fire:
                         if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.FireAbilities.Count)
-                            selectedAbility = card.FireAbilities[card.selectedManaAndEffectIndex];
+                            ability = card.FireAbilities[card.selectedManaAndEffectIndex];
                         break;
                     case CardData.ElementType.Water:
                         if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.WaterAbilities.Count)
-                            selectedAbility = card.WaterAbilities[card.selectedManaAndEffectIndex];
+                            ability = card.WaterAbilities[card.selectedManaAndEffectIndex];
                         break;
                     case CardData.ElementType.Earth:
                         if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.EarthAbilities.Count)
-                            selectedAbility = card.EarthAbilities[card.selectedManaAndEffectIndex];
+                            ability = card.EarthAbilities[card.selectedManaAndEffectIndex];
                         break;
                     case CardData.ElementType.Air:
                         if (card.selectedManaAndEffectIndex >= 0 && card.selectedManaAndEffectIndex < card.AirAbilities.Count)
-                            selectedAbility = card.AirAbilities[card.selectedManaAndEffectIndex];
+                            ability = card.AirAbilities[card.selectedManaAndEffectIndex];
                         break;
                 }
 
-                if (selectedAbility.HasValue && selectedAbility.Value.ManaCost <= Currentmana)
+                if (!ability.HasValue) continue;
+                if (ability.Value.ManaCost > Currentmana) continue;
+
+                // skip abilities that are not allowed for this GameMode (prevents injecting Damage/Block into BuffAndDebuff)
+                if (!IsAbilityAllowed(ability.Value.Type, allowed)) continue;
+
+                int score = ComputeCardScore(card, ability.Value);
+
+                // tie-breaker: prefer earlier cards (stable)
+                if (score > bestScore)
                 {
+                    bestScore = score;
                     cardToPlay = card;
-                    break;
+                    selectedAbility = ability;
                 }
             }
 
@@ -594,16 +617,26 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     ///////////// IBuffable///////////////
     public void BuffDoT(int turns, int BonusDamage)
     {
-
-        activeDoTTurns += turns;
-        activeDoTDamage += BonusDamage;
-
-        GameTurnMessager.instance.ShowMessage($" extend DoT + {turns} turns.");
+        if(activeDoTTurns > 0)
+        {
+            activeDoTTurns += turns;
+            activeDoTDamage += BonusDamage;
+            EnemystatusHUD.UpdateDot(activeDoTDamage,activeDoTTurns);
+            AudioManager.Instance.PlayDeBuffSFX();
+            DebuffEffect.Play();
+            GameTurnMessager.instance.ShowMessage($" extend DoT + {turns} turns.");
+        }
+    
     }
 
     public void BuffAllEffects(int turns, float multiplier)
     {
-        throw new System.NotImplementedException();
+        buffAllEffectsMultiplier = multiplier;
+        if (BuffEffect != null) BuffEffect.Play();
+        AudioManager.Instance.PlayBuffSFX();
+        // Pass 0 for turns since enemy doesn't track duration for this buff.
+        EnemystatusHUD.UpdateAllX(buffAllEffectsMultiplier, 0);
+        GameTurnMessager.instance.ShowMessage($"Enemy's effects are multiplied by x{buffAllEffectsMultiplier}.");
     }
     
     public void ExtendDebuff(int turns)
@@ -611,19 +644,28 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         if (activeDoTTurns > 0) activeDoTTurns += turns;
         if (damageDebuffTurns > 0) damageDebuffTurns += turns;
         if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
-        AudioManager.Instance.PlayBuffSFX();
-        // DebuffEffect.Play();
+        AudioManager.Instance.PlayDeBuffSFX();
+        DebuffEffect.Play();
+        EnemystatusHUD.UpdateDot(activeDoTDamage,activeDoTTurns);
+        EnemystatusHUD.UpdateWeaken(damageDebuffMultiplier, damageDebuffTurns);
+        EnemystatusHUD.UpdateStun(stunTurnsRemaining);
         GameTurnMessager.instance.ShowMessage($"all Enemy's debuffs are extended by {turns} turns!");
     }
     public void BuffBlock(int turns, float BlockAmount)
     {
-        throw new System.NotImplementedException();
+        buffBlockTurns = turns;
+        buffBlockPercentage = BlockAmount;
+
+        if (BuffEffect != null) BuffEffect.Play();
+        AudioManager.Instance.PlayBuffSFX();
+        EnemystatusHUD.UpdateBlockX(buffBlockPercentage, buffBlockTurns);
+        GameTurnMessager.instance.ShowMessage($"Enemy's block boosted for {turns} turn(s).");
     }
     ///////////// IDEBUFFABLE///////////////
 
     public void ApplyDoT(int turns, int damageAmount)
     {
-        AudioManager.Instance.PlayDoTSFX();
+        AudioManager.Instance.PlayDeBuffSFX();
         activeDoTTurns += turns;
         activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
         DebuffEffect.Play();// play debuff particle effect
@@ -647,6 +689,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         AudioManager.Instance.PlayDeBuffSFX();
         DebuffEffect.Play();
         EnemystatusHUD.UpdateWeaken(damageDebuffMultiplier, damageDebuffTurns);
+        GameTurnMessager.instance.ShowMessage($"Enemy's damage is reduced by {(1 - damageDebuffMultiplier) * 100}% for {damageDebuffTurns} turns!");
     }
 
     public void LoseEnergy(int amount)
@@ -740,5 +783,64 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     {
         if (enemyPortrait == null) return defaultAlpha;
         return enemyPortrait.color.a;
+    }
+
+    // Add these helper methods to the Enemy class (near other private helpers)
+
+private AbilityType[] GetAllowedAbilityTypes()
+{
+    switch (GameModeConfig.CurrentMode)
+    {
+        case GameMode.BossOnly:
+            return new AbilityType[] { AbilityType.Damage };
+        case GameMode.BuffAndDebuff:
+            return new AbilityType[] { AbilityType.Buff, AbilityType.Debuff };
+        case GameMode.Regular:
+        default:
+            return new AbilityType[] { AbilityType.Damage, AbilityType.Buff, AbilityType.Debuff, AbilityType.Block };
+    }
+}
+
+private bool IsAbilityAllowed(AbilityType type, AbilityType[] allowed)
+{
+    for (int i = 0; i < allowed.Length; i++)
+        if (allowed[i] == type) return true;
+    return false;
+}
+
+    private int ComputeCardScore(CardData card, ManaCostandEffect ability)
+    {
+        // Base score by ability type (tune these weights as needed)
+        int score = 0;
+
+        switch (ability.Type)
+        {
+            case AbilityType.Debuff:
+                // prefer debuffs in general
+                score += 50;
+                // prefer DoT if player doesn't already have DoT
+                if (player != null && player.activeDoTTurns == 0) score += 10;
+                break;
+            case AbilityType.Buff:
+                score += 40;
+                // penalize if enemy already has similar strong buff active (simple heuristic)
+                if (buffAllEffectsMultiplier > 1f) score -= 25;
+                if (buffBlockTurns > 0) score -= 10;
+                break;
+            case AbilityType.Damage:
+                score += 20;
+                break;
+            case AbilityType.Block:
+                score += 15;
+                // If enemy already has a block-buff active, increase priority
+                if (buffBlockTurns > 0) score += 5;
+                break;
+        }
+
+        // prefer lower mana cost slightly (so enemy can play more)
+        score -= ability.ManaCost;
+
+        // small randomization could be added here for variety; omitted for determinism.
+        return score;
     }
 }

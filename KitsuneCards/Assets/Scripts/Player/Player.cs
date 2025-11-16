@@ -16,6 +16,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public ParticleSystem BuffEffect;
     public ParticleSystem DebuffEffect;
     public ParticleSystem ArmorEffect;
+    public ParticleSystem DotEffect;
 
     [Header("Health")]
     public float PlayerMaxHealth = 100;
@@ -49,7 +50,6 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public int buffDotDamage { get; set; }
     public int buffAllEffectsTurns { get; set; }
     public float buffAllEffectsMultiplier { get; set; } = 1f;
-
     private float buffBlockPercentage = 1f;
 
     [Header("Debuff settings")]
@@ -69,20 +69,21 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     }
     public void PstartTurn()
     {
+        //---- Player Stun upkeep ---
+        if (stunTurnsRemaining <= 0) IsStunned = false;
+        statusHUD.UpdateStun(stunTurnsRemaining);
         // --- Player DoT upkeep (mirror enemy logic) ---
         if (activeDoTTurns > 0)
         {
-            Debug.Log("Player DoT tick");
-            GameTurnMessager.instance.ShowMessage($"Player takes {activeDoTDamage} damage, {activeDoTTurns} DoT turns remaining");
-            if (DebuffEffect != null) DebuffEffect.Play();
             AudioManager.Instance.PlayDoTSFX();
-
+            DotEffect.Play();
             activeDoTTurns--;
             TakeDamage(activeDoTDamage);
-            statusHUD.UpdateDot(activeDoTDamage, activeDoTTurns);
+            
             // no yield here (this method is not a coroutine). If you want pauses/animations,
             // process DoT from CardDeckManager.StartPlayerTurn coroutine instead.
         }
+        //--- Decrement buffAllEffectsTurns at the start of the turn----
         if (buffAllEffectsTurns > 0)
         {
             buffAllEffectsTurns--;
@@ -92,6 +93,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
                 Debug.Log("Player's all effects buff expired.");
             }
         }
+        //--- Decrement damageDebuffTurns at the start of the turn----
         if (damageDebuffTurns > 0)
         {
             damageDebuffTurns--;
@@ -131,6 +133,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
             }
         }
         // HUD refresh for turn-based statuses (hides when turns == 0)
+        statusHUD.UpdateDot(activeDoTDamage, activeDoTTurns);
         statusHUD.UpdateBlockX(buffBlockPercentage, buffBlockTurns);
         statusHUD.UpdateAllX(buffAllEffectsMultiplier, buffAllEffectsTurns);
         statusHUD.UpdateReflect(reflectPercentage, reflectTurnsRemaining);
@@ -284,8 +287,8 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         // buffDotTurns += turns;
         // int totalTurns = 2 + activeDoTTurns;
 
-        BuffEffect.Play();
-        AudioManager.Instance.PlayBuffSFX();
+        DebuffEffect.Play();
+        AudioManager.Instance.PlayDeBuffSFX();
         // Implement DoT buff logic here
     }
     public void BuffAllEffects(int turns, float multiplier)
@@ -302,11 +305,15 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     
     public void ExtendDebuff(int turns)
     {
-        BuffEffect.Play();
-        AudioManager.Instance.PlayBuffSFX();
+        DebuffEffect.Play();
+        AudioManager.Instance.PlayDeBuffSFX();
         if (activeDoTTurns > 0) activeDoTTurns += turns;
         if (damageDebuffTurns > 0) damageDebuffTurns += turns;
         if (stunTurnsRemaining > 0) stunTurnsRemaining += turns;
+        statusHUD.UpdateDot(activeDoTDamage, activeDoTTurns);
+        statusHUD.UpdateWeaken(damageDebuffMultiplier, damageDebuffTurns);
+        statusHUD.UpdateStun(stunTurnsRemaining);
+        GameTurnMessager.instance.ShowMessage($"All debuffs extended by {turns} turns.");
     }
     public void BuffBlock(int turns, float blockamount)
     {
@@ -323,9 +330,12 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public void ApplyDoT(int turns, int damageAmount)
     {
        // Debug.Log("dddddddddddoooottt");
-        statusHUD.UpdateDot(damageAmount, turns);
+        AudioManager.Instance.PlayDeBuffSFX();
+        DebuffEffect.Play();
         activeDoTTurns += turns;
         activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
+        statusHUD.UpdateDot(activeDoTDamage, activeDoTTurns);
+        GameTurnMessager.instance.ShowMessage($"Player takes {damageAmount} DoT for {turns} turns.");
     }
 
     public void TripleDoT()
@@ -333,7 +343,11 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         if (activeDoTTurns > 0)
         {
             activeDoTDamage *= 3;
-         //   Debug.Log("Player's DoT damage is tripled.");
+            AudioManager.Instance.PlayDeBuffSFX();
+            DebuffEffect.Play();
+            statusHUD.UpdateDot(activeDoTDamage, activeDoTTurns);
+            GameTurnMessager.instance.ShowMessage($"Player's DoT damage is tripled.");
+            //   Debug.Log("Player's DoT damage is tripled.");
         }
     }
     public void ApplyDamageDebuff(int turns, float multiplier)
@@ -342,7 +356,8 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         damageDebuffTurns = turns;
         damageDebuffMultiplier = multiplier;
         AudioManager.Instance.PlayDeBuffSFX();
-        GameTurnMessager.instance.ShowMessage($"next 3 turns Enemy deals 80% less damage.");
+        statusHUD.UpdateWeaken(damageDebuffMultiplier, damageDebuffTurns);
+        GameTurnMessager.instance.ShowMessage($"Player's damage is reduced by {(1 - multiplier) * 100}% for {turns} turns.");
     }
 
     public void LoseEnergy(int amount)
@@ -358,7 +373,9 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     {
         stunTurnsRemaining = Mathf.Max(stunTurnsRemaining, turns);
         IsStunned = true;
-        
+        AudioManager.Instance.PlayDeBuffSFX();
+        statusHUD.UpdateStun(stunTurnsRemaining);
+        GameTurnMessager.instance.ShowMessage($"Player is stunned for {turns} turns.");
     }
 
     

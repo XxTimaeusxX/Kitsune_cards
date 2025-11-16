@@ -38,6 +38,8 @@ public class CardAbilityManager : MonoBehaviour
         }
         else
         {
+            // Enemy uses a multiplier field (no turns). Respect it when enemy is the actor.
+            if (enemy != null) actorAllX = enemy.buffAllEffectsMultiplier;
             // Enemy currently has no "AllX" buff fields; keep 1f
             if (enemy.damageDebuffTurns > 0) actorWeaken = enemy.damageDebuffMultiplier;
         }
@@ -55,6 +57,10 @@ public class CardAbilityManager : MonoBehaviour
             float scaled = baseDot * actorAllX;
             return Mathf.Max(0, Mathf.RoundToInt(scaled));
         }
+
+        // Resolve actor and target IBuffable references to avoid applying self-buffs to the wrong entity
+        IBuffable actorBuffable = actorIsEnemy ? (IBuffable)enemy : (IBuffable)player;
+        IBuffable targetBuffable = actorIsEnemy ? (IBuffable)player : (IBuffable)enemy;
 
         switch (ability.Type)
         {
@@ -98,14 +104,20 @@ public class CardAbilityManager : MonoBehaviour
                 break;
 
             case AbilityType.Buff:
+                // Important: some buffs are intended as self-buffs (they modify the actor's future outputs),
+                // while others are intended to affect the target. Apply accordingly.
                 if (card.elementType == CardData.ElementType.Fire && ability.ManaCost == 2)
-                    TargetBuff.BuffDoT(2, 1);
+                    // Fire ManaCost 2: "For next 2 turns, DoT applies +1 more" — this is an actor self-buff (increase actor's DoT)
+                    targetBuffable.BuffDoT(2, 1);
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 10)
-                    TargetBuff.BuffAllEffects(2, 2f);
+                    // Water ManaCost 10: "for next 2 turns, Damage dealt, DoT applied block applied, and buffs applied are x3" — self-buff
+                    actorBuffable.BuffAllEffects(2, 2f);
                 else if (card.elementType == CardData.ElementType.Water && ability.ManaCost == 1)
-                    TargetBuff.ExtendDebuff(1);
+                    // Water ManaCost 1: "add 1 additional turn to any current debuff to target" — affects the target's debuff, so use targetBuffable
+                    targetBuffable.ExtendDebuff(1);
                 else if (card.elementType == CardData.ElementType.Air && ability.ManaCost == 5)
-                    TargetBuff.BuffBlock(2, 2);
+                    // Air ManaCost 5: "For the next 2 turns, whenever you apply Block card, block amount is x2 more" — self-buff
+                    actorBuffable.BuffBlock(2, 2);
                 break;
 
             case AbilityType.Debuff:
@@ -119,7 +131,6 @@ public class CardAbilityManager : MonoBehaviour
                     // Use a fixed base duration (2). Call site decides targets and any extensions.
                     int totalTurns = 2;
                     TargetDebuff.ApplyDoT(totalTurns, dotDamage);
-                    GameTurnMessager.instance.ShowMessage($"Applied DoT to target: {dotDamage} for {totalTurns} turns");
                 }
                 else if (card.elementType == CardData.ElementType.Earth && ability.ManaCost == 2)
                     TargetDebuff.LoseEnergy(3);

@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 78af4056444373b49951af9c321bd0f0, type: 3}
-  m_Name: Debuff2
+  m_Name: Buff2
   m_EditorClassIdentifier: 
   FireAbilities:
   - ManaCost: 1
@@ -66,7 +66,7 @@ MonoBehaviour:
   - ManaCost: 10
     Type: 3
     EffectDescription: apply 24 block and reflect 50% of damage taken for 2 turn.
-  CardName: GreaterYokai
-  CharacterImage: {fileID: 21300000, guid: 1595e568e322ddf40a0ed9e0fbe24c11, type: 3}
-  elementType: 2
+  CardName: Heikigami
+  CharacterImage: {fileID: 21300000, guid: 76f4e6f39203c514483c4a4f14e99cf9, type: 3}
+  elementType: 0
   selectedManaAndEffectIndex: 1

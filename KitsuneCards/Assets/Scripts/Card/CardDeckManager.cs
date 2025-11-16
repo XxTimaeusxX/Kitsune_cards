@@ -63,10 +63,14 @@ public class CardDeckManager : MonoBehaviour
         public EnemyData enemyData; // required
         public BossData bossData;   // optional: assign for boss waves
     }
-
-    [Header("Wave Sequence")]
-    public List<WaveEntry> waveSequence = new List<WaveEntry>();
+    [Header("Debuff&Buff enemy wave ")]
+    public List<WaveEntry> DebuffWaveSequence = new List<WaveEntry>();
     private int currentEnemyIndex = -1;
+
+    [Header("Normal Wave Sequence")]
+    public List<WaveEntry> waveSequence = new List<WaveEntry>();
+    private int currentDebuffIndex = -1;
+   
     // Boss-only sequence (used only when GameMode == BossOnly)
     [Header("Boss Wave Sequence")]
     public List<BossData> bossWaveSequence = new List<BossData>();
@@ -90,6 +94,59 @@ public class CardDeckManager : MonoBehaviour
 
     private void NextEnemy()
     {
+        // Debuff-mode: use DebuffWaveSequence and ignore the normal waveSequence
+        if (GameModeConfig.CurrentMode == GameMode.BuffAndDebuff)
+        {
+            currentDebuffIndex++;
+
+            if (DebuffWaveSequence == null || DebuffWaveSequence.Count == 0 || currentDebuffIndex >= DebuffWaveSequence.Count)
+            {
+                OnPlayerWin();
+                return;
+            }
+
+            var entry = DebuffWaveSequence[currentDebuffIndex];
+
+            if (entry == null || (entry.enemyData == null && entry.bossData == null))
+            {
+                Debug.LogError("Debuff wave entry is missing both EnemyData and BossData.");
+                OnPlayerWin();
+                return;
+            }
+
+            // Case A: both enemy and boss set -> spawn enemy now, schedule boss next
+            if (entry.enemyData != null && entry.bossData != null)
+            {
+                enemy.SetEnemyData(entry.enemyData);
+                enemy.bossData = null;
+                enemy.InitializeForBattle();
+
+                // schedule boss for next NextEnemy call
+                _pendingBossBaseEnemyData = entry.enemyData;
+                _pendingBossData = entry.bossData;
+                return;
+            }
+
+            // Case B: enemy only
+            if (entry.enemyData != null)
+            {
+                enemy.SetEnemyData(entry.enemyData);
+                enemy.bossData = null;
+                enemy.InitializeForBattle();
+                return;
+            }
+
+            // Case C: boss only
+            if (entry.bossData != null)
+            {
+                enemy.enemyData = null;
+                enemy.bossData = entry.bossData;
+                enemy.InitializeForBattle();
+                return;
+            }
+        }
+
+        // Existing Boss-only handling and normal sequence follow
         // Boss-only mode: use bossWaveSequence and ignore waveSequence completely
         if (GameModeConfig.CurrentMode == GameMode.BossOnly)
         {
@@ -116,6 +173,7 @@ public class CardDeckManager : MonoBehaviour
                 return;
             }
         }
+
         // 1) If a boss is pending from the previous wave entry, spawn it now (do not advance index)
         if (_pendingBossData != null)
         {
@@ -131,7 +189,7 @@ public class CardDeckManager : MonoBehaviour
             return;
         }
 
-        // 2) Advance to next wave entry
+        // 2) Advance to next wave entry (normal flow)
         currentEnemyIndex++;
 
         if (waveSequence == null || waveSequence.Count == 0 || currentEnemyIndex >= waveSequence.Count)
@@ -140,10 +198,10 @@ public class CardDeckManager : MonoBehaviour
             return;
         }
 
-        var entry = waveSequence[currentEnemyIndex];
+        var normalEntry = waveSequence[currentEnemyIndex];
 
         // invalid entry if neither is set
-        if (entry == null || (entry.enemyData == null && entry.bossData == null))
+        if (normalEntry == null || (normalEntry.enemyData == null && normalEntry.bossData == null))
         {
             Debug.LogError("Wave entry is missing both EnemyData and BossData.");
             OnPlayerWin();
@@ -151,46 +209,43 @@ public class CardDeckManager : MonoBehaviour
         }
 
         // Case A: both enemy and boss set -> spawn enemy now, schedule boss next
-        if (entry.enemyData != null && entry.bossData != null)
+        if (normalEntry.enemyData != null && normalEntry.bossData != null)
         {
             // spawn enemy now
-            enemy.SetEnemyData(entry.enemyData);
+            enemy.SetEnemyData(normalEntry.enemyData);
             enemy.bossData = null; // ensure this spawn is NOT a boss
             enemy.InitializeForBattle();
 
             // schedule boss for next NextEnemy call
-            _pendingBossBaseEnemyData = entry.enemyData;
-            _pendingBossData = entry.bossData;
+            _pendingBossBaseEnemyData = normalEntry.enemyData;
+            _pendingBossData = normalEntry.bossData;
 
             return;
         }
 
         // Case B: enemy only
-        if (entry.enemyData != null)
+        if (normalEntry.enemyData != null)
         {
-            enemy.SetEnemyData(entry.enemyData);
+            enemy.SetEnemyData(normalEntry.enemyData);
             enemy.bossData = null;
             enemy.InitializeForBattle();
             return;
         }
 
         // Case C: boss only (allowed)
-        if (entry.bossData != null)
+        if (normalEntry.bossData != null)
         {
             // Optional: choose a default/base EnemyData if you want, otherwise leave enemy.enemyData as-is
             enemy.enemyData = null; // let boss overrides + defaults apply
-            enemy.bossData = entry.bossData;
+            enemy.bossData = normalEntry.bossData;
             enemy.InitializeForBattle();
             return;
         }
-
-        // If you want to immediately give the turn to the enemy:
-        //  currentTurn = TurnState.EnemyTurn;
-        //  StartCoroutine(StartEnemyturn());
     }
     public void BeginEnemySequence()
     {
         currentEnemyIndex = -1;
+        currentDebuffIndex = -1;
         currentBossIndex = -1;
         NextEnemy();
     }
@@ -388,8 +443,25 @@ public class CardDeckManager : MonoBehaviour
         return selectedAbility;
     }
 
-    public void StartPlayerTurn()
+    public IEnumerator StartPlayerTurn()
     {
+        if(player.stunTurnsRemaining > 0)
+        {
+            GameTurnMessager.instance.ShowMessage($"Player is stunned for {player.stunTurnsRemaining}, turn skipped.");
+            player.statusHUD.UpdateStun(player.stunTurnsRemaining);
+           // handUIManager.HideEndTurnButton();
+           // handUIManager.SetHandCardsInteractable(false);
+            yield return new WaitForSeconds(1f);
+            player.stunTurnsRemaining--;
+            if (player.stunTurnsRemaining == 0)
+            {
+                player.stunTurnsRemaining = 0;
+                player.IsStunned = false;
+            }
+            player.statusHUD.UpdateStun(player.stunTurnsRemaining);
+            OnPlayerEndTurn();
+            yield break;
+        }
         GameTurnMessager.instance.ShowMessage("Player's Turn");
         currentTurn = TurnState.PlayerTurn;
         DrawCard(DrawperHand);
@@ -468,7 +540,7 @@ public class CardDeckManager : MonoBehaviour
     public void OnEnemyEndTurn()
     {
         Debug.Log("Enemy's Turn Ended");
-        StartPlayerTurn();
+        StartCoroutine(StartPlayerTurn());
     }
     public void OnPlayerWin()
     {

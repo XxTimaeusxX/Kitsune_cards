@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f43abc45139fa6141a6a8b876d856e11, type: 3}
-  m_Name: Sandal
+  m_Name: Yama Oroshi
   m_EditorClassIdentifier: 
-  EnemyName: Sandal Spirit
-  EnemySprite: {fileID: 21300000, guid: c27b1e88435244a4d90901079ba58e86, type: 3}
-  MaxHealth: 20
-  MaxMana: 2
-  StartMana: 2
+  EnemyName: Yama Oroshi
+  EnemySprite: {fileID: 21300000, guid: a7ba0c5de71952a4ea067183b79c5317, type: 3}
+  MaxHealth: 25
+  MaxMana: 9
+  StartMana: 9
   CardsResourceFolder: enemy1
   MaxDeckSize: 40
   ManaLimits:
