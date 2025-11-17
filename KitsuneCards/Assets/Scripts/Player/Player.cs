@@ -296,7 +296,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         buffAllEffectsTurns += turns;
         buffAllEffectsMultiplier = multiplier;
         BuffEffect.Play();
-        AudioManager.Instance.PlayBuffSFX();
+        AudioManager.Instance.PlaySuperBuffSFX();
         statusHUD.UpdateAllX(buffAllEffectsMultiplier,buffAllEffectsTurns);
         // GameTurnMessager.instance.ShowMessage($"All debuffs extended by {turns} turns.");      
         // Implement buff logic here
@@ -333,7 +333,8 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         AudioManager.Instance.PlayDeBuffSFX();
         DebuffEffect.Play();
         activeDoTTurns += turns;
-        activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
+        activeDoTDamage += damageAmount;
+       // activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
         statusHUD.UpdateDot(activeDoTDamage, activeDoTTurns);
         GameTurnMessager.instance.ShowMessage($"Player takes {damageAmount} DoT for {turns} turns.");
     }

@@ -1887,7 +1887,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: a8f3a3164e2cf3343a0e951486d1ba36, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 4d31098d031839b498d943b872625d02, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -3218,7 +3218,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: ad6b2e2774f3d714f9e04b27fe802825, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 677ac15c3cdbe5549a48ea8df73890da, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -3932,7 +3932,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 5b56fde88007e694ca99afab3949fa58, type: 3}
+  m_Sprite: {fileID: 21300000, guid: f12e2ee4c41784a4b8e4e4b8af9b8c0f, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -4001,6 +4001,13 @@ MonoBehaviour:
   Defeat_UI: {fileID: 1152908436}
   resultText: {fileID: 283247424}
   currentTurn: 0
+  waveSequence:
+  - enemyData: {fileID: 11400000, guid: fe472e43eaceb7a4d9b5d3c8edb5ae0e, type: 2}
+    bossData: {fileID: 0}
+  - enemyData: {fileID: 11400000, guid: ceeb1452861686e498587253ed88ed11, type: 2}
+    bossData: {fileID: 0}
+  - enemyData: {fileID: 11400000, guid: a212ce1dd6801b04e931c9dba5c9d1aa, type: 2}
+    bossData: {fileID: 11400000, guid: bc6577a6b07a0a24aa3e96399729a237, type: 2}
   DebuffWaveSequence:
   - enemyData: {fileID: 11400000, guid: 70cec47f5163e0343a95303cbd951d8d, type: 2}
     bossData: {fileID: 0}
@@ -4009,13 +4016,6 @@ MonoBehaviour:
   - enemyData: {fileID: 11400000, guid: da0ccde84351b1b4e924dec0e56e2598, type: 2}
     bossData: {fileID: 0}
   - enemyData: {fileID: 11400000, guid: 2f0743afc97a76e479707751763bdb7b, type: 2}
-    bossData: {fileID: 11400000, guid: bc6577a6b07a0a24aa3e96399729a237, type: 2}
-  waveSequence:
-  - enemyData: {fileID: 11400000, guid: fe472e43eaceb7a4d9b5d3c8edb5ae0e, type: 2}
-    bossData: {fileID: 0}
-  - enemyData: {fileID: 11400000, guid: ceeb1452861686e498587253ed88ed11, type: 2}
-    bossData: {fileID: 0}
-  - enemyData: {fileID: 11400000, guid: a212ce1dd6801b04e931c9dba5c9d1aa, type: 2}
     bossData: {fileID: 11400000, guid: f6111041befcc1e4997bd82d1f277fd1, type: 2}
   bossWaveSequence:
   - {fileID: 11400000, guid: bc6577a6b07a0a24aa3e96399729a237, type: 2}
@@ -4315,7 +4315,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: df7df850abb7bbd48b29ba79b5307917, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 44e73d9095547d64eabdc31d7fc576bc, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -6562,7 +6562,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1783184139364169335, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2059198200074857198, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: m_IsActive
@@ -6810,6 +6810,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7107901681158251231, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: Enemy
       value: 
@@ -7050,7 +7054,7 @@ PrefabInstance:
     - target: {fileID: 8913525553846112685, guid: 2502fede6e235464e93ef8095cbc69da, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: 4aa5ba81ed8de9743be0cae9f4b0d156, type: 3}
+      objectReference: {fileID: 21300000, guid: 7ebba460835db6d4e8823a0a071628db, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

@@ -23,7 +23,7 @@ public class AudioManager : MonoBehaviour
     public AudioClip BuffClip;
     public AudioClip DeBUffClip;
     public AudioClip ReflectClip;
-
+    public AudioClip SuperBuff;
     [Header("UI SFX")]
     public AudioClip CardSelectClip;
 
@@ -162,6 +162,7 @@ public class AudioManager : MonoBehaviour
     public void PlayDeBuffSFX() => PlaySFX(DeBUffClip);
 
     public void PlayReflectSFX() => PlaySFX(ReflectClip);
+    public void PlaySuperBuffSFX() => PlaySFX(SuperBuff);
 
     ///---------- Card selection sound ------------///
     public void PlayCardSelectSFX() => PlayMusic(CardSelectClip, true);

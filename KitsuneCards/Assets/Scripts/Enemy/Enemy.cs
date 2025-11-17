@@ -667,7 +667,8 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     {
         AudioManager.Instance.PlayDeBuffSFX();
         activeDoTTurns += turns;
-        activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
+        activeDoTDamage += damageAmount;
+        // activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
         DebuffEffect.Play();// play debuff particle effect
         EnemystatusHUD.UpdateDot(activeDoTDamage,activeDoTTurns);
         GameTurnMessager.instance.ShowMessage($"Enemy takes {activeDoTDamage} DoT damage for {activeDoTTurns} turns!");
@@ -677,6 +678,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         activeDoTDamage *= 3;
         DebuffEffect.Play();
         AudioManager.Instance.PlayDeBuffSFX();
+        EnemystatusHUD.UpdateDot(activeDoTDamage,activeDoTTurns);
         GameTurnMessager.instance.ShowMessage($"Enemy's DoT damage is tripled!");
           
     }

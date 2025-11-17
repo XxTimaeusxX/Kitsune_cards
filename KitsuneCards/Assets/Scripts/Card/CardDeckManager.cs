@@ -63,18 +63,16 @@ public class CardDeckManager : MonoBehaviour
         public EnemyData enemyData; // required
         public BossData bossData;   // optional: assign for boss waves
     }
-    [Header("Debuff&Buff enemy wave ")]
+
+    [Header("Wave Sequence")]
+    public List<WaveEntry> waveSequence = new List<WaveEntry>();
     public List<WaveEntry> DebuffWaveSequence = new List<WaveEntry>();
     private int currentEnemyIndex = -1;
-
-    [Header("Normal Wave Sequence")]
-    public List<WaveEntry> waveSequence = new List<WaveEntry>();
-    private int currentDebuffIndex = -1;
-   
     // Boss-only sequence (used only when GameMode == BossOnly)
     [Header("Boss Wave Sequence")]
     public List<BossData> bossWaveSequence = new List<BossData>();
     private int currentBossIndex = -1;
+    private int currentDebuffIndex = -1;
 
     // NEW: pending boss (spawned after the enemy of the same wave)
     private EnemyData _pendingBossBaseEnemyData;
@@ -94,6 +92,21 @@ public class CardDeckManager : MonoBehaviour
 
     private void NextEnemy()
     {
+        // If a boss is pending from the previous wave entry, spawn it now (do not advance any sequence index)
+        if (_pendingBossData != null)
+        {
+            enemy.SetEnemyData(_pendingBossBaseEnemyData); // base for boss (same wave's enemyData)
+            enemy.bossData = _pendingBossData;
+            enemy.InitializeForBattle();
+
+            // clear pending boss
+            _pendingBossBaseEnemyData = null;
+            _pendingBossData = null;
+
+            // Player starts; enemy acts after player ends turn
+            return;
+        }
+
         // Debuff-mode: use DebuffWaveSequence and ignore the normal waveSequence
         if (GameModeConfig.CurrentMode == GameMode.BuffAndDebuff)
         {
@@ -245,8 +258,8 @@ public class CardDeckManager : MonoBehaviour
     public void BeginEnemySequence()
     {
         currentEnemyIndex = -1;
-        currentDebuffIndex = -1;
         currentBossIndex = -1;
+        currentDebuffIndex = -1;
         NextEnemy();
     }
     // Called by Enemy when its health reaches 0
@@ -334,7 +347,7 @@ public class CardDeckManager : MonoBehaviour
 
             int addedInBucket = 0;
 
-            // First: unique-first per type, then fill with per-type duplicates if needed
+            // First: unique-first per type, then fill per-type duplicates if needed
             for (int i = 0; i < typesOrder.Count; i++)
             {
                 AbilityType type = typesOrder[i];
@@ -344,7 +357,29 @@ public class CardDeckManager : MonoBehaviour
                 typesDict.TryGetValue(type, out var pool);
                 pool = pool ?? new List<CardData>();
 
-                // Shuffle the pool to avoid picking the same card first every time
+                // BuffAndDebuff: filter blacklisted combos and prioritize DoT-like cards
+                if (GameModeConfig.CurrentMode == GameMode.BuffAndDebuff)
+                {
+                    // Remove explicitly useless cards for this mode
+                    pool.RemoveAll(card =>
+                    {
+                        var sel = GetSelectedAbility(card);
+                        if (!sel.HasValue) return true; // defensive
+                        return IsBlacklistedForBuffAndDebuff(card, sel.Value);
+                    });
+
+                    // Sort by desirability (higher priority first)
+                    pool.Sort((a, b) =>
+                    {
+                        var sa = GetSelectedAbility(a);
+                        var sb = GetSelectedAbility(b);
+                        int pa = sa.HasValue ? DebuffModePriority(a, sa.Value) : 0;
+                        int pb = sb.HasValue ? DebuffModePriority(b, sb.Value) : 0;
+                        return pb.CompareTo(pa);
+                    });
+                }
+
+                // Shuffle the pool to avoid deterministic picks among equal-priority cards
                 Shuffle(pool);
 
                 // Unique-first
@@ -373,8 +408,16 @@ public class CardDeckManager : MonoBehaviour
                 var anyPool = new List<CardData>();
                 foreach (var kvp in typesDict)
                 {
-                    if (kvp.Value != null && kvp.Value.Count > 0)
-                        anyPool.AddRange(kvp.Value);
+                    if (kvp.Value == null || kvp.Value.Count == 0) continue;
+
+                    // In BuffAndDebuff mode only include pools for the allowed abilityTypes
+                    if (GameModeConfig.CurrentMode == GameMode.BuffAndDebuff)
+                    {
+                        // skip pools whose type is not part of the allowed abilityTypes for this mode
+                        if (System.Array.IndexOf(abilityTypes, kvp.Key) < 0) continue;
+                    }
+
+                    anyPool.AddRange(kvp.Value);
                 }
 
                 if (anyPool.Count == 0)
@@ -383,6 +426,25 @@ public class CardDeckManager : MonoBehaviour
                 }
                 else
                 {
+                    // In BuffAndDebuff mode, prefer allowed types and prioritized cards already filtered/sorted above
+                    if (GameModeConfig.CurrentMode == GameMode.BuffAndDebuff)
+                    {
+                        anyPool.RemoveAll(card =>
+                        {
+                            var sel = GetSelectedAbility(card);
+                            if (!sel.HasValue) return true;
+                            return IsBlacklistedForBuffAndDebuff(card, sel.Value);
+                        });
+                        anyPool.Sort((a, b) =>
+                        {
+                            var sa = GetSelectedAbility(a);
+                            var sb = GetSelectedAbility(b);
+                            int pa = sa.HasValue ? DebuffModePriority(a, sa.Value) : 0;
+                            int pb = sb.HasValue ? DebuffModePriority(b, sb.Value) : 0;
+                            return pb.CompareTo(pa);
+                        });
+                    }
+
                     Shuffle(anyPool);
                     AddRoundRobin(anyPool, remaining, cards);
                     addedInBucket += remaining;
@@ -393,6 +455,8 @@ public class CardDeckManager : MonoBehaviour
             {
                 Debug.LogWarning($"Mana {mana}: Requested {limit}, built {addedInBucket}. Not enough cards; duplicates limited by available pools.");
             }
+
+            if (cards.Count >= deckSize) break;
         }
 
         // Keep in sync for Inspector visibility
@@ -409,6 +473,52 @@ public class CardDeckManager : MonoBehaviour
             idx++;
             if (idx >= pool.Count) idx = 0;
         }
+    }
+
+    // Helpers for BuffAndDebuff mode filtering/prioritization
+    private bool IsBlacklistedForBuffAndDebuff(CardData card, ManaCostandEffect sel)
+    {
+        // Blacklist Water 5 Debuff (damage reduction targets damage, not DoT — not useful in pure debuff mode)
+        if (card.elementType == CardData.ElementType.Water && sel.ManaCost == 5 && sel.Type == AbilityType.Debuff)
+            return true;
+
+        // Blacklist Air 5 Buff (buffs block scaling; with no Block cards in this mode it's useless)
+        if (card.elementType == CardData.ElementType.Air && sel.ManaCost == 5 && sel.Type == AbilityType.Buff)
+            return true;
+
+        return false;
+    }
+
+    private int DebuffModePriority(CardData card, ManaCostandEffect sel)
+    {
+        int score = 0;
+
+        // Highest priority: Fire Debuffs (DoT)
+        if (sel.Type == AbilityType.Debuff && card.elementType == CardData.ElementType.Fire)
+        {
+            score += 100;
+            if (sel.ManaCost == 10) score += 80; // triple-DoT top priority
+            if (sel.ManaCost == 1) score += 20;  // low-cost DoT
+        }
+
+        // Other debuffs (non-Fire)
+        if (sel.Type == AbilityType.Debuff && card.elementType != CardData.ElementType.Fire)
+        {
+            score += 40;
+            if (sel.ManaCost == 10) score += 30;
+        }
+
+        // Buffs are secondary but prefer Water 10 all-effects multipliers
+        if (sel.Type == AbilityType.Buff)
+        {
+            score += 10;
+            if (card.elementType == CardData.ElementType.Water && sel.ManaCost == 10) score += 20;
+        }
+
+        // Small preference for lower mana so the deck plays actively
+        score -= sel.ManaCost;
+
+        return score;
     }
 
     // Single generic shuffler used everywhere
@@ -564,7 +674,7 @@ public class CardDeckManager : MonoBehaviour
         StopAllCoroutines();
         enemy.StopAllCoroutines();
         Time.timeScale = 0f; // Pause the game
-        AudioListener.pause = true; // Mute all audio
+        AudioListener.pause = true; // Unmute audio
       //  AudioManager.Instance.StopMusic(); // stop music
         AudioManager.Instance.StopSFX(); // stop sfx
         winPanel.SetActive(true);
