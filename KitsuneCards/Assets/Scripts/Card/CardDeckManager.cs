@@ -17,6 +17,7 @@ public class CardDeckManager : MonoBehaviour
     [Header("Deck and Hand Settings")]
     public int DrawperHand;
     public int HandstartSize;
+    public int maxHandSize = 10;
     // Kept for Inspector visibility; it is computed from AP limits on Start/Load.
     public int deckSize = 40;
     [SerializeField]
@@ -703,6 +704,11 @@ public class CardDeckManager : MonoBehaviour
     {
         for (int i = 0; i < count; i++)
         {
+            if(playerHand.Count >= maxHandSize)
+            {
+                GameTurnMessager.instance.ShowMessage("Hand is full! Cannot draw more cards.");
+                break;
+            }
             // Auto-reshuffle when empty or when at/under the threshold
             if (autoReshuffle && (cards.Count == 0 || cards.Count <= reshuffleThreshold))
             {

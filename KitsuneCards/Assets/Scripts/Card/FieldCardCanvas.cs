@@ -44,7 +44,6 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
             }
             else
             {
-                Debug.Log($"Not enough mana to play {CardUI.cardData.CardName}.");
                 GameTurnMessager.instance.ShowMessage("Not enough mana!");
                 // Optionally: Snap card back to hand or show UI feedback
             }
@@ -89,9 +88,18 @@ public class FieldCardCanvas : MonoBehaviour, IDropHandler
         }
         int manaCost = ability.ManaCost;
 
-        if (player.HasEnoughMana(manaCost))
+        // Use the player from CardDeckManager (canonical player). Fall back to local 'player' if needed.
+        Player targetPlayer = (cardDeckManager != null && cardDeckManager.player != null) ? cardDeckManager.player : player;
+
+        if (targetPlayer == null)
         {
-            player.SpendMana(manaCost);
+            Debug.LogError("FieldCardCanvas.TryPlayCard: No Player assigned (cardDeckManager.player and local player are both null).");
+            return false;
+        }
+
+        if (targetPlayer.HasEnoughMana(manaCost))
+        {
+            targetPlayer.SpendMana(manaCost);
             return true;
         }
         else

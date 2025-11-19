@@ -711,7 +711,7 @@ MonoBehaviour:
   sfxOutputGroup: {fileID: -2732585784348165357, guid: d8017c057c0fb3b41ace469e9cb46b37, type: 2}
   MenuMusicClip: {fileID: 8300000, guid: 62abd310d03064b4ea06aa32c1609aa6, type: 3}
   RegularModeMusicClip: {fileID: 8300000, guid: e0e518afa2cc53346adb47a29e2e5cbc, type: 3}
-  BossModeMusicClip: {fileID: 8300000, guid: e0e518afa2cc53346adb47a29e2e5cbc, type: 3}
+  BossModeMusicClip: {fileID: 8300000, guid: 24d2416e2d2f8d845989b831089a3978, type: 3}
   AttackClip: {fileID: 8300000, guid: 533882329291e2b4da0088d5c45c84ca, type: 3}
   BlockClip: {fileID: 8300000, guid: 8fe9135f3745f9545b1c405a05aa3a12, type: 3}
   DoTclip: {fileID: 8300000, guid: 5e1ae178af0655341991af74c627a792, type: 3}

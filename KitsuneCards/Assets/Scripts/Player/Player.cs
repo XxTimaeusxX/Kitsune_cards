@@ -25,10 +25,18 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     public Image Healthbar;
 
     [Header("Mana")]
-    public float maxMana = 2;
+    public float maxMana = 10;
     public float currentMana = 2;
     public TMP_Text manaText;
     public Image Manabar;
+    // Cap for max mana (will be used if manaCrystalsUI is not assigned)
+    public int maxManaCap = 10;
+
+    // New mana crystals UI (optional). Assign in inspector to use crystal filler instead of or in addition to the bar.
+    public ManaCrystalsUI manaCrystalsUI;
+
+    // track last initialized crystal count to avoid reinitializing every update
+    private int _lastInitializedCrystals = -1;
 
     [Header("Armor")]
     public int armor = 0;
@@ -64,6 +72,20 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     {
         // call methods
         UpdateHealthUI();
+
+        // initialize crystals UI to current max (optional)
+        if (manaCrystalsUI != null)
+        {
+            int intMax = Mathf.Clamp(Mathf.RoundToInt(maxMana), 0, manaCrystalsUI.maxCrystalCap);
+            manaCrystalsUI.Initialize(intMax);
+            _lastInitializedCrystals = intMax;
+        }
+
+        // Ensure starting values respect the cap (use manaCrystalsUI cap if available)
+        int cap = manaCrystalsUI != null ? manaCrystalsUI.maxCrystalCap : maxManaCap;
+        maxMana = Mathf.Clamp(maxMana, 1, cap);
+        currentMana = Mathf.Clamp(currentMana, 0, maxMana);
+
         UpdateManaUI();
         UpdateArmorUI();
     }
@@ -153,12 +175,36 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         if (healthText != null) healthText.text = $"{currentHealth}/{PlayerMaxHealth}";
         if (Healthbar != null) Healthbar.fillAmount = PlayerMaxHealth > 0 ? currentHealth / PlayerMaxHealth : 0f;
     }
+
+    // Updated to use the simple ball crystals UI
     public void UpdateManaUI()
     {
         if (manaText != null) manaText.text = $"{currentMana}/{maxMana}";
         if(Manabar !=null)Manabar.fillAmount = maxMana > 0 ? currentMana / maxMana : 0f;
-       
 
+        Debug.Log($"Player.UpdateManaUI on '{name}': currentMana={currentMana}, maxMana={maxMana}");
+
+        // Update crystals UI if present. Uses integer balls and simple instantiate logic.
+        if (manaCrystalsUI != null)
+        {
+            int intMax = Mathf.Clamp(Mathf.RoundToInt(maxMana), 0, manaCrystalsUI.maxCrystalCap);
+            // only re-initialize when the max changed to avoid destroying/creating each update
+            if (intMax != _lastInitializedCrystals)
+            {
+                Debug.Log($"Player.UpdateManaUI: Reinitializing crystals for '{name}' to {intMax} (previous {_lastInitializedCrystals})");
+                manaCrystalsUI.Initialize(intMax);
+                _lastInitializedCrystals = intMax;
+            }
+
+            // Use Floor so when currentMana moves down slightly it visibly decreases
+            int intCurrent = Mathf.Clamp(Mathf.FloorToInt(currentMana), 0, intMax);
+            Debug.Log($"Player.UpdateManaUI: calling ShowBalls({intCurrent}) on manaCrystalsUI for '{name}'");
+            manaCrystalsUI.ShowBalls(intCurrent);
+        }
+        else
+        {
+            Debug.LogWarning($"Player.UpdateManaUI: manaCrystalsUI is NULL on Player '{name}'");
+        }
     }
     public void UpdateArmorUI()
     {
@@ -168,15 +214,26 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     ///////////// mana phases ///////////////
     public void StartTurnMana()
     {
-        // Example: gain 1 mana per turn, up to maxMana
-        maxMana = Mathf.Min(maxMana +1, 20);
-        currentMana = maxMana; // For testing, set to max mana
+        // Increase player's max mana by 1 at start of turn, but clamp to the configured cap (default 10)
+        int cap = manaCrystalsUI != null ? manaCrystalsUI.maxCrystalCap : maxManaCap;
+
+        // If maxMana is less than cap, increment it; otherwise leave unchanged.
+        if (maxMana < cap)
+        {
+            maxMana = maxMana + 1;
+        }
+
+        // Refill current mana to the player's current max (common design), but ensure it's not above cap.
+        maxMana = Mathf.Min(maxMana, cap);
+        currentMana = Mathf.Min(currentMana, maxMana);
+        currentMana = maxMana; // refill to max at turn start
+
+        // ensure crystals reflect the new max/current
         UpdateManaUI();
     }
 
     public void SpendMana(int amount)
     {
-
         currentMana = Mathf.Max(0, currentMana - amount);
         UpdateManaUI();
     }
@@ -257,13 +314,10 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         {
             finalBlock = Mathf.RoundToInt(blockamount * buffBlockPercentage);         
         }
-        //ArmorUIvfx.SetTrigger("ArmorVFX");
         armor += finalBlock;
         UpdateArmorUI();
         ArmorEffect.Play();
         AudioManager.Instance.PlayBlockSFX();
-        Debug.Log($"Player gains {blockamount} block.");
-        // Implement block logic here
     }
 
     public void ApplyReflect(int blockAmount, int turns, float reflectPercent)
@@ -273,9 +327,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         reflectPercentage = reflectPercent;
         ArmorEffect.Play();
         AudioManager.Instance.PlayReflectSFX();
-        Debug.Log($"Player gains {reflectPercentage * 100}% reflect.");
         statusHUD.UpdateReflect(reflectPercentage,reflectTurnsRemaining);
-        // Implement reflect logic here
     }
 
     ///////////// IBuffable///////////////
@@ -284,12 +336,9 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     {
         activeDoTTurns += turns;
         activeDoTDamage += BonusDamage;
-        // buffDotTurns += turns;
-        // int totalTurns = 2 + activeDoTTurns;
 
         DebuffEffect.Play();
         AudioManager.Instance.PlayDeBuffSFX();
-        // Implement DoT buff logic here
     }
     public void BuffAllEffects(int turns, float multiplier)
     {
@@ -322,19 +371,15 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         BuffEffect.Play();
         AudioManager.Instance.PlayBuffSFX();
         GameTurnMessager.instance.ShowMessage($"Player's block cards value are doubled for 2 turns.");
-        Debug.Log($"Player's block cards value are doubled for this turn.");
         statusHUD.UpdateBlockX(buffBlockPercentage, buffBlockTurns);
-        // Implement block buff logic here
     }
     ///////////// IDeBuffable///////////////
     public void ApplyDoT(int turns, int damageAmount)
     {
-       // Debug.Log("dddddddddddoooottt");
         AudioManager.Instance.PlayDeBuffSFX();
         DebuffEffect.Play();
         activeDoTTurns += turns;
         activeDoTDamage += damageAmount;
-       // activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
         statusHUD.UpdateDot(activeDoTDamage, activeDoTTurns);
         GameTurnMessager.instance.ShowMessage($"Player takes {damageAmount} DoT for {turns} turns.");
     }
@@ -348,7 +393,6 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
             DebuffEffect.Play();
             statusHUD.UpdateDot(activeDoTDamage, activeDoTTurns);
             GameTurnMessager.instance.ShowMessage($"Player's DoT damage is tripled.");
-            //   Debug.Log("Player's DoT damage is tripled.");
         }
     }
     public void ApplyDamageDebuff(int turns, float multiplier)
@@ -367,7 +411,6 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         UpdateManaUI();
         GameTurnMessager.instance.ShowMessage($"Player loses {amount} mana.");
         AudioManager.Instance.PlayDeBuffSFX();
-        Debug.Log($"Player loses {amount} mana.");
     }
     
     public void ApplyStun(int turns)

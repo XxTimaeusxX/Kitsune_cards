@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -39,6 +39,13 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     public int Currentmana = 5;
     public TMP_Text enemymanaText;
     public Image enemymanaBar;
+    // cap for enemy max mana (parallel to Player.maxManaCap)
+    public int maxManaCap = 10;
+
+    // Optional enemy mana crystal UI (uses same ManaCrystalsUI as Player)
+    public ManaCrystalsUI manaCrystalsUI;
+    // track last initialized crystal count to avoid reinitializing every update
+    private int _lastInitializedCrystals = -1;
 
     [Header("Damage")]
     public Animator DamageVFX;
@@ -140,11 +147,21 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         // Build effective config from EnemyData + optional BossData
         var cfg = BuildEffectiveConfig();
 
-        // Assign runtime maxima and currents
-        MaxHealth = cfg.MaxHealth;
-        Maxmana = cfg.MaxMana;
-        CurrentHealth = MaxHealth;
+        // Assign runtime health from config (ensure component MaxHealth is updated)
+        MaxHealth = Mathf.Max(1, cfg.MaxHealth);   // update component's MaxHealth
+        CurrentHealth = MaxHealth;                 // start at full health
+
+        // Assign runtime mana (clamp Maxmana to configured cap)
+        Maxmana = Mathf.Clamp(cfg.MaxMana, 0, maxManaCap);
         Currentmana = Mathf.Clamp(cfg.StartMana, 0, Maxmana);
+
+        // Initialize enemy mana crystal UI if assigned
+        if (manaCrystalsUI != null)
+        {
+            int intMax = Mathf.Clamp(Maxmana, 0, manaCrystalsUI.maxCrystalCap);
+            manaCrystalsUI.Initialize(intMax);
+            _lastInitializedCrystals = intMax;
+        }
 
         // Identity
         if (enemyPortrait != null) enemyPortrait.sprite = cfg.Portrait;
@@ -166,7 +183,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
             if (_bossMgr == null) // auto-create if missing
                 _bossMgr = new GameObject("BossAbilityManager").AddComponent<BossAbilityManager>();
 
-            _bossMgr.OnSpawn(bossData, this, deckManager != null ? deckManager.player : null);
+            _bossMgr.OnSpawn(bossData, this, deckManager != null ? deckManager.player : null);//
         }
     }
 
@@ -212,7 +229,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     {
         if (enemyData == null) return;
 
-        // Do NOT set stats here (hub shouldn’t hard-code).
+        // Do NOT set stats here (hub shouldnï¿½t hard-code).
         // Keep deck folder and baseline visuals only.
         if (!string.IsNullOrEmpty(enemyData.CardsResourceFolder))
             cardsResourceFolder = enemyData.CardsResourceFolder;
@@ -228,7 +245,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         CardData[] loaded = Resources.LoadAll<CardData>(folder);
 
         // Mana limits (from deckManager if available, otherwise fallback)
-        var manaLimits = new (int Mana, int Limit)[]
+        var manaLimits = new (int Mana, int Limit)[] 
         {
             (1, deckManager != null ? deckManager.oneAPLimit : 16),
             (2, deckManager != null ? deckManager.twoAPLimit : 12),
@@ -352,15 +369,18 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
             if (remaining > 0)
             {
                 var anyPool = new List<CardData>();
+                // Only include allowed ability types in the fallback so we don't inject unwanted types
+                var allowedSet = new HashSet<AbilityType>(abilityTypes);
                 foreach (var kvp in typesDict)
                 {
+                    if (!allowedSet.Contains(kvp.Key)) continue;
                     if (kvp.Value != null && kvp.Value.Count > 0)
                         anyPool.AddRange(kvp.Value);
                 }
 
                 if (anyPool.Count == 0)
                 {
-                    Debug.LogWarning($"Enemy mana {mana}: no cards available to fill remaining {remaining}. Bucket will be undersized.");
+                    Debug.LogWarning($"Enemy mana {mana}: no cards of allowed types found to fill remaining {remaining}. Bucket will be undersized.");
                 }
                 else
                 {
@@ -457,17 +477,14 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
 
     private IEnumerator EnemyLogicRoutine()
     {
-        yield return new WaitForSeconds(1f); // Preparation phase
+        yield return new WaitForSeconds(1f);
 
         bool playedAtLeastOne = false;
 
-        // Loop: play as many cards as possible with available mana
         while (true)
         {
-            // Reshuffle if needed before selecting playable card
             MaybeReshuffleEnemyDeck();
 
-            // Find the best playable card by scoring candidates (prefers debuff/buff when allowed)
             CardData cardToPlay = null;
             ManaCostandEffect? selectedAbility = null;
             int bestScore = int.MinValue;
@@ -500,13 +517,9 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
 
                 if (!ability.HasValue) continue;
                 if (ability.Value.ManaCost > Currentmana) continue;
-
-                // skip abilities that are not allowed for this GameMode (prevents injecting Damage/Block into BuffAndDebuff)
                 if (!IsAbilityAllowed(ability.Value.Type, allowed)) continue;
 
                 int score = ComputeCardScore(card, ability.Value);
-
-                // tie-breaker: prefer earlier cards (stable)
                 if (score > bestScore)
                 {
                     bestScore = score;
@@ -542,11 +555,11 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
                 enemyCards.Remove(cardToPlay);
                 enemyDiscard.Add(cardToPlay);
 
-                yield return new WaitForSeconds(0.5f); // Small delay between plays
+                yield return new WaitForSeconds(0.5f);
             }
             else
             {
-                break; // No more playable cards or out of mana
+                break;
             }
         }
 
@@ -556,11 +569,14 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
             yield return new WaitForSeconds(1f);
         }
 
-        yield return new WaitForSeconds(1f); // Wait before ending turn
-        Maxmana = Mathf.Min(Maxmana + 1, 20);
+        yield return new WaitForSeconds(1f);
+
+        // Increase enemy max mana by 1 up to the configured cap, then refill current mana to max.
+        Maxmana = Mathf.Min(Maxmana + 1, maxManaCap);
         Currentmana = Maxmana;
         UpdateManaUI();
-        deckManager.OnEnemyEndTurn();
+
+        if (deckManager != null) deckManager.OnEnemyEndTurn();
     }
 
 
@@ -582,6 +598,14 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
 
             float normalized = Maxmana > 0 ? (float)Currentmana / Maxmana : 0f;
             enemymanaBar.fillAmount = Mathf.Clamp01(normalized);
+        }
+
+        // Update mana crystal UI if assigned
+        if (manaCrystalsUI != null && _lastInitializedCrystals != Mathf.Clamp(Maxmana, 0, manaCrystalsUI.maxCrystalCap))
+        {
+            int intMax = Mathf.Clamp(Maxmana, 0, manaCrystalsUI.maxCrystalCap);
+            manaCrystalsUI.Initialize(intMax);
+            _lastInitializedCrystals = intMax;
         }
     }
     //////////// IDamageable ///////////////
