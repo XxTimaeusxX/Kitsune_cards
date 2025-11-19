@@ -54,12 +54,14 @@ public class HandUIManager : MonoBehaviour
             // Choose the correct prefab by element, fall back to Cardprefab
             var chosen = GetPrefabFor(cardData.elementType);
             GameObject instanceGO;
+            CardUI cardUI = null;
 
             if (chosen != null)
             {
                 var instance = Instantiate(chosen, handpanel, false);
                 instance.LoadCard(cardData);
                 instanceGO = instance.gameObject;
+                cardUI = instance;
             }
             else
             {
@@ -69,7 +71,7 @@ public class HandUIManager : MonoBehaviour
                     continue;
                 }
                 instanceGO = Instantiate(Cardprefab, handpanel);
-                var cardUI = instanceGO.GetComponent<CardUI>();
+               cardUI = instanceGO.GetComponent<CardUI>();
                 if (cardUI != null)
                     cardUI.LoadCard(cardData);
                 else
@@ -84,6 +86,7 @@ public class HandUIManager : MonoBehaviour
                 -Mathf.Abs(Mathf.Deg2Rad * angle) * 150f
             );
             rt.rotation = Quaternion.Euler(0, 0, angle);
+            cardUI.HandCardRotation(angle);
         }
     }
     
