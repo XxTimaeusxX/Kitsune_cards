@@ -5,7 +5,8 @@ public enum GameMode
     Regular,
     BuffOnly,
     BuffAndDebuff,
-    BossOnly
+    BossOnly,
+    RogueLike
 }
 
 public class GameModeConfig : MonoBehaviour
@@ -13,6 +14,7 @@ public class GameModeConfig : MonoBehaviour
     public static GameMode CurrentMode { get; private set; } = GameMode.Regular;
 
     private static GameModeConfig _instance;
+    public static bool UpgradesEnabled { get; private set; } = false;
 
     private void Awake()
     {
@@ -30,7 +32,11 @@ public class GameModeConfig : MonoBehaviour
         EnsureInstance();
         CurrentMode = mode;
     }
-
+    public static void SetUpgradesEnabled(bool enabled)
+    {
+        EnsureInstance();
+        UpgradesEnabled = enabled;
+    }
     private static void EnsureInstance()
     {
         if (_instance == null)

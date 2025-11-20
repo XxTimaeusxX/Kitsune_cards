@@ -6,6 +6,9 @@ using System.Collections;
 
 public class CardDeckManager : MonoBehaviour
 {
+    [Header("Upgrade references")]
+    public UpgradesUI upgradesUI;
+
     [Header("APLimit")]
     // Set your per-AP limits here. These are summed to compute the deck size.
     public int oneAPLimit = 16;
@@ -78,6 +81,10 @@ public class CardDeckManager : MonoBehaviour
     // NEW: pending boss (spawned after the enemy of the same wave)
     private EnemyData _pendingBossBaseEnemyData;
     private BossData _pendingBossData;
+
+    // Pending upgrade selected by player (nullable)
+    private UpgradeDef? _pendingUpgrade = null;
+
     void Start()
     {
         // Ensure deckSize matches the sum of AP limits
@@ -109,7 +116,7 @@ public class CardDeckManager : MonoBehaviour
         }
 
         // Debuff-mode: use DebuffWaveSequence and ignore the normal waveSequence
-        if (GameModeConfig.CurrentMode == GameMode.BuffAndDebuff)
+        if (GameModeConfig.CurrentMode == GameMode.RogueLike)
         {
             currentDebuffIndex++;
 
@@ -266,8 +273,48 @@ public class CardDeckManager : MonoBehaviour
     // Called by Enemy when its health reaches 0
     public void OnEnemyDefeated(Enemy defeated)
     {
-        NextEnemy();
+        if(!GameModeConfig.UpgradesEnabled || upgradesUI == null || upgradesUI.upgradeData == null)
+        {
+            NextEnemy();
+            return;
+        }
+        if (upgradesUI != null)
+        { Time.timeScale = 0f; } // Pause the game while upgrade UI is active
+       
+        // Show UI and get the selected UpgradeDef back via callback
+        upgradesUI.ShowRandomChoices(
+            /*blockTarget*/ null,
+            /*debuffTarget*/ null,
+            /*buffTarget*/ null,
+            /*opponent*/ null,
+            chosen =>
+            {
+                // Defensive: if UI returned a default/empty struct, just continue
+                if (string.IsNullOrEmpty(chosen.Title) && string.IsNullOrEmpty(chosen.Description))
+                {
+                    NextEnemy();
+                    return;
+                }
 
+                // Store pending upgrade and spawn next enemy
+                _pendingUpgrade = chosen;
+                Time.timeScale = 1f; // Resume the game
+                NextEnemy();
+
+                // If a pending upgrade exists apply it to the freshly initialized enemy
+                if (_pendingUpgrade.HasValue)
+                {
+                    upgradesUI.upgradeData.ApplyUpgradeToTarget(
+                        _pendingUpgrade.Value,
+                        player,    // IBlockable
+                        enemy,    // IDebuffable
+                        player,    // IBuffable
+                        enemy     // IDamageable
+                    );
+                    _pendingUpgrade = null;
+                }
+            }
+        );
     }
     void LoadcardsfromResources()
     {

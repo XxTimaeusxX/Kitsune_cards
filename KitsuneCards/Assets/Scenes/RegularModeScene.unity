@@ -1641,6 +1641,188 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 846224555}
   m_CullTransparentMesh: 1
+--- !u!1 &857417655
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 857417656}
+  - component: {fileID: 857417658}
+  - component: {fileID: 857417657}
+  - component: {fileID: 857417659}
+  - component: {fileID: 857417661}
+  - component: {fileID: 857417662}
+  m_Layer: 5
+  m_Name: UpgradePanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &857417656
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 857417655}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1675413347}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &857417657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 857417655}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.12935074, g: 0, b: 0.2264151, a: 0.9490196}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &857417658
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 857417655}
+  m_CullTransparentMesh: 1
+--- !u!114 &857417659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 857417655}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 4
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 1
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
+--- !u!114 &857417661
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 857417655}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b47d5541c0fe88d4fb82b89c39926d5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  panel: {fileID: 857417656}
+  upgradeButtonPrefab: {fileID: 5389209925770211493, guid: 1035818818175a547aeb3a2499609bdb, type: 3}
+  upgradeData: {fileID: 857417662}
+  choiceCount: 3
+--- !u!114 &857417662
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 857417655}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 629a34337afe2854eb53a12135e85095, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Upgrades:
+  - Title: Dragon Scale Gusoku
+    Description: Increase Block Amount by 20
+    Icon: {fileID: 21300000, guid: 88e285384dc158d49a3c2a51d9052fec, type: 3}
+    upgradeType: 0
+    TurnValue: 0
+    ValueAmount: 20
+    MultiplierAmount: 0
+  - Title: Stone Gaze
+    Description: Stun opponent for 5 turns
+    Icon: {fileID: 21300000, guid: 9b0f70a65b39dce448dc293cc7dc7df0, type: 3}
+    upgradeType: 1
+    TurnValue: 5
+    ValueAmount: 0
+    MultiplierAmount: 0
+  - Title: Ember of Eternity
+    Description: apply 12 Dot damage for 3 turns
+    Icon: {fileID: 21300000, guid: bfeb40202c455d2429151cd159d2fa4c, type: 3}
+    upgradeType: 2
+    TurnValue: 3
+    ValueAmount: 12
+    MultiplierAmount: 0
+  - Title: Baku's Retribution
+    Description: Reflect %50 of incoming Damage for 5 turns
+    Icon: {fileID: 21300000, guid: e74c53197e77c7e43af84dd26f8329c4, type: 3}
+    upgradeType: 3
+    TurnValue: 5
+    ValueAmount: 0
+    MultiplierAmount: 0.5
+  - Title: Gaki's Gluttony
+    Description: Heal to full health,lose all your mana.
+    Icon: {fileID: 21300000, guid: 03a7608573ff3b84baef342284a73179, type: 3}
+    upgradeType: 4
+    TurnValue: 0
+    ValueAmount: 0
+    MultiplierAmount: 0
+  - Title: Mushi's Pact
+    Description: recieve 25 armor,lose 15 health.
+    Icon: {fileID: 21300000, guid: 98f1b8dda417ef048a7b195f51ac4584, type: 3}
+    upgradeType: 5
+    TurnValue: 25
+    ValueAmount: 15
+    MultiplierAmount: 15
+  - Title: Searing Retribution
+    Description: recieve 10 Dot damage for 1 turn,enemy receives double.
+    Icon: {fileID: 21300000, guid: f824cc984a9897447b3b3e48a8c19cca, type: 3}
+    upgradeType: 6
+    TurnValue: 1
+    ValueAmount: 10
+    MultiplierAmount: 0
 --- !u!1 &881549065
 GameObject:
   m_ObjectHideFlags: 0
@@ -4135,6 +4317,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8173ec2ddb2d1a9459312f591dfa0a1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  upgradesUI: {fileID: 857417661}
   oneAPLimit: 16
   twoAPLimit: 12
   fiveAPLimit: 8
@@ -4173,7 +4356,13 @@ MonoBehaviour:
   - enemyData: {fileID: 11400000, guid: da0ccde84351b1b4e924dec0e56e2598, type: 2}
     bossData: {fileID: 0}
   - enemyData: {fileID: 11400000, guid: 2f0743afc97a76e479707751763bdb7b, type: 2}
-    bossData: {fileID: 11400000, guid: f6111041befcc1e4997bd82d1f277fd1, type: 2}
+    bossData: {fileID: 0}
+  - enemyData: {fileID: 11400000, guid: ceeb1452861686e498587253ed88ed11, type: 2}
+    bossData: {fileID: 0}
+  - enemyData: {fileID: 11400000, guid: a212ce1dd6801b04e931c9dba5c9d1aa, type: 2}
+    bossData: {fileID: 11400000, guid: bc6577a6b07a0a24aa3e96399729a237, type: 2}
+  - enemyData: {fileID: 11400000, guid: 2f0743afc97a76e479707751763bdb7b, type: 2}
+    bossData: {fileID: 0}
   bossWaveSequence:
   - {fileID: 11400000, guid: bc6577a6b07a0a24aa3e96399729a237, type: 2}
   - {fileID: 11400000, guid: f6111041befcc1e4997bd82d1f277fd1, type: 2}
@@ -4596,6 +4785,7 @@ RectTransform:
   - {fileID: 1524611481}
   - {fileID: 1901431559}
   - {fileID: 1118439429}
+  - {fileID: 857417656}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -6908,16 +7098,24 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4988837900636767247, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: prefabMap.Array.size
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 4988837900636767247, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: prefabMap.Array.data[4].Kind
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4988837900636767247, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: prefabMap.Array.data[5].Kind
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4988837900636767247, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: prefabMap.Array.data[4].Prefab
       value: 
       objectReference: {fileID: 6862341989828386702, guid: 569be451ba8f11543ad2fb9d4e11d550, type: 3}
+    - target: {fileID: 4988837900636767247, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: prefabMap.Array.data[5].Prefab
+      value: 
+      objectReference: {fileID: 6862341989828386702, guid: a3cb8c7cd09352242825c46e5af4725a, type: 3}
     - target: {fileID: 4997251288382061757, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: m_Type
       value: 3

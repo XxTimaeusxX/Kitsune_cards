@@ -13,13 +13,15 @@ public class MainMenuController : MonoBehaviour
     {
         Time.timeScale = 1;
         GameModeConfig.SetMode(GameMode.Regular);
+        GameModeConfig.SetUpgradesEnabled(false);
         SceneManager.LoadScene("RegularModeScene");
     }
 
     public void LoadBuffOnlyMode()
     {
         Time.timeScale = 1;
-        GameModeConfig.SetMode(GameMode.BuffAndDebuff);
+        GameModeConfig.SetMode(GameMode.RogueLike);
+        GameModeConfig.SetUpgradesEnabled(true);
         SceneManager.LoadScene("RegularModeScene");
     }
 
@@ -27,6 +29,7 @@ public class MainMenuController : MonoBehaviour
     {
         Time.timeScale = 1;
         GameModeConfig.SetMode(GameMode.BossOnly);
+        GameModeConfig.SetUpgradesEnabled(false);
         SceneManager.LoadScene("RegularModeScene");
     }
 

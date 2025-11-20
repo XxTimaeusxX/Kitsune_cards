@@ -15,7 +15,7 @@ public class BackGroundLoader : MonoBehaviour
                 NormalLevelImage.SetActive(true);
                 BuffandDEbufflevelImage.SetActive(false);
                 break;
-            case GameMode.BuffAndDebuff:
+            case GameMode.RogueLike:
                 NormalLevelImage.SetActive(false);
                 BuffandDEbufflevelImage.SetActive(true);
                 break;

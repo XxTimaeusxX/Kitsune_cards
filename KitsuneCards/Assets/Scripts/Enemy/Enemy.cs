@@ -599,14 +599,21 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
             float normalized = Maxmana > 0 ? (float)Currentmana / Maxmana : 0f;
             enemymanaBar.fillAmount = Mathf.Clamp01(normalized);
         }
-
+       
         // Update mana crystal UI if assigned
-        if (manaCrystalsUI != null && _lastInitializedCrystals != Mathf.Clamp(Maxmana, 0, manaCrystalsUI.maxCrystalCap))
+        if (manaCrystalsUI != null)
         {
             int intMax = Mathf.Clamp(Maxmana, 0, manaCrystalsUI.maxCrystalCap);
-            manaCrystalsUI.Initialize(intMax);
-            _lastInitializedCrystals = intMax;
+            if (intMax != _lastInitializedCrystals)
+            {
+                manaCrystalsUI.Initialize(intMax);
+                _lastInitializedCrystals = intMax;
+            }
+
+            int intCurrent = Mathf.Clamp(Mathf.FloorToInt(Currentmana), 0, intMax);
+            manaCrystalsUI.ShowBalls(intCurrent);
         }
+       
     }
     //////////// IDamageable ///////////////
     public void TakeDamage(int amount)
