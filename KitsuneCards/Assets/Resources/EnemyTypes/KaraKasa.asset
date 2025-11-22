@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EnemyName: Karakasa
   EnemySprite: {fileID: 21300000, guid: 79e043a418c1fea42bd612ae8913648c, type: 3}
-  MaxHealth: 15
-  MaxMana: 7
-  StartMana: 7
+  MaxHealth: 30
+  MaxMana: 5
+  StartMana: 5
   CardsResourceFolder: enemy1
   MaxDeckSize: 40
   ManaLimits:

@@ -74,63 +74,96 @@ public class UpgradeData : MonoBehaviour
             }
         }
     }
+    public List<UpgradeDef> RerollUpgrades()
+    {
+        // Generate a fresh sampled array (GetDefaultUpgrades already samples Random.Range for values)
+        var sampledTemplates = GetDefaultUpgrades();
+        var sampledList = new List<UpgradeDef>(sampledTemplates.Length);
+
+        foreach (var template in sampledTemplates)
+        {
+            var sampled = template; // copy
+
+            // Preserve inspector-assigned Icon if present by matching Title
+            if (Upgrades != null && Upgrades.Count > 0)
+            {
+                var existing = Upgrades.Find(u => !string.IsNullOrEmpty(u.Title) && u.Title == template.Title);
+                if (existing.Title != null && existing.Icon != null)
+                    sampled.Icon = existing.Icon;
+            }
+            sampledList.Add(sampled);
+        }
+
+        return sampledList;
+    }
     private UpgradeDef[] GetDefaultUpgrades()
     {
+        int dragonArmor = Random.Range(15, 25); // dragon scale gusoku
+        int stoneGazeStuns = Random.Range(2, 5); // stone gaze stun turns
+        int emberDot = Random.Range(10, 15); // ember of eternity dot damage
+        int emberTurns = Random.Range(1, 4); // ember of eternity turns
+        int bakuReflectTurns = Random.Range(4, 6); // baku's retribution turns
+        int gakiHealAmount = 0; // gaki's gluttony heal amount 
+        int gakiManaLoss = 0; // gaki's gluttony mana loss
+        int mushiArmor = Random.Range(20, 25); // mushi's pact armor
+        int mushiHealthLoss = Random.Range(10, 15); // mushi's pact health loss
+        int searingDot = Random.Range(10, 15); // searing retribution dot damage
+        int searingTurns = Random.Range(1,3); // searing retribution turns
         return new UpgradeDef[]
         {
             new UpgradeDef
             {
                 Title = "Dragon Scale Gusoku",
-                Description = "Increase Block Amount by 20",
+                Description = $"Increase Block Amount by {dragonArmor}",
                 upgradeType = UpgradeDef.UpgradeType.BlockAmount,
-                ValueAmount = 20,
+                ValueAmount = dragonArmor,
             },
             new UpgradeDef
             {
                 Title = "Stone Gaze",
-                Description = "Stun opponent for 5 turns",
+                Description = $"Stun opponent for {stoneGazeStuns} turns",
                 upgradeType = UpgradeDef.UpgradeType.StunAmount,
-                TurnValue = 5,
+                TurnValue = stoneGazeStuns,
             },
             new UpgradeDef
             {
                 Title = "Ember of Eternity",
-                Description = "apply 12 Dot damage for 3 turns",
+                Description = $"apply {emberDot} Dot damage for {emberTurns} turns",
                 upgradeType = UpgradeDef.UpgradeType.TripleDot,
-                TurnValue = 3,
-                ValueAmount = 12,
+                TurnValue = emberTurns,
+                ValueAmount = emberDot,
             },
             new UpgradeDef
             {
                 Title = "Baku's Retribution",
-                Description = "Reflect %50 of incoming Damage for 5 turns",
+                Description = $"Reflect %50 of incoming Damage for {bakuReflectTurns} turns",
                 upgradeType = UpgradeDef.UpgradeType.ReflectAmount,
-                TurnValue = 5,
+                TurnValue = bakuReflectTurns,
                 MultiplierAmount = .50f,
             },
              new UpgradeDef
             {
                 Title = "Gaki's Gluttony",
-                Description = "Heal to full health,lose all your mana.",
+                Description = $"Heal to full health,lose all your mana.",
                 upgradeType = UpgradeDef.UpgradeType.GakisGluttony,
-                TurnValue = 0,
-                ValueAmount = 0,
+                TurnValue = gakiHealAmount,
+                ValueAmount = gakiManaLoss,
             },
               new UpgradeDef// not implemented yet
             {
                 Title = "Mushi's Pact",
-                Description = "recieve 25 armor,lose 15 health.",
+                Description = $"recieve {mushiArmor} armor,lose {mushiHealthLoss} health.",
                 upgradeType = UpgradeDef.UpgradeType.Mushis_Pact,
-                TurnValue = 25,
-                ValueAmount = 15,
+                TurnValue = mushiArmor,
+                ValueAmount = mushiHealthLoss,
             },
                 new UpgradeDef// not implemented yet
             {
                 Title = "Searing Retribution",
-                Description = "recieve 10 Dot damage for 1 turn,enemy receives double.",
+                Description = $"recieve {searingDot} Dot damage for {searingTurns} turn,enemy receives double.",
                 upgradeType = UpgradeDef.UpgradeType.Searing_Retribution,
-                TurnValue = 1,
-                ValueAmount = 10,
+                TurnValue =  searingTurns,
+                ValueAmount = searingDot,
             },
         };
     }
@@ -199,8 +232,8 @@ public class UpgradeData : MonoBehaviour
             case UpgradeDef.UpgradeType.Mushis_Pact:
                 if (player != null)
                 {
-                    player.ApplyBlock(upgrade.ValueAmount);
                     player.TakeDamage(upgrade.ValueAmount);
+                    player.ApplyBlock(upgrade.TurnValue);
                 }
                // else if (blockTarget != null) { blockTarget.ApplyBlock(upgrade.TurnValue); player.TakeDamage(upgrade.ValueAmount); }
                     // Not implemented yet
@@ -208,11 +241,11 @@ public class UpgradeData : MonoBehaviour
             case UpgradeDef.UpgradeType.Searing_Retribution:
                 if(enemy != null)
                 {
-                    enemy.ApplyDoT(2, 20); // enemy takes 20 DoT for 1 turn
+                    enemy.ApplyDoT(upgrade.TurnValue * 2, upgrade.ValueAmount *2); // enemy takes x2
                 }
                 if(player != null)
                 {
-                    player.ApplyDoT(1, 10); // player takes 10 DoT for 1 turn
+                    player.ApplyDoT(upgrade.TurnValue, upgrade.ValueAmount); 
                 }
                 // Not implemented yet
                 break;

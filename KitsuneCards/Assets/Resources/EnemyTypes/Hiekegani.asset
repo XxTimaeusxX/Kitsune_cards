@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f43abc45139fa6141a6a8b876d856e11, type: 3}
-  m_Name: NuniKabe
+  m_Name: Hiekegani
   m_EditorClassIdentifier: 
-  EnemyName: Nunikabe
-  EnemySprite: {fileID: 21300000, guid: 48670799e2ec91c4c9e90f14d6b22f14, type: 3}
-  MaxHealth: 80
-  MaxMana: 3
-  StartMana: 3
+  EnemyName: Hiekegani
+  EnemySprite: {fileID: 21300000, guid: dbe0701b7ba0d0b4bba963ea771e9d3f, type: 3}
+  MaxHealth: 25
+  MaxMana: 4
+  StartMana: 4
   CardsResourceFolder: enemy1
   MaxDeckSize: 40
   ManaLimits:
@@ -28,4 +28,4 @@ MonoBehaviour:
     Limit: 8
   - Mana: 10
     Limit: 4
-  PreferredAbilities: 
+  PreferredAbilities: 0300000001000000

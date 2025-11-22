@@ -4346,26 +4346,36 @@ MonoBehaviour:
     bossData: {fileID: 0}
   - enemyData: {fileID: 11400000, guid: ceeb1452861686e498587253ed88ed11, type: 2}
     bossData: {fileID: 0}
+  - enemyData: {fileID: 11400000, guid: 077b15c20947ae04ca3b76ccd34dc994, type: 2}
+    bossData: {fileID: 0}
+  - enemyData: {fileID: 11400000, guid: da0ccde84351b1b4e924dec0e56e2598, type: 2}
+    bossData: {fileID: 0}
+  - enemyData: {fileID: 11400000, guid: 140d9188dfdd7f74f9f3cc8611c19733, type: 2}
+    bossData: {fileID: 0}
   - enemyData: {fileID: 11400000, guid: a212ce1dd6801b04e931c9dba5c9d1aa, type: 2}
-    bossData: {fileID: 11400000, guid: bc6577a6b07a0a24aa3e96399729a237, type: 2}
+    bossData: {fileID: 11400000, guid: f6111041befcc1e4997bd82d1f277fd1, type: 2}
   DebuffWaveSequence:
   - enemyData: {fileID: 11400000, guid: 70cec47f5163e0343a95303cbd951d8d, type: 2}
     bossData: {fileID: 0}
   - enemyData: {fileID: 11400000, guid: 140d9188dfdd7f74f9f3cc8611c19733, type: 2}
-    bossData: {fileID: 0}
+    bossData: {fileID: 11400000, guid: 73fb33e48bb5a0a42821600eb13f11bf, type: 2}
   - enemyData: {fileID: 11400000, guid: da0ccde84351b1b4e924dec0e56e2598, type: 2}
     bossData: {fileID: 0}
   - enemyData: {fileID: 11400000, guid: 2f0743afc97a76e479707751763bdb7b, type: 2}
     bossData: {fileID: 0}
   - enemyData: {fileID: 11400000, guid: ceeb1452861686e498587253ed88ed11, type: 2}
-    bossData: {fileID: 0}
+    bossData: {fileID: 11400000, guid: 7aef38ddd018a4b4d855e2aa11cfc629, type: 2}
   - enemyData: {fileID: 11400000, guid: a212ce1dd6801b04e931c9dba5c9d1aa, type: 2}
-    bossData: {fileID: 11400000, guid: bc6577a6b07a0a24aa3e96399729a237, type: 2}
-  - enemyData: {fileID: 11400000, guid: 2f0743afc97a76e479707751763bdb7b, type: 2}
     bossData: {fileID: 0}
+  - enemyData: {fileID: 11400000, guid: 077b15c20947ae04ca3b76ccd34dc994, type: 2}
+    bossData: {fileID: 0}
+  - enemyData: {fileID: 11400000, guid: 2f0743afc97a76e479707751763bdb7b, type: 2}
+    bossData: {fileID: 11400000, guid: bc6577a6b07a0a24aa3e96399729a237, type: 2}
   bossWaveSequence:
+  - {fileID: 11400000, guid: 73fb33e48bb5a0a42821600eb13f11bf, type: 2}
   - {fileID: 11400000, guid: bc6577a6b07a0a24aa3e96399729a237, type: 2}
   - {fileID: 11400000, guid: f6111041befcc1e4997bd82d1f277fd1, type: 2}
+  - {fileID: 11400000, guid: 7aef38ddd018a4b4d855e2aa11cfc629, type: 2}
 --- !u!4 &1601799124
 Transform:
   m_ObjectHideFlags: 0

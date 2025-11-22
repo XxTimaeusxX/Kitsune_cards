@@ -21,7 +21,14 @@ public class UpgradesUI : MonoBehaviour
     {
         gameObject.SetActive(false);
     }
-
+    void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.R))
+        {
+            Debug.Log("R key pressed - Rerolling Upgrades");
+            var rerollPress = upgradeData.RerollUpgrades();
+        }
+    }
     // Show up to `choiceCount` random upgrades; caller receives the selected UpgradeDef via callback.
     // The callback signature is Action<UpgradeDef>.
     public void ShowRandomChoices(IBlockable blockTarget, IDebuffable debuffTarget, IBuffable buffTarget, IDamageable opponent, Action<UpgradeDef> onChosen)
@@ -46,7 +53,7 @@ public class UpgradesUI : MonoBehaviour
             }
         }
 
-        var pool = upgradeData.Upgrades ?? new List<UpgradeDef>();
+        var pool = upgradeData.RerollUpgrades();
         if (pool.Count == 0)
         {
             Debug.LogWarning("UpgradesUI: no upgrades available.");

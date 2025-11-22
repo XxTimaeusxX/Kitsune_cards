@@ -13,6 +13,8 @@ public class BossData : ScriptableObject
     {
         HealEveryNTurns,
         DrainManaEveryNTurns,
+        OshioniStun,
+        YukiOnnaFrostStun,
         // Add more later...
     }
 
@@ -33,4 +35,14 @@ public class BossData : ScriptableObject
     [Header("Drain Mana Every N Turns")]
     [Min(1)] public int drainEveryTurns = 3;
     [Min(1)] public int drainAmount = 1;
+
+    [Header("Oshini Stun/ apply dot Every N Turns")]
+    [Min(1)] public int stun_and_Dot_EveryTurns = 4;
+    [Min(1)] public int stunDuration = 1;
+    [Min(1)] public int dotDuration = 3;
+    [Min(1)] public int dotDamagePerTurn = 5;
+
+    [Header("Yuki-onna frost stun")]
+    [Min(1)] public int frostStunEveryTurns = 4;
+    [Min(1)] public int frostStunDuration = 2;
 }

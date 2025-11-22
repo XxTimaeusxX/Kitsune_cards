@@ -32,6 +32,8 @@ public class BossAbilityManager : MonoBehaviour
         {
             { BossData.BossAbilityType.HealEveryNTurns, HealEveryNTurns },
             { BossData.BossAbilityType.DrainManaEveryNTurns, DrainManaEveryNTurns },
+            { BossData.BossAbilityType.OshioniStun, OshioniStun },
+            { BossData.BossAbilityType.YukiOnnaFrostStun, YukiOnnaFrostStun },
         };
     }
 
@@ -87,6 +89,29 @@ public class BossAbilityManager : MonoBehaviour
         GameTurnMessager.instance.ShowMessage($"Boss drains {amt} of your mana.");
     }
 
+    private void OshioniStun(BossData boss, Enemy enemy, Player player, int turnIndex)
+    {
+        if (!ShouldTriggerEvery(turnIndex, boss.stun_and_Dot_EveryTurns)) return;
+        if (player == null) return;
+
+        int OshioniWebStun = boss.stunDuration;
+        int OshioniDotDuration = boss.dotDuration;
+        int OshioniDotDamage = boss.dotDamagePerTurn;
+        player.ApplyStun(OshioniWebStun);
+        player.ApplyDoT(OshioniDotDuration, OshioniDotDamage);
+        GameTurnMessager.instance.ShowMessage($"Oshioni Web Stuns you for {OshioniWebStun} turns and applies {OshioniDotDamage} Dot for {OshioniDotDuration} turns.");
+        
+    }
+
+    private void YukiOnnaFrostStun(BossData boss, Enemy enemy, Player player, int turnIndex)
+    {
+        if (!ShouldTriggerEvery(turnIndex, boss.frostStunEveryTurns)) return;
+        if (player == null) return;
+        int YukiOnnaFrostStun = boss.frostStunDuration;
+        player.ApplyStun(YukiOnnaFrostStun);
+        GameTurnMessager.instance.ShowMessage($"Yuki Onna Frost Stuns you for {YukiOnnaFrostStun} turns.");
+
+    }
     // --------------------
     // Helpers
     // --------------------
