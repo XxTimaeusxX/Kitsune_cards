@@ -94,7 +94,8 @@ public class CardDeckManager : MonoBehaviour
         Shuffle(cards);
         DrawCard(HandstartSize);
         BeginEnemySequence();
-        StartPlayerTurn();
+        StartCoroutine( StartPlayerTurn());
+       
     }
 
 

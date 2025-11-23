@@ -37,8 +37,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     [Header("Mana")]
     public int Maxmana = 10;
     public int Currentmana = 5;
-    public TMP_Text enemymanaText;
-    public Image enemymanaBar;
+
     // cap for enemy max mana (parallel to Player.maxManaCap)
     public int maxManaCap = 10;
 
@@ -592,14 +591,9 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
 
     public void UpdateManaUI()
     {
-        if (enemymanaText != null) enemymanaText.text = $"{Currentmana}/{Maxmana}";
-        if (enemymanaBar != null)
-        {
+        // Numeric text and legacy image bar are intentionally NOT updated anymore.
+        // The UI is now driven by the ManaCrystalsUI (balls) only.
 
-            float normalized = Maxmana > 0 ? (float)Currentmana / Maxmana : 0f;
-            enemymanaBar.fillAmount = Mathf.Clamp01(normalized);
-        }
-       
         // Update mana crystal UI if assigned
         if (manaCrystalsUI != null)
         {
@@ -613,7 +607,15 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
             int intCurrent = Mathf.Clamp(Mathf.FloorToInt(Currentmana), 0, intMax);
             manaCrystalsUI.ShowBalls(intCurrent);
         }
-       
+        else
+        {
+            // avoid spamming logs; set sentinel once if you want to know it's missing during debug
+            if (_lastInitializedCrystals != -2)
+            {
+                Debug.LogWarning($"Enemy.UpdateManaUI: manaCrystalsUI is NULL on Enemy '{name}'. No visual mana will be shown.");
+                _lastInitializedCrystals = -2;
+            }
+        }
     }
     //////////// IDamageable ///////////////
     public void TakeDamage(int amount)

@@ -40,7 +40,7 @@ public class BossData : ScriptableObject
     [Min(1)] public int stun_and_Dot_EveryTurns = 4;
     [Min(1)] public int stunDuration = 1;
     [Min(1)] public int dotDuration = 3;
-    [Min(1)] public int dotDamagePerTurn = 5;
+    [Min(1)] public int dotDamagePerTurn = 4;
 
     [Header("Yuki-onna frost stun")]
     [Min(1)] public int frostStunEveryTurns = 4;

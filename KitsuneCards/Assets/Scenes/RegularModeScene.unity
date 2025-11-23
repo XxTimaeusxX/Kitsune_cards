@@ -315,8 +315,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e567ea27a9370d4aaecf1030ec115fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  crystalsParent: {fileID: 225229495}
   crystalPrefab: {fileID: 5786240167613382979, guid: c60233b68320c5545941e4072b211dab, type: 3}
+  crystalsParent: {fileID: 225229495}
   maxCrystalCap: 10
 --- !u!224 &225229495
 RectTransform:
@@ -3110,8 +3110,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e567ea27a9370d4aaecf1030ec115fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  crystalsParent: {fileID: 1341083042}
   crystalPrefab: {fileID: 5786240167613382979, guid: c60233b68320c5545941e4072b211dab, type: 3}
+  crystalsParent: {fileID: 1341083042}
   maxCrystalCap: 10
 --- !u!114 &1341083044
 MonoBehaviour:
@@ -4322,8 +4322,8 @@ MonoBehaviour:
   twoAPLimit: 12
   fiveAPLimit: 8
   tenAPLimit: 4
-  DrawperHand: 5
-  HandstartSize: 5
+  DrawperHand: 3
+  HandstartSize: 0
   maxHandSize: 10
   deckSize: 40
   handUIManager: {fileID: 395746690}
@@ -6499,6 +6499,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2041279331970489187, guid: c1be35cc40f37924eaf7f81324f8939d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2237423212150617462, guid: c1be35cc40f37924eaf7f81324f8939d, type: 3}
       propertyPath: Maxmana
       value: 2
@@ -7158,6 +7162,10 @@ PrefabInstance:
       propertyPath: m_PixelsPerUnitMultiplier
       value: 11.56
       objectReference: {fileID: 0}
+    - target: {fileID: 5378524655579400066, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5614428731504386628, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -7220,7 +7228,7 @@ PrefabInstance:
       objectReference: {fileID: 1261439285}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: maxMana
-      value: 6
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: DotEffect
@@ -7228,7 +7236,7 @@ PrefabInstance:
       objectReference: {fileID: 1370730766}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: currentMana
-      value: 6
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: deckManager

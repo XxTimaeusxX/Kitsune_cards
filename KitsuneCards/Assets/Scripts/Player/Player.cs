@@ -27,8 +27,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     [Header("Mana")]
     public float maxMana = 10;
     public float currentMana = 2;
-    public TMP_Text manaText;
-    public Image Manabar;
+
     // Cap for max mana (will be used if manaCrystalsUI is not assigned)
     public int maxManaCap = 10;
 
@@ -179,16 +178,15 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     // Updated to use the simple ball crystals UI
     public void UpdateManaUI()
     {
-        if (manaText != null) manaText.text = $"{currentMana}/{maxMana}";
-        if(Manabar !=null)Manabar.fillAmount = maxMana > 0 ? currentMana / maxMana : 0f;
+        // Numeric text and legacy image bar are intentionally NOT updated anymore.
+        // The UI is now driven by the ManaCrystalsUI (balls) only.
 
         Debug.Log($"Player.UpdateManaUI on '{name}': currentMana={currentMana}, maxMana={maxMana}");
 
-        // Update crystals UI if present. Uses integer balls and simple instantiate logic.
+        // Update crystals UI if present.
         if (manaCrystalsUI != null)
         {
             int intMax = Mathf.Clamp(Mathf.RoundToInt(maxMana), 0, manaCrystalsUI.maxCrystalCap);
-            // only re-initialize when the max changed to avoid destroying/creating each update
             if (intMax != _lastInitializedCrystals)
             {
                 Debug.Log($"Player.UpdateManaUI: Reinitializing crystals for '{name}' to {intMax} (previous {_lastInitializedCrystals})");
@@ -196,14 +194,17 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
                 _lastInitializedCrystals = intMax;
             }
 
-            // Use Floor so when currentMana moves down slightly it visibly decreases
             int intCurrent = Mathf.Clamp(Mathf.FloorToInt(currentMana), 0, intMax);
-            Debug.Log($"Player.UpdateManaUI: calling ShowBalls({intCurrent}) on manaCrystalsUI for '{name}'");
             manaCrystalsUI.ShowBalls(intCurrent);
         }
         else
         {
-            Debug.LogWarning($"Player.UpdateManaUI: manaCrystalsUI is NULL on Player '{name}'");
+            // If crystals not assigned, do nothing visible. Keep a single warning so logs aren't spammy.
+            if (_lastInitializedCrystals != -2) // simple one-time sentinel
+            {
+                Debug.LogWarning($"Player.UpdateManaUI: manaCrystalsUI is NULL on Player '{name}'. No visual mana will be shown.");
+                _lastInitializedCrystals = -2;
+            }
         }
     }
     public void UpdateArmorUI()
