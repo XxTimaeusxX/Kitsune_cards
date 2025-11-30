@@ -646,8 +646,6 @@ public class CardDeckManager : MonoBehaviour
         // Turn-based upkeep: DoT tick
         if (enemy.activeDoTTurns > 0)
         {
-            Debug.Log("doteffect");
-            GameTurnMessager.instance.ShowMessage($"Enemy takes {enemy.activeDoTDamage} damage, {enemy.activeDoTTurns} DoT turns remaining ");
             enemy.DotFireEffect.Play();
             AudioManager.Instance.PlayDoTSFX();
 
@@ -674,7 +672,6 @@ public class CardDeckManager : MonoBehaviour
         // Stun check
         if (enemy.stunTurnsRemaining > 0)
         {
-            Debug.Log($"Enemy is stunned for {enemy.stunTurnsRemaining} and skips its turn!");
             GameTurnMessager.instance.ShowMessage($"Enemy is stunned for {enemy.stunTurnsRemaining}, turn skipped.");
             RefreshEnemyStatusHUD();
             yield return new WaitForSeconds(2f);

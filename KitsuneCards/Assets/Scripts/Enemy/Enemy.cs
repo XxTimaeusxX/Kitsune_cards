@@ -37,7 +37,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     [Header("Mana")]
     public int Maxmana = 10;
     public int Currentmana = 5;
-
+    public TMP_Text enemymanaText;
     // cap for enemy max mana (parallel to Player.maxManaCap)
     public int maxManaCap = 10;
 
@@ -49,6 +49,13 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     [Header("Damage")]
     public Animator DamageVFX;
     public int damageAmount = 0;
+    // Damage text (numeric) and fade controls
+    public TMP_Text damageText;
+    [Tooltip("Duration (seconds) that damage text will fade out")]
+    public float damageTextFadeDuration = 1.0f;
+    private Coroutine _damageTextFadeCoroutine;
+    private Color _damageTextOriginalColor;
+    private float _damageTextOriginalAlpha = 1f;
 
     [Header("Status HUD")]
     public StatusIconBar EnemystatusHUD; // Drag your statusHUD (with StatusIconBar) here
@@ -174,6 +181,17 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         // Refresh UI
         UpdateEnemyHealthUI();
         UpdateManaUI();
+
+        // Prepare damage text: cache original color/alpha and hide initially
+        if (damageText != null)
+        {
+            _damageTextOriginalColor = damageText.color;
+            _damageTextOriginalAlpha = _damageTextOriginalColor.a > 0f ? _damageTextOriginalColor.a : 1f;
+            var hidden = _damageTextOriginalColor;
+            hidden.a = 0f;
+            damageText.color = hidden;
+            damageText.text = string.Empty;
+        }
 
         _bossTurnIndex = 0;
         if (bossData != null)
@@ -534,7 +552,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
                 Currentmana -= selectedAbility.Value.ManaCost;
                 UpdateManaUI();
 
-                GameTurnMessager.instance.ShowMessage($"Enemy plays {cardToPlay.CardName} ({selectedAbility.Value.Type})!");
+               // GameTurnMessager.instance.ShowMessage($"Enemy plays {cardToPlay.CardName} ({selectedAbility.Value.Type})!");
                 yield return new WaitForSeconds(1f);
 
                 if (abilityManager != null && cardToPlay != null)// call the method and assign the target enemy cards affect(player)
@@ -595,6 +613,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         // The UI is now driven by the ManaCrystalsUI (balls) only.
 
         // Update mana crystal UI if assigned
+        if(enemymanaText != null) enemymanaText.text = $"{Currentmana}/{Maxmana}";
         if (manaCrystalsUI != null)
         {
             int intMax = Mathf.Clamp(Maxmana, 0, manaCrystalsUI.maxCrystalCap);
@@ -622,9 +641,34 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     {
         AudioManager.Instance.PlayAttackSFX();
         DamageVFX.SetTrigger("ClawSlash");
-        CurrentHealth -= amount;
+
+        // Apply damage debuff if active (mirror player's behavior if needed)
+        int debuffedAmount = amount;
+        if (damageDebuffTurns > 0)
+        {
+            debuffedAmount = Mathf.RoundToInt(debuffedAmount * damageDebuffMultiplier);
+        }
+
+        CurrentHealth -= debuffedAmount;
         UpdateEnemyHealthUI();
-        Debug.Log($"Boss takes {amount} damage. Health: {CurrentHealth}/{MaxHealth}");
+
+        // Always show numeric damage value on hit and fade it out.
+        if (damageText != null)
+        {
+            // stop previous fade if running
+            if (_damageTextFadeCoroutine != null) StopCoroutine(_damageTextFadeCoroutine);
+
+            // set visible color (red) and full alpha, then set text
+            Color visible = Color.red;
+            visible.a = _damageTextOriginalAlpha > 0f ? _damageTextOriginalAlpha : 1f;
+            damageText.color = visible;
+            damageText.text = $"-{debuffedAmount}";
+
+            // start fade coroutine
+            _damageTextFadeCoroutine = StartCoroutine(FadeDamageTextRoutine(damageTextFadeDuration));
+        }
+
+        Debug.Log($"Enemy takes {debuffedAmount} damage. Health: {CurrentHealth}/{MaxHealth}");
 
         if (CurrentHealth <= 0)
         {
@@ -704,7 +748,7 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
         // activeDoTDamage = Mathf.Max(activeDoTDamage, damageAmount);
         DebuffEffect.Play();// play debuff particle effect
         EnemystatusHUD.UpdateDot(activeDoTDamage,activeDoTTurns);
-        GameTurnMessager.instance.ShowMessage($"Enemy takes {activeDoTDamage} DoT damage for {activeDoTTurns} turns!");
+       
     }
     public void TripleDoT()
     {     
@@ -818,6 +862,37 @@ public class Enemy : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuffa
     {
         if (enemyPortrait == null) return defaultAlpha;
         return enemyPortrait.color.a;
+    }
+
+    // Damage text fade coroutine (mirrors Player implementation)
+    private IEnumerator FadeDamageTextRoutine(float duration)
+    {
+        if (damageText == null)
+        {
+            _damageTextFadeCoroutine = null;
+            yield break;
+        }
+
+        float startAlpha = damageText.color.a;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float a = Mathf.Lerp(startAlpha, 0f, t);
+            var c = damageText.color;
+            c.a = a;
+            damageText.color = c;
+            yield return null;
+        }
+
+        // fully hide and clear text
+        var final = damageText.color;
+        final.a = 0f;
+        damageText.color = final;
+        damageText.text = string.Empty;
+        _damageTextFadeCoroutine = null;
     }
 
     // Add these helper methods to the Enemy class (near other private helpers)

@@ -27,7 +27,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     [Header("Mana")]
     public float maxMana = 10;
     public float currentMana = 2;
-
+    public TMP_Text PlayermanaText; 
     // Cap for max mana (will be used if manaCrystalsUI is not assigned)
     public int maxManaCap = 10;
 
@@ -46,7 +46,15 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
     [Header("Damage")]
     public Animator DamageVFX;
     public int damageAmount = 0;
+    public TMP_Text damageText;
 
+
+    // Fade settings for damage text
+    [Tooltip("Duration (seconds) that damage text will fade out")]
+    public float damageTextFadeDuration = 1.0f;
+    private Coroutine _damageTextFadeCoroutine;
+    private Color _damageTextOriginalColor;
+    private float _damageTextOriginalAlpha = 1f;
 
     [Header("Status HUD")]
     public StatusIconBar statusHUD; // Drag your statusHUD (with StatusIconBar) here
@@ -87,6 +95,17 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
 
         UpdateManaUI();
         UpdateArmorUI();
+
+        // Prepare damage text: cache original color/alpha and hide initially
+        if (damageText != null)
+        {
+            _damageTextOriginalColor = damageText.color;
+            _damageTextOriginalAlpha = _damageTextOriginalColor.a > 0f ? _damageTextOriginalColor.a : 1f;
+            var hidden = _damageTextOriginalColor;
+            hidden.a = 0f;
+            damageText.color = hidden;
+            damageText.text = string.Empty;
+        }
     }
     public void PstartTurn()
     {
@@ -181,8 +200,8 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         // Numeric text and legacy image bar are intentionally NOT updated anymore.
         // The UI is now driven by the ManaCrystalsUI (balls) only.
 
-        Debug.Log($"Player.UpdateManaUI on '{name}': currentMana={currentMana}, maxMana={maxMana}");
-
+        //Debug.Log($"Player.UpdateManaUI on '{name}': currentMana={currentMana}, maxMana={maxMana}");
+        if(PlayermanaText != null) PlayermanaText.text = $"{currentMana}/{maxMana}";
         // Update crystals UI if present.
         if (manaCrystalsUI != null)
         {
@@ -298,9 +317,54 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
                 }
             }
         }
-      
+
+        // Always show numeric damage value on hit and fade it out.
+        if (damageText != null)
+        {
+            // stop previous fade if running
+            if (_damageTextFadeCoroutine != null) StopCoroutine(_damageTextFadeCoroutine);
+
+            // set visible color (red) and full alpha, then set text
+            Color visible = Color.red;
+            visible.a = _damageTextOriginalAlpha > 0f ? _damageTextOriginalAlpha : 1f;
+            damageText.color = visible;
+            damageText.text = $"-{damageAfterArmor}";
+
+            // start fade coroutine
+            _damageTextFadeCoroutine = StartCoroutine(FadeDamageTextRoutine(damageTextFadeDuration));
+        }
 
         Debug.Log($"Player takes {amount} damage. Health: {currentHealth}");
+    }
+
+    private IEnumerator FadeDamageTextRoutine(float duration)
+    {
+        if (damageText == null)
+        {
+            _damageTextFadeCoroutine = null;
+            yield break;
+        }
+
+        float startAlpha = damageText.color.a;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float a = Mathf.Lerp(startAlpha, 0f, t);
+            var c = damageText.color;
+            c.a = a;
+            damageText.color = c;
+            yield return null;
+        }
+
+        // fully hide and clear text
+        var final = damageText.color;
+        final.a = 0f;
+        damageText.color = final;
+        damageText.text = string.Empty;
+        _damageTextFadeCoroutine = null;
     }
     ///////////// IBlockable///////////////
 
@@ -371,7 +435,6 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         buffBlockPercentage = blockamount;
         BuffEffect.Play();
         AudioManager.Instance.PlayBuffSFX();
-        GameTurnMessager.instance.ShowMessage($"Player's block cards value are doubled for 2 turns.");
         statusHUD.UpdateBlockX(buffBlockPercentage, buffBlockTurns);
     }
     ///////////// IDeBuffable///////////////
@@ -382,7 +445,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
         activeDoTTurns += turns;
         activeDoTDamage += damageAmount;
         statusHUD.UpdateDot(activeDoTDamage, activeDoTTurns);
-        GameTurnMessager.instance.ShowMessage($"Player takes {damageAmount} DoT for {turns} turns.");
+        
     }
 
     public void TripleDoT()
@@ -393,7 +456,7 @@ public class Player : MonoBehaviour, IDamageable, IBlockable, IDebuffable, IBuff
             AudioManager.Instance.PlayDeBuffSFX();
             DebuffEffect.Play();
             statusHUD.UpdateDot(activeDoTDamage, activeDoTTurns);
-            GameTurnMessager.instance.ShowMessage($"Player's DoT damage is tripled.");
+            
         }
     }
     public void ApplyDamageDebuff(int turns, float multiplier)
