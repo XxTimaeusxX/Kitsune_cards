@@ -16,7 +16,7 @@ MonoBehaviour:
   BossSprite: {fileID: 21300000, guid: 90669a4b6d51f714fbf15f27b7484164, type: 3}
   Ability: 2
   OverrideStats: 1
-  BossMaxHealth: 150
+  BossMaxHealth: 65
   BossMaxMana: 3
   BossStartMana: 3
   healEveryTurns: 2

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EnemyName: "Parasol \u2014 The One-Eyed Trickster "
   EnemySprite: {fileID: 21300000, guid: e3a7e01c0dc7f88448e592b8213d7d48, type: 3}
-  MaxHealth: 30
+  MaxHealth: 25
   MaxMana: 2
   StartMana: 2
   CardsResourceFolder: enemy1

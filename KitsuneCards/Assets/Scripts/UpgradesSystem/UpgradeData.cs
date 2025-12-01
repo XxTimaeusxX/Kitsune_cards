@@ -136,7 +136,7 @@ public class UpgradeData : MonoBehaviour
             new UpgradeDef
             {
                 Title = "Baku's Retribution",
-                Description = $"Reflect %50 of incoming Damage for {bakuReflectTurns} turns",
+                Description = $"Reflect 50% of incoming Damage for {bakuReflectTurns} turns",
                 upgradeType = UpgradeDef.UpgradeType.ReflectAmount,
                 TurnValue = bakuReflectTurns,
                 MultiplierAmount = .50f,
@@ -160,7 +160,7 @@ public class UpgradeData : MonoBehaviour
                 new UpgradeDef// not implemented yet
             {
                 Title = "Searing Retribution",
-                Description = $"recieve {searingDot} Dot damage for {searingTurns} turn,enemy receives double.",
+                Description = $"recieve {searingDot} DoT for {searingTurns} turn,enemy receives double.",
                 upgradeType = UpgradeDef.UpgradeType.Searing_Retribution,
                 TurnValue =  searingTurns,
                 ValueAmount = searingDot,
