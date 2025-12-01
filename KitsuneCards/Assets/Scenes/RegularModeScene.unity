@@ -4153,9 +4153,9 @@ MonoBehaviour:
   twoAPLimit: 12
   fiveAPLimit: 8
   tenAPLimit: 4
-  DrawperHand: 3
+  DrawperHand: 4
   HandstartSize: 0
-  maxHandSize: 10
+  maxHandSize: 12
   deckSize: 40
   handUIManager: {fileID: 395746690}
   cards: []
@@ -7123,7 +7123,7 @@ PrefabInstance:
       objectReference: {fileID: 1261439285}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: maxMana
-      value: 4
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: DotEffect
@@ -7134,8 +7134,12 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1793162193}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
+      propertyPath: maxManaCap
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: currentMana
-      value: 4
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8004112086286064136, guid: d00bd5032fc1add4dbacd73680014b57, type: 3}
       propertyPath: deckManager
